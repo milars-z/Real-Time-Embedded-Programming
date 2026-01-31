@@ -10,9 +10,13 @@
  **/
 
 /**
- * use for get user command to control a servo
+ * ServoEngine - raspi5 ServoEngine
  * 
- *  Ziyin Zeng
+ * basic reference : berndporr
+ * rebuild for raspi5 : Ziyin Zeng
+ * License ：MIT
+ * Time : 01,30,2026
+ * 
  **/
 
 #include <stdlib.h>

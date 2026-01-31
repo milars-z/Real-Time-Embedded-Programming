@@ -6,6 +6,16 @@
 
 using namespace std;
 
+/**
+ * ServoEngine - raspi5 ServoEngine
+ * 
+ * basic reference : berndporr
+ * rebuild for raspi5 : Ziyin Zeng
+ * License ：MIT
+ * Time : 01,30,2026
+ * 
+ **/
+
 // --- MG90S_Servo ---
 class MG90sController {
 public:
