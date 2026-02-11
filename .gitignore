@@ -39,3 +39,33 @@
 
 # debug information files
 *.dwo
+
+*.o
+*.obj
+*.out
+*.exe
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+
+build/
+bin/
+obj/
+out/
+cmake-build-debug/
+cmake-build-release/
+
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/ ;
+cmake_install.cmake
+Makefile
+
+.vscode/
+.vs/
+.idea/
+*.user
+*.suo
+*.sln
