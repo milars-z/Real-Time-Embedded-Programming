@@ -69,3 +69,7 @@ Makefile
 *.user
 *.suo
 *.sln
+
+model/
+
+vosk*
