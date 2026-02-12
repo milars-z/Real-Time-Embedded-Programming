@@ -10,13 +10,25 @@
 #include <thread>
 #include <atomic>
 
-
-
 std::atomic<bool> keepRunning(true);
 
 int main() {
     
     // INIT parts
+    // GET SPEAKER AND MICROPHONE NAME
+    // card 2: UACDemoV10 [UACDemoV1.0], device 0: USB Audio [USB Audio]
+    std::string speaker_path = find_alsa_device("UACDemo", false);
+    if (speaker_path.empty()) {
+        std::cerr << "Error: Could not find speaker device!" << std::endl; 
+        return -1; 
+    }
+    // card 3: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
+    std::string mic_path = find_alsa_device("USB PnP", true);
+    if (mic_path.empty()) {
+        std::cerr << "Error: Could not find microphone device!" << std::endl;
+        return -1;
+    }
+    
     // INIT Vosk Model 
     VoskModel *model = vosk_model_new("../../MicrophoneTest/model");
     if (!model) {
@@ -28,13 +40,13 @@ int main() {
     VoskRecognizer *recognizer = vosk_recognizer_new(model, 16000.0);
 
     // INIT Speaker
-    UsbSpeaker speaker("hw:2,0", 44100, 2);
+    UsbSpeaker speaker(speaker_path, 44100, 2);
     if (!speaker.open()) {
         std::cerr << "Failed to open speaker!" << std::endl;
     }
 
     // INIT Microphone
-    UsbMicrophone mic("plughw:3,0", 16000, 1);
+    UsbMicrophone mic(mic_path, 16000, 1);
     if (!mic.open()) {
         std::cerr << "Failed to open microphone!" << std::endl;
         return -1;
