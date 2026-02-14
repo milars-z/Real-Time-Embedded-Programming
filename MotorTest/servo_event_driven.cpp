@@ -26,17 +26,28 @@ public:
         system(cmd.c_str());
         system("echo 0 | sudo tee /sys/class/pwm/pwmchip0/export > /dev/null 2>&1");
         
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        write_sysfs("enable", "0");
+
         // initial setting
         write_sysfs("period", "20000000"); 
+
+
+        // initial angle
+        // This value depends on the position during assembly and may need to be adjusted
+        setAngle(30.0); 
+
         write_sysfs("enable", "1");
-        setAngle(90.0); 
+        
     }
 
     // change angle
     void setAngle(float angle) {
         lock_guard<mutex> lock(mtx);
-        if (angle < 0) angle = 0;
-        if (angle > 180) angle = 180;
+        // these values depends on the position during assembly and may need to be adjusted
+        if (angle < 30) angle = 30;
+        if (angle > 150) angle = 150;
         currentAngle = angle;
 
         long duty = 500000 + (long)(currentAngle / 180.0 * 2000000);
@@ -49,7 +60,8 @@ public:
     }
 
 private:
-    float currentAngle = 90.0;
+    // This value depends on the position during assembly and may need to be adjusted
+    float currentAngle = 30.0;
     mutex mtx;
     const string path = "/sys/class/pwm/pwmchip0/pwm0/";
 
