@@ -20,11 +20,11 @@ The system is built on five modular pillars:
 ## 📅 Development Roadmap
 
 ### Stage 1: Hardware Foundation & Simulation (01/28 – 02/15)
-- [ ] **Physical Assembly**: 3D print and assemble the **EEZYbotARM Mk2**.
+- [ √ ] **Physical Assembly**: 3D print and assemble the **EEZYbotARM Mk2**.
     - *Ref:* [Instructables Guide](https://www.instructables.com/EEZYbotARM-Mk2-3D-Printed-Robot/) | [Thingiverse Files](https://www.thingiverse.com/thing:1454048)
-- [ ] **Digital Twin**: Implement Python-based simulation (PyQt/PySide) for synchronized movement.
-- [ ] **Low-level Control**: Establish Raspberry Pi GPIO control with multi-threading.
-- [ ] **Speech/Vision Baseline**: Implement basic keyword extraction and image matching benchmarks (accuracy & blurriness analysis).
+- [ × ] **Digital Twin**: Implement Python-based simulation (PyQt/PySide) for synchronized movement.(This module will be developed in the middle of the project)
+- [ √ ] **Low-level Control**: Establish Raspberry Pi GPIO control with multi-threading.
+- [ √ ] **Speech/Vision Baseline**: Implement basic keyword extraction and image matching benchmarks (accuracy & blurriness analysis).
 
 ### Stage 2: Embedded Deployment & Kinematics (02/23 – 03/09)
 - [ ] **Embedded Migration**: Transition control from PC to standalone embedded deployment.
@@ -42,7 +42,7 @@ The system is built on five modular pillars:
 ---
 
 ## 🚩 Key Milestones
-- [ ] **Lunar New Year (Feb 15)**: Prototype verification (Physical arm is fully mobile).
+- [ √ ] **Lunar New Year (Feb 15)**: Prototype verification (Physical arm is fully mobile).
 - [ ] **Early March**: Standalone embedded control (PC-independent).
 - [ ] **Early April**: Full deployment of Speech and Image Recognition systems.
 
