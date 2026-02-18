@@ -51,6 +51,7 @@
 *.dylib
 
 build/
+build_*/
 bin/
 obj/
 out/
@@ -69,3 +70,5 @@ Makefile
 *.user
 *.suo
 *.sln
+.github/
+*.py

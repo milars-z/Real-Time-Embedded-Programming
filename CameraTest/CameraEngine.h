@@ -27,6 +27,7 @@ public:
     ~CameraEngine() { stop(); } 
 
     bool start(int width = 640, int height = 480, int fps = 30);
+    bool startFromFile(const std::string& path);
     
     void stop();
 

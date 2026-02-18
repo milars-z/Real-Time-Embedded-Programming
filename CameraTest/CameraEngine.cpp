@@ -42,6 +42,21 @@ bool CameraEngine::start(int width, int height, int fps) {
     return true;
 }
 
+bool CameraEngine::startFromFile(const std::string& path) {
+    if (active) return true;
+
+    cap.open(path);
+    if (!cap.isOpened()) {
+        std::cerr << "[CameraEngine] wrong!:can't open video file: " << path << std::endl;
+        return false;
+    }
+
+    active = true;
+    workerThread = std::thread(&CameraEngine::captureLoop, this);
+
+    return true;
+}
+
 void CameraEngine::captureLoop() {
     cv::Mat frame;
     while (active) {
