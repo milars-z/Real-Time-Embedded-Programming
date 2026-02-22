@@ -1,11 +1,11 @@
-#include "CameraEngine.h"
+#include "CameraEngine.hpp"
 
 /**
  * CameraEngine - raspi5 CameraEngine
  * 
  * basic reference : berndporr
  * rebuild for raspi5 : Ziyin Zeng
- * License ：MIT
+ * License ：GPL
  * Time : 01,30,2026
  * 
  **/

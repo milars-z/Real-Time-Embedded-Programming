@@ -1,156 +1,127 @@
-#include "CameraEngine.h"
-#include "YoloDetector.h"
+#include "AttentionDetector.hpp"
+#include "FeatureManager.hpp"
+#include "CameraEngine.hpp" 
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <thread>
-#include <atomic>
 #include <mutex>
-#include <condition_variable>
+#include <cstdlib>
 
-static std::vector<std::string> loadClassNames(const std::string& path) {
-    std::vector<std::string> names;
-    std::ifstream ifs(path);
-    if (!ifs.is_open()) return names;
-    std::string line;
-    while (std::getline(ifs, line)) {
-        if (!line.empty()) names.push_back(line);
-    }
-    return names;
-}
+using namespace std;
+using namespace cv;
 
-int main(int argc, char** argv) {
-    // Usage:
-    // 1) Test image:    CameraTest test <image_path> <model.onnx> [class_names.txt]
-    // 2) Camera stream: CameraTest camera <model.onnx> [class_names.txt]
-    // 3) Video file:    CameraTest video <video_path> <model.onnx> [class_names.txt]
-    //    or:           CameraTest <model.onnx> [class_names.txt]
+mutex frame_mtx;
+Mat shared_frame;
 
-    bool isTest = false;
-    bool isVideo = false;
-    std::string mode = "camera";
-    std::string imagePath;
-    std::string videoPath;
-    std::string modelPath = "yolov5s.onnx";
-    std::string classFile;
+int main() {
+    string model_path = "../model/mobilenet_v2_slice.onnx";
+    
+    // single core computing
+    cv::setNumThreads(1);
 
-    if (argc >= 2) {
-        mode = argv[1];
-        if (mode == "test") isTest = true;
-        if (mode == "video") isVideo = true;
-    }
+    setenv("OMP_NUM_THREADS", "1", 1);
+    setenv("OPENBLAS_NUM_THREADS", "1", 1);
+    setenv("MKL_NUM_THREADS", "1", 1);
 
-    if (isTest) {
-        if (argc >= 4) {
-            imagePath = argv[2];
-            modelPath = argv[3];
-            if (argc >= 5) classFile = argv[4];
-        } else {
-            std::cerr << "Usage: " << argv[0] << " test <image_path> <model.onnx> [class_names.txt]" << std::endl;
-            return 1;
-        }
-    } else if (isVideo) {
-        if (argc >= 4) {
-            videoPath = argv[2];
-            modelPath = argv[3];
-            if (argc >= 5) classFile = argv[4];
-        } else {
-            std::cerr << "Usage: " << argv[0] << " video <video_path> <model.onnx> [class_names.txt]" << std::endl;
-            return 1;
-        }
-    } else {
-        // camera mode
-        if (argc >= 3) {
-            // CameraTest camera <model> [class]
-            modelPath = argv[2];
-            if (argc >= 4) classFile = argv[3];
-        } else if (argc == 2) {
-            // CameraTest <model>
-            modelPath = argv[1];
-        }
-    }
-
-    std::vector<std::string> classNames;
-    if (!classFile.empty()) classNames = loadClassNames(classFile);
-
-    YoloDetector detector(modelPath);
-    if (!detector.isValid()) {
-        std::cerr << "YoloDetector failed to initialize with model: " << modelPath << std::endl;
-        return 1;
-    }
-
-    if (isTest) {
-        cv::Mat img = cv::imread(imagePath);
-        if (img.empty()) {
-            std::cerr << "Failed to read image: " << imagePath << std::endl;
-            return 1;
-        }
-        auto dets = detector.detect(img);
-        detector.drawDetections(img, dets, classNames);
-        cv::imshow("Detections", img);
-        std::cout << "Press any key to exit..." << std::endl;
-        cv::waitKey(0);
-        return 0;
-    }
-
+    // Image detection module module
+    AttentionDetector detector(model_path);
+    // Feature Management Module
+    FeatureManager feat_mgr("my_features.yml"); 
+    // Camera hardware layer
     CameraEngine cam;
-    std::mutex frameMutex;
-    std::condition_variable frameCv;
-    cv::Mat latestFrame;
-    std::atomic<bool> hasFrame(false);
-    std::atomic<bool> running(true);
 
-    cam.onFrame([&](const cv::Mat& img) {
-        if (!running || img.empty()) return;
+    //Open the thread and save the current frame to shared_frame
+    cam.onFrame([&](const Mat& img){
+        if(img.empty()) return;
+        lock_guard<mutex> lock(frame_mtx);
+        img.copyTo(shared_frame);
+    });
+
+    // Start camera thread to receive data
+    cam.start(); 
+
+    namedWindow("Demo", WINDOW_AUTOSIZE);
+    Mat current_frame, display_frame;
+
+    while(true) {
         {
-            std::lock_guard<std::mutex> lock(frameMutex);
-            latestFrame = img.clone();
-            hasFrame = true;
-        }
-        frameCv.notify_one();
-    });
-
-    std::thread inferThread([&]() {
-        const char* winName = isVideo ? "Video Detections" : "Camera Detections";
-        while (running) {
-            cv::Mat frame;
-            {
-                std::unique_lock<std::mutex> lock(frameMutex);
-                frameCv.wait(lock, [&]() { return !running || hasFrame.load(); });
-                if (!running) break;
-                frame = latestFrame.clone();
-                hasFrame = false;
+            //Check if there are any images in shared_frame, and process img data if there are
+            lock_guard<mutex> lock(frame_mtx);
+            if(shared_frame.empty()) {
+                waitKey(10); continue;
             }
-
-            if (frame.empty()) continue;
-            auto dets = detector.detect(frame);
-            detector.drawDetections(frame, dets, classNames);
-            cv::imshow(winName, frame);
-            cv::waitKey(1);
+            shared_frame.copyTo(current_frame);
         }
-    });
 
-    if (isVideo) {
-        if (cam.startFromFile(videoPath)) {
-            std::cout << "运行中，按 Enter 键停止..." << std::endl;
-            std::cin.get();
+        // Save original frame
+        display_frame = current_frame.clone();
+
+        // Obtain test results
+        // DetectedObject class vector, used to store all detected objs
+        vector<DetectedObject> objects = detector.detect(current_frame);
+
+        // Draw a regular detection box
+        // Only used for module demonstration or debugging, not required for actual operation
+        for(auto& obj : objects) {
+            rectangle(display_frame, obj.box, Scalar(0, 255, 0), 2);
+            // Display ID
+            putText(display_frame, to_string(obj.id), Point(obj.box.x, obj.box.y-5), 
+                    FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,255,0), 1);
         }
-        running = false;
-        frameCv.notify_all();
-        cam.stop();
-        if (inferThread.joinable()) inferThread.join();
-        return 0;
-    }
 
-    if (cam.start(640, 480, 30)) {
-        std::cout << "运行中，按 Enter 键停止..." << std::endl;
-        std::cin.get();
-    }
+        imshow("Demo", display_frame);
 
-    running = false;
-    frameCv.notify_all();
-    cam.stop();
-    if (inferThread.joinable()) inferThread.join();
+        // Single module button demonstration
+        int key = waitKey(30);
+        if (key == 'q') break;
+        
+
+        // [B] Update Background
+        if (key == 'b') {
+            detector.update_background(current_frame);
+        }
+        
+        // [S] Save the largest object as' obj_1 '
+        else if (key == 's') {
+            if (objects.empty()) {
+                cout << "There are no objects in the picture, unable to save." << endl;
+            } else {
+                // Find the object with the largest area
+                int max_idx = 0; 
+                float max_area = 0;
+                for(int i=0; i<objects.size(); i++) {
+                    if (objects[i].score > max_area) {
+                        max_area = objects[i].score;
+                        max_idx = i;
+                    }
+                }
+                feat_mgr.save_feature(objects[max_idx], "obj_1");
+            }
+        }
+
+        // [M] Match 'obj_1'
+        else if (key == 'm') {
+            // Call the matching function, which will modify the matchname in the objects
+            // Called in the main function to detect different items
+            // Return the ID of the object, and subsequently pass in the attributes of this ID, 
+            // such as the center point coordinates for the robotic arm to grasp and the orientation for the robotic arm to move to that orientation
+            int idx = feat_mgr.match_object("obj_1", objects, 0.4f); // 阈值 0.4
+            
+            if (idx != -1) {
+                // Highlight the matched object
+                // For demonstration purposes
+                // After detection, return the information to the main thread core or robotic arm core for processing
+                Rect b = objects[idx].box;
+                rectangle(display_frame, b, Scalar(0, 0, 255), 3); // 红色框
+                putText(display_frame, "Found: obj_1", Point(b.x, b.y+b.height+20), 
+                        FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0,0,255), 2);
+                
+                imshow("Demo", display_frame); 
+                cout << ">>> Match successful, press any key to continue .." << endl;
+                waitKey(0);
+            } else {
+                cout << ">>> Obj_1 not found" << endl;
+            }
+        }
+    }
+    
     return 0;
 }
