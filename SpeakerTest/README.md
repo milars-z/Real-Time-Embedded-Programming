@@ -15,7 +15,7 @@ make
 
 # Version2.0
 ## tips
-Update e-speaker to piper to get a better experience
+Update Espeak to Sherpa-Onnx to get a better experience
 before use the speaker please check the structure of file
 ```bash
 SpeakerTest/
@@ -52,7 +52,7 @@ wget https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/v1.12.25/sherpa-onnx/c
 ```bash
 mkdir model
 cd model
-# download chinese model(if need)
+# download chinese model
 wget https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-zh_CN-huayan-medium.tar.bz2
 # unzip
 tar xvf vits-piper-zh_CN-huayan-medium.tar.bz2
@@ -63,7 +63,7 @@ rm vits-piper-zh_CN-huayan-medium.tar.bz2
 ```bash
 mkdir model
 cd model
-# download chinese model(if need)
+# download english model
 wget https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-cori-medium-int8.tar.bz2
 # unzip
 tar xvf vits-piper-en_GB-cori-medium-int8.tar.bz2
