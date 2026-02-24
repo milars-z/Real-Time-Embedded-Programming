@@ -1,33 +1,99 @@
 #include "SpeakerEngine.hpp"
+#include <cstring>
+#include <cmath>
+#include <thread>
+#include <sched.h>
+#include <pthread.h>
 
 //espeak need a global pointer to the instance for callback access
 UsbSpeaker* UsbSpeaker::_instance = nullptr;
 
+// tool for multithread
+static void pinThreadToCore(std::thread &th, int core_id) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+
+    int rc = pthread_setaffinity_np(th.native_handle(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << "Error pinning thread to core " << core_id << std::endl;
+    } else {
+        std::cout << "Thread bound to Core " << core_id << std::endl;
+    }
+}
+
 //set the callback function for espeak
 //_instance is a pointer to the class
-UsbSpeaker::UsbSpeaker(const std::string& deviceName, unsigned int sampleRate, int channels)
-    : _deviceName(deviceName), _sampleRate(sampleRate), _channels(channels) {
+UsbSpeaker::UsbSpeaker(const std::string& deviceName, 
+                       const ModelPaths& models,
+                       int channels,
+                       int language)
+    : _deviceName(deviceName), _channels(channels) {
     _instance = this;
 
-    // init eSpeak
-    //AUDIO_OUTPUT_RETRIEVAL:directly retrieve audio data via callback, no internal playback
-    espeak_Initialize(AUDIO_OUTPUT_RETRIEVAL, 0, nullptr, 0);
-    
-    //set the callback function for eSpeak
-    espeak_SetSynthCallback(espeakCallback); 
+    // reset the config file
+    memset(&_config, 0, sizeof(_config));
 
-    //set speak rate and volume
-    espeak_SetParameter(espeakRATE, 80, 0); 
-    espeak_SetParameter(espeakVOLUME, 200, 0);
+    std::string modelPath;
+
+    if(language == 0){
+        // use En
+        modelPath = models.en + "/en_GB-cori-medium.onnx";
+    }else{
+        // use Zh
+        modelPath = models.zh + "/zh_CN-huayan-medium.onnx";
+    }
+    // use for VITS
+    //std::string lexiconPath = modelDir + "/lexicon.txt";
+
+    // use for piper
+    std::string dataDirPath = models.en + "/espeak-ng-data";
+    _config.model.vits.lexicon = nullptr; 
+
+    std::string tokensPath = models.en + "/tokens.txt";
+
     
-    //set English voice
-    espeak_SetVoiceByName("en"); 
+    _config.model.vits.model = strdup(modelPath.c_str());
+    // use for VITS
+    //_config.model.vits.lexicon = strdup(lexiconPath.c_str());
+    _config.model.vits.tokens = strdup(tokensPath.c_str());
+
+    // use for piper
+    _config.model.vits.data_dir = strdup(dataDirPath.c_str());
+
+
+    // signal-core control
+    _config.model.num_threads = 1;
+    _config.model.vits.length_scale = 1.0f;
+
+
+    // TTS create
+    _tts = SherpaOnnxCreateOfflineTts(&_config);
+
+    if (_tts) {
+        _sampleRate = SherpaOnnxOfflineTtsSampleRate(_tts);
+        std::cout << "Sherpa-Onnx Init Success! Sample Rate: " << _sampleRate << std::endl;
+    } else {
+        std::cerr << "Error: Failed to create Sherpa-Onnx TTS engine!" << std::endl;
+        std::cerr << "Please check model path: " << modelPath << std::endl;
+    }
+
+    _running = false;
+
 }
 
 UsbSpeaker::~UsbSpeaker() {
     stop();
     close();
-    espeak_Terminate();
+    //espeak_Terminate();
+    if (_tts) {
+        SherpaOnnxDestroyOfflineTts(_tts);
+        _tts = nullptr;
+    }
+    if (_config.model.vits.model) free((void*)_config.model.vits.model);
+    // use for VITS
+    // if (_config.model.vits.lexicon) free((void*)_config.model.vits.lexicon);
+    if (_config.model.vits.tokens) free((void*)_config.model.vits.tokens);
 }
 
 bool UsbSpeaker::open() {
@@ -60,54 +126,67 @@ bool UsbSpeaker::open() {
 
     _running = true;
     _playbackThread = std::thread(&UsbSpeaker::playbackLoop, this);
+    _synthesisThread = std::thread(&UsbSpeaker::synthesisLoop, this);
+
+    pinThreadToCore(_synthesisThread, 3);
+    pinThreadToCore(_playbackThread, 3);
+
     return true;
 }
 
 //used by espeakCallback to play PCM data
-void UsbSpeaker::play(const std::vector<short>& data) {
-    {
-        std::lock_guard<std::mutex> lock(_queueMutex);
-        _dataQueue.push(data);
+void UsbSpeaker::playInternal(const std::vector<short>& data) {
+    { 
+    std::lock_guard<std::mutex> lock(_queueMutex);
+    _dataQueue.push(data);
     }
-    // notify the playback thread that new data is available
-    _cv.notify_one(); 
+    _audioCV.notify_one();
 }
 
 //use by main.cpp to play text
 void UsbSpeaker::play(const std::string& text) {
-    // after calling this function , espeak will start a thread to process the text
-    // after processing,it will call the callback function as we set before
-    // espeak_SetSynthCallback(espeakCallback); 
-    espeak_Synth(text.c_str(), text.size() + 1, 0, POS_CHARACTER, 0, espeakCHARS_AUTO, nullptr, nullptr);
+    {
+    std::lock_guard<std::mutex> lock(_textMutex);
+     _textQueue.push(text);
+    }
+     _textCV.notify_one();
 }
 
-// eSpeak callback implementation
-// input from eSpeak, output to ALSA
-// wav: pointer to PCM data, numsamples: number of samples, events: eSpeak events (not used here)
-int UsbSpeaker::espeakCallback(short* wav, int numsamples, espeak_EVENT* events) {
-    //task check
-    if (wav == nullptr || numsamples <= 0) 
-        return 0;
+void UsbSpeaker::synthesisTask(std::string text) {
+    if (!_tts) return;
 
-    // change mono to stereo 
-    // buffer size = numsamples * channels
-    std::vector<short> buffer;
-    buffer.reserve(numsamples * _instance->_channels);
-    for (int i = 0; i < numsamples; ++i) {
-        for (int c = 0; c < _instance->_channels; ++c) {
-            buffer.push_back(wav[i]);
+    const SherpaOnnxGeneratedAudio* audio = SherpaOnnxOfflineTtsGenerate(_tts, text.c_str(), 0, 1.0f);
+
+    if (audio && audio->n > 0) {
+        std::vector<short> pcmData;
+        pcmData.reserve(audio->n * _channels); 
+        
+        for (int i = 0; i < audio->n; ++i) {
+            float s = audio->samples[i];
+
+            if (s > 1.0f) s = 1.0f;
+            if (s < -1.0f) s = -1.0f;
+
+            short sample = static_cast<short>(s * 32767);
+
+            for (int c = 0; c < _channels; ++c) {
+                pcmData.push_back(sample);
+            }
         }
+        playInternal(pcmData);
+        SherpaOnnxDestroyOfflineTtsGeneratedAudio(audio);
     }
-    _instance->play(buffer);
-    return 0;
 }
 
 void UsbSpeaker::stop() {
     if (!_running) return;
     _running = false;
-    // notify the playback thread to exit
-    _cv.notify_all();
+    
+    _textCV.notify_all();
+    _audioCV.notify_all();
+
     if (_playbackThread.joinable()) _playbackThread.join();
+    if (_synthesisThread.joinable()) _synthesisThread.join();
 }
 
 void UsbSpeaker::close() {
@@ -117,30 +196,86 @@ void UsbSpeaker::close() {
     }
 }
 
+// void UsbSpeaker::playbackLoop() {
+//     while (_running) {
+//         std::vector<short> buffer;
+//         bool hasData = false;
+//         {
+//             std::lock_guard<std::mutex> lock(_queueMutex);
+            
+//             if (!_dataQueue.empty()) {
+//                 buffer = std::move(_dataQueue.front());
+//                 _dataQueue.pop();
+//                 hasData = true;
+//             }
+
+//         }
+//         if (hasData) {
+//             if (!buffer.empty() && _handle) {
+//                 int rc = snd_pcm_writei(_handle, buffer.data(), buffer.size() / _channels);
+//                 if (rc == -EPIPE) {
+//                     snd_pcm_prepare(_handle);
+//                 } else if (rc < 0) {
+//                     std::cerr << "ALSA Write Error: " << snd_strerror(rc) << std::endl;
+//                 }
+//             }
+//         } else {
+//             std::this_thread::yield();
+//         }
+//     }
+// }
+
 void UsbSpeaker::playbackLoop() {
     while (_running) {
         std::vector<short> buffer;
-        {
-            std::unique_lock<std::mutex> lock(_queueMutex);
-            // thread will wait here until there is data to play or stop signal
-            _cv.wait(lock, [this] { return !_dataQueue.empty() || !_running; });
+    {
+        std::unique_lock<std::mutex> lock(_queueMutex);
+        _audioCV.wait(lock, [this]{ 
+            return !_dataQueue.empty() || !_running; 
+        });
 
-            if (!_running && _dataQueue.empty()) break;
-            if (!_dataQueue.empty()) {
-                buffer = std::move(_dataQueue.front());
-                _dataQueue.pop();
-            }
-            // end of espeak callback,release the lock for ALSA playback
-        }
+        if (!_running) break;
 
-        // play the buffer using ALSA
-        // copy the buffer to _handle and write to ALSA
+        buffer = std::move(_dataQueue.front());
+        _dataQueue.pop();
+        
+        //lock.unlock(); 
+    }
+
         if (!buffer.empty() && _handle) {
-            int rc = snd_pcm_writei(_handle, buffer.data(), buffer.size() / _channels);
-            // handle underrun and other errors
-            if (rc == -EPIPE) {
-                snd_pcm_prepare(_handle);
+            snd_pcm_uframes_t totalFrames = buffer.size() / _channels;
+            snd_pcm_uframes_t framesWritten = 0;
+            short* pData = buffer.data();
+
+            while (framesWritten < totalFrames && _running) {
+                int rc = snd_pcm_writei(_handle, pData + (framesWritten * _channels), totalFrames - framesWritten);
+
+                if (rc == -EPIPE) {
+                    snd_pcm_prepare(_handle);
+                } else if (rc < 0) {
+                    break; 
+                } else {
+                    framesWritten += rc;
+                }
             }
+        }
+    }
+}
+
+void UsbSpeaker::synthesisLoop() {
+    while (_running) {
+        std::string textToSpeak;
+        {
+            std::unique_lock<std::mutex> lock(_textMutex);
+            _textCV.wait(lock, [this]{ 
+                return !_textQueue.empty() || !_running; 
+            });
+            if (!_running) break;
+            textToSpeak = _textQueue.front();
+            _textQueue.pop();
+        } 
+        if (!textToSpeak.empty()) {
+            synthesisTask(textToSpeak);
         }
     }
 }

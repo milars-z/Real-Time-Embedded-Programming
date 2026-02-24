@@ -12,19 +12,30 @@
 #include <condition_variable>
 #include <queue>
 
+#include "c-api.h"
+
+
+struct ModelPaths {
+    std::string en; 
+    std::string zh; 
+};
+
 class UsbSpeaker {
 public:
     
-    UsbSpeaker(const std::string& deviceName = "default", 
-               unsigned int sampleRate = 44100, 
-               int channels = 2);
+    // 'language = 0 for En'
+    // 'language = 1 for Zh'
+    UsbSpeaker(const std::string& deviceName, 
+               const ModelPaths& models, 
+               int channels = 1,
+               int language = 0);
     ~UsbSpeaker();
 
     bool open();
     void close();
     
     // PLAY PCM data directly (used by eSpeak callback)
-    void play(const std::vector<short>& data);
+    void playInternal(const std::vector<short>& data);
     
     // PLAY text by synthesizing it with eSpeak
     void play(const std::string& text);
@@ -34,11 +45,14 @@ public:
 private:
 
     void playbackLoop();
+
+    void synthesisLoop();
     
+    void synthesisTask(std::string text);
 
-    static int espeakCallback(short* wav, int numsamples, espeak_EVENT* events);
-
-    // ALSA 
+    const SherpaOnnxOfflineTts* _tts = nullptr;
+    SherpaOnnxOfflineTtsConfig _config;
+    
     snd_pcm_t* _handle = nullptr;
     std::string _deviceName;
     unsigned int _sampleRate;
@@ -47,13 +61,19 @@ private:
 
     // THREADING
     std::thread _playbackThread;
+    std::thread _synthesisThread; 
     std::atomic<bool> _running{false};
-    std::queue<std::vector<short>> _dataQueue;
-    std::mutex _queueMutex;
-    std::condition_variable _cv;
 
+    std::queue<std::vector<short>> _dataQueue;
+    std::queue<std::string> _textQueue;
+
+    std::mutex _queueMutex;
+    std::mutex _textMutex;
     // STATIC INSTANCE for callback access
     static UsbSpeaker* _instance;
+
+    std::condition_variable _textCV;
+    std::condition_variable _audioCV;
 };
 
 #endif
