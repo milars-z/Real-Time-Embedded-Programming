@@ -15,7 +15,7 @@ std::string extractText(const std::string& json) {
 
 int main() {
     // load language model
-    VoskModel *model = vosk_model_new("model");
+    VoskModel *model = vosk_model_new("../model/model");
     if (!model) {
         std::cerr << "Error: Could not load English model!" << std::endl;
         return -1;
@@ -26,7 +26,7 @@ int main() {
     VoskRecognizer *recognizer = vosk_recognizer_new(model, 16000.0);
 
     // Init microphone device
-    UsbMicrophone mic("plughw:2,0", 16000, 1);
+    UsbMicrophone mic("plughw:3,0", 16000, 1);
     
     if (!mic.open()) {
         return -1;
