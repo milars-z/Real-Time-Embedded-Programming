@@ -16,7 +16,7 @@ std::string extractText(const std::string& json) {
 }
 
 // is_capture: true for microphone, false for speaker
-std::string find_alsa_device(const std::string& keyword, bool is_capture) {
+std::string find_alsa_device(const std::string& keyword) {
     int card = -1;
     char *name = nullptr;
     
@@ -29,7 +29,7 @@ std::string find_alsa_device(const std::string& keyword, bool is_capture) {
             // find keyword in long name
             if (longName.find(keyword) != std::string::npos) {
                 
-                return (is_capture ? "plughw:" : "hw:") + std::to_string(card) + ",0";
+                return "plughw:" + std::to_string(card) + ",0";
             }
         }
     }

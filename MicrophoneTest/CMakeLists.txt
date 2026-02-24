@@ -10,11 +10,11 @@ find_package(ALSA REQUIRED)
 include_directories(
     ${ALSA_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/vosk
+    ${CMAKE_CURRENT_SOURCE_DIR}/model/vosk
 )
 
 
-link_directories(${CMAKE_CURRENT_SOURCE_DIR}/vosk)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/model/vosk)
 
 add_executable(MicrophoneTest
     main.cpp
@@ -29,6 +29,6 @@ target_link_libraries(MicrophoneTest
 )
 
 set_target_properties(MicrophoneTest PROPERTIES 
-    INSTALL_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/vosk"
+    INSTALL_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/model/vosk"
     BUILD_WITH_INSTALL_RPATH TRUE
 )

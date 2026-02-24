@@ -1,5 +1,19 @@
 #include "MicrophoneEngine.hpp"
 
+// tool for multithread
+static void pinThreadToCore(std::thread &th, int core_id) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+
+    int rc = pthread_setaffinity_np(th.native_handle(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << "Error pinning thread to core " << core_id << std::endl;
+    } else {
+        std::cout << "Thread bound to Core " << core_id << std::endl;
+    }
+}
+
 UsbMicrophone::UsbMicrophone(const std::string& deviceName,
                              unsigned int sampleRate, 
                              int channels)
@@ -67,6 +81,7 @@ void UsbMicrophone::start(AudioCallback callback) {
     _callback = callback;
     _running = true;
     _captureThread = std::thread(&UsbMicrophone::captureLoop, this);
+    pinThreadToCore(_captureThread, 3);
 }
 
 void UsbMicrophone::stop() {

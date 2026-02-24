@@ -12,25 +12,30 @@
 
 std::atomic<bool> keepRunning(true);
 
+ModelPaths myModels = {
+    "../../SpeakerTest/model/vits-piper-en_GB-cori-medium-int8" ,
+    "../../SpeakerTest/model/vits-piper-zh_CN-huayan-medium"      
+};
+
 int main() {
     
     // INIT parts
     // GET SPEAKER AND MICROPHONE NAME
     // card 2: UACDemoV10 [UACDemoV1.0], device 0: USB Audio [USB Audio]
-    std::string speaker_path = find_alsa_device("UACDemo", false);
+    std::string speaker_path = find_alsa_device("UACDemo");
     if (speaker_path.empty()) {
         std::cerr << "Error: Could not find speaker device!" << std::endl; 
         return -1; 
     }
     // card 3: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
-    std::string mic_path = find_alsa_device("USB PnP", true);
+    std::string mic_path = find_alsa_device("USB PnP");
     if (mic_path.empty()) {
         std::cerr << "Error: Could not find microphone device!" << std::endl;
         return -1;
     }
     
     // INIT Vosk Model 
-    VoskModel *model = vosk_model_new("../../MicrophoneTest/model");
+    VoskModel *model = vosk_model_new("../../MicrophoneTest/model/model");
     if (!model) {
         std::cerr << "Error: Could not load Vosk model!" << std::endl;
         return -1;
@@ -40,7 +45,7 @@ int main() {
     VoskRecognizer *recognizer = vosk_recognizer_new(model, 16000.0);
 
     // INIT Speaker
-    UsbSpeaker speaker(speaker_path, 44100, 2);
+    UsbSpeaker speaker(speaker_path, myModels, 2 , 0);
     if (!speaker.open()) {
         std::cerr << "Failed to open speaker!" << std::endl;
     }
@@ -77,9 +82,9 @@ int main() {
 
                 if (text.find("hello") != std::string::npos) {
                     std::cout << ">> go to Hello" << std::endl;
-                    speaker.play("Nice to meet you.");
+                    speaker.play("what can I help you");
                 } 
-                else if (text.find("status") != std::string::npos) {
+                else if (text.find("name") != std::string::npos) {
                     std::cout << ">> go to Status" << std::endl;
                     speaker.play("System alert! All systems are running within normal parameters.");
                 }
