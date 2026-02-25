@@ -7,14 +7,14 @@ using namespace cv;
 using namespace std;
 
 // Item detection category
-// 加载模型
+// load model
 AttentionDetector::AttentionDetector(const string& model_path) {
     try {
         net = dnn::readNetFromONNX(model_path);
         net.setPreferableBackend(dnn::DNN_BACKEND_OPENCV);
         net.setPreferableTarget(dnn::DNN_TARGET_CPU);
     } catch (const cv::Exception& e) {
-        cerr << "[Error] 模型加载失败: " << e.what() << endl;
+        cerr << "[Error] Model loading failed: " << e.what() << endl;
     }
 }
 
@@ -23,15 +23,15 @@ bool AttentionDetector::is_ready() const {
      return has_background; 
     }
 
-// 获取图像的特征
-// 是图像整体特征，不是obj特征
-// 输入Img
-// 返回模型推理的结果
+// Obtain the features of the image 
+// It is the overall feature of the image, not the obj feature 
+// Enter Img 
+// Return the result of model inference
 Mat AttentionDetector::get_features(const Mat& img) {
     Mat blob;
     dnn::blobFromImage(img, blob, 1.0/255.0, cfg.INPUT_SIZE, Scalar(0,0,0), true, false);
     
-    // 手动归一化 (ImageNet Mean/Std)
+    // Manual normalization (ImageNet Mean/Std)
     float* data = blob.ptr<float>();
     int pixels = cfg.INPUT_SIZE.width * cfg.INPUT_SIZE.height;
     for(int c=0; c<3; ++c) {
@@ -46,9 +46,9 @@ Mat AttentionDetector::get_features(const Mat& img) {
     return net.forward();
 }
 
-// 更新背景图片
-// 将更新后的背景图片存储在bg_features中
-// 更新has_background状态
+// Update background image
+// Store the updated background image in bg_features
+// Update the status of has_mackground
 void AttentionDetector::update_background(const Mat& frame) {
     if (frame.empty()) return;
     bg_features = get_features(frame).clone();
@@ -56,18 +56,18 @@ void AttentionDetector::update_background(const Mat& frame) {
     cout << "[Info] 背景特征已更新." << endl;
 }
 
-// 利用 ROI Pooling 的思想快速提取特征，无需多次推理
-// 输入特征map，obj在原图像的具体位置，原图像的size
-// 根据obj在原图像的位置和原图像大小，将其映射到特征map中，防止从小到大映射过程中产生的数据丢失
-// 获取映射后的特征map
-// 返回特征向量
+// Using the concept of ROI Pooling to quickly extract features without the need for multiple inferences
+// Input : feature map, location of obj in the original image, size of the original image
+// Map obj to the feature map based on its position and size in the original image to prevent data loss during the process of mapping from small to large
+// Obtain the mapped feature map
+// Return feature vector
 vector<float> AttentionDetector::extract_feature_vector(const Mat& feature_map, const Rect& box, const Size& img_size) {
-    // feature_map 维度: [1, C, H, W]
+    // feature_map dimension: [1, C, H, W]
     int C = feature_map.size[1];
     int H = feature_map.size[2];
     int W = feature_map.size[3];
 
-    // 1. 将原图坐标映射到特征图坐标
+    // 1. Map the original image coordinates to the feature map coordinates
     float scale_x = (float)W / img_size.width;
     float scale_y = (float)H / img_size.height;
 
@@ -76,13 +76,13 @@ vector<float> AttentionDetector::extract_feature_vector(const Mat& feature_map, 
     int fw = (int)(box.width * scale_x);
     int fh = (int)(box.height * scale_y);
 
-    // 边界保护 (确保至少有1x1像素)
+    // Boundary protection
     fw = max(1, fw); 
     fh = max(1, fh);
     fx = min(max(0, fx), W - fw);
     fy = min(max(0, fy), H - fh);
 
-    // 提取特征向量 (对 ROI 区域内的每个通道求均值)
+    // Extract feature vectors (average each channel within the ROI region)
     vector<float> embedding(C);
     const float* f_ptr = feature_map.ptr<float>();
     int plane_area = H * W;
@@ -101,7 +101,8 @@ vector<float> AttentionDetector::extract_feature_vector(const Mat& feature_map, 
         embedding[c] = (float)(sum / count);
     }
     
-    // 向量归一化 (方便后续计算余弦相似度或欧氏距离)
+    // Vector normalization 
+    // (convenient for subsequent calculation of cosine similarity or L2)
     double norm_sq = 0;
     for(float v : embedding) norm_sq += v*v;
     double norm = sqrt(norm_sq) + 1e-8;
@@ -111,70 +112,68 @@ vector<float> AttentionDetector::extract_feature_vector(const Mat& feature_map, 
 }
 
 
-// 用作特征检测
-// 输入一帧当前的画面
-// 对比已保存的背景图像找出其中的obj，将检测到的属性返回
-// 返回一个DetectedObject类型的向量，装填该帧图像中所有obj的信息
+// Used for feature detection
+// Input: One frame of the current image
+// Compare the saved background images to identify the obj and return the detected attributes
+// Return: a vector of DetectedObject type, loaded with information about all objs in the frame image
 vector<DetectedObject> AttentionDetector::detect(const Mat& frame) {
     vector<DetectedObject> objects;
     if (!has_background || frame.empty()) {
-        cout << "[Error] No Background! " << endl;
+        //cout << "[Error] No Background! " << endl;
         return objects;
     }
         
 
-    // 获取当前帧特征
+    // Retrieve current frame features
     Mat f_obj = get_features(frame);
 
-    // 计算差异图
     int C = f_obj.size[1];
     int H = f_obj.size[2];
     int W = f_obj.size[3];
 
     // 存储差异map
     Mat diff_map(H, W, CV_32F, Scalar(0));
-    // 创建遍历指针，对背景的特征与obj图片特征做操作
+    // Create pointers to manipulate background features and obj image features
     const float* p_obj = f_obj.ptr<float>();
     const float* p_bg = bg_features.ptr<float>();
-    // 操作次数
     int plane_size = H * W;
 
-    // 遍历C层
+    // Traverse layer C
     for (int c = 0; c < C; c++) {
-        // 初始化指向该层首位
+
         const float* ptr_o = p_obj + c * plane_size;
         const float* ptr_b = p_bg + c * plane_size;
-        // 遍历该层plane_size个位置，求差，并保存进diff_map中
+        // Traverse the layer's plane_size positions, calculate the difference, and save it in diff_map
         for (int i = 0; i < plane_size; i++) {
             float diff = ptr_o[i] - ptr_b[i];
             diff_map.at<float>(i) += diff * diff;
         }
     }
-    // 开根号，保存在原指针处，原地操作节省空间
+    // Root it, save it at the original pointer, and operate in place to save space
     sqrt(diff_map, diff_map);
 
-    // 归一化
+    // normalization
     double min_v, max_v;
     minMaxLoc(diff_map, &min_v, &max_v);
     diff_map = (diff_map - min_v) / (max_v - min_v + 1e-8);
 
-    // 边缘抑制
-    // 渐变权重
-    // 根据diff_map求出模板，再进行点乘
-    int H = diff_map.rows;
-    int W = diff_map.cols;
+    // Edge suppression
+    // Gradient Weight
+    // Calculate the template based on diff_map, and then perform dot multiplication
+    H = diff_map.rows;
+    W = diff_map.cols;
     init_edge_mask(H, W);
     cv::multiply(diff_map, edge_mask, diff_map); 
 
-    // 放大 + 二值化
-        // 三次样条插值将diff_map放大至图片尺寸
+    // Magnification+binarization
+        // Triple spline interpolation enlarges diff_map to image size
     Mat heatmap_large;
     resize(diff_map, heatmap_large, frame.size(), 0, 0, INTER_CUBIC);
     
-        // 小数转整数，将概率图转换为255位黑白图
+        // Convert decimals to integers to convert probability graphs into 255 bit black and white graphs
     Mat mask;
     heatmap_large.convertTo(heatmap_large, CV_8U, 255.0);
-        // 忽略小于BINARY_THRESH的杂音
+        // Ignore noise smaller than BINARY_THRESH
     threshold(heatmap_large, mask, cfg.BINARY_THRESH * 255, 255, THRESH_BINARY);
 
     // 轮廓提取
