@@ -48,7 +48,7 @@ private:
     // 内部函数：从特征图上通过 ROI 提取特征向量
     std::vector<float> extract_feature_vector(const cv::Mat& feature_map, const cv::Rect& original_box, const cv::Size& original_size);
     
-    void AttentionDetector::init_edge_mask(int H, int W);
+    void init_edge_mask(int H, int W);
 };
 
 #endif

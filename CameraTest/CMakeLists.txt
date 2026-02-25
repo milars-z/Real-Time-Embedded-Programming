@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Threads REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
