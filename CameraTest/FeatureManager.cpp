@@ -75,15 +75,33 @@ bool FeatureManager::save_feature(const DetectedObject& obj, const string& name)
 
 // 计算L2
 float FeatureManager::compute_distance(const vector<float>& f1, const vector<float>& f2) {
-    if (f1.size() != f2.size()) return 100.0f; // 维度不匹配
+    // if (f1.size() != f2.size()) return 100.0f; // 维度不匹配
     
-    // 计算L2作为匹配分
-    double sum = 0;
+    // // 计算L2作为匹配分
+    // double sum = 0;
+    // for (size_t i = 0; i < f1.size(); ++i) {
+    //     double diff = f1[i] - f2[i];
+    //     sum += diff * diff;
+    // }
+    // return (float)sqrt(sum);
+    if (f1.size() != f2.size()) return 1.0f; 
+
+    double dot_product = 0.0;
+    double norm_a = 0.0;
+    double norm_b = 0.0;
+
     for (size_t i = 0; i < f1.size(); ++i) {
-        double diff = f1[i] - f2[i];
-        sum += diff * diff;
+        dot_product += f1[i] * f2[i];
+        norm_a += f1[i] * f1[i];
+        norm_b += f2[i] * f2[i];
     }
-    return (float)sqrt(sum);
+
+    if (norm_a == 0.0 || norm_b == 0.0) {
+        return 1.0f; 
+    }
+    float similarity = (float)(dot_product / (sqrt(norm_a) * sqrt(norm_b)));
+    
+    return 1.0f - similarity; 
 }
 
 // 物体匹配
