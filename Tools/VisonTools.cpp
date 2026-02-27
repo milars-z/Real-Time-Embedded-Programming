@@ -35,3 +35,17 @@ std::string find_alsa_device(const std::string& keyword) {
     }
     return ""; 
 }
+
+// tool for multithread
+void pinThreadToCore(std::thread &th, std::string thread_name, int core_id) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core_id, &cpuset);
+
+    int rc = pthread_setaffinity_np(th.native_handle(), sizeof(cpu_set_t), &cpuset);
+    if (rc != 0) {
+        std::cerr << "Error pinning thread to core " << core_id << std::endl;
+    } else {
+        std::cout << thread_name << "Thread bound to Core " << core_id << std::endl;
+    }
+}
