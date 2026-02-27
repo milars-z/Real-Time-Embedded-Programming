@@ -1,18 +1,6 @@
 #include "MicrophoneEngine.hpp"
+#include "VisonTools.hpp"
 
-// tool for multithread
-static void pinThreadToCore(std::thread &th, int core_id) {
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(core_id, &cpuset);
-
-    int rc = pthread_setaffinity_np(th.native_handle(), sizeof(cpu_set_t), &cpuset);
-    if (rc != 0) {
-        std::cerr << "Error pinning thread to core " << core_id << std::endl;
-    } else {
-        std::cout << "Thread bound to Core " << core_id << std::endl;
-    }
-}
 
 UsbMicrophone::UsbMicrophone(const std::string& deviceName,
                              unsigned int sampleRate, 
@@ -76,18 +64,25 @@ void UsbMicrophone::close() {
 
 // thread start
 // callback is a vector which store audio data
-void UsbMicrophone::start(AudioCallback callback) {
-    if (_running) return;
+bool UsbMicrophone::start(AudioCallback callback) {
+    if (_running) return true;
     _callback = callback;
     _running = true;
-    _captureThread = std::thread(&UsbMicrophone::captureLoop, this);
-    pinThreadToCore(_captureThread, 3);
+    try{
+        captureThread = std::thread(&UsbMicrophone::captureLoop, this);
+        pinThreadToCore(captureThread, "Mic" ,3);
+        return true;
+    }catch (const std::system_error& e) {
+        std::cerr << "[Fatal] Failed to create mic thread: " << e.what() << std::endl;
+        _running = false;
+        return false;
+    }
 }
 
 void UsbMicrophone::stop() {
     _running = false;
-    if (_captureThread.joinable()) {
-        _captureThread.join();
+    if (captureThread.joinable()) {
+        captureThread.join();
     }
 }
 

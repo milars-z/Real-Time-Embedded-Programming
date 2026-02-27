@@ -23,7 +23,7 @@ public:
     virtual ~UsbMicrophone();
     bool open();
     void close();
-    void start(AudioCallback callback);
+    bool start(AudioCallback callback);
     void stop();
 
 private:
@@ -34,7 +34,7 @@ private:
     int _channels;
 
     snd_pcm_t* _handle = nullptr;
-    std::thread _captureThread;
+    std::thread captureThread;
     std::atomic<bool> _running{false};
     AudioCallback _callback;
 
