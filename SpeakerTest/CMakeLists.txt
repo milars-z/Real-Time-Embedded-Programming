@@ -24,6 +24,7 @@ link_directories(${SHERPA_HOME}/lib)
 add_executable(SpeakerTest
     main.cpp
     SpeakerEngine.cpp
+    ../Tools/VisonTools.cpp
 )
 
 target_link_libraries(SpeakerTest

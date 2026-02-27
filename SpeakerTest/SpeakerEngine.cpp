@@ -1,4 +1,5 @@
 #include "SpeakerEngine.hpp"
+#include "VisonTools.hpp"
 #include <cstring>
 #include <cmath>
 #include <thread>
@@ -8,19 +9,7 @@
 //espeak need a global pointer to the instance for callback access
 UsbSpeaker* UsbSpeaker::_instance = nullptr;
 
-// tool for multithread
-static void pinThreadToCore(std::thread &th, int core_id) {
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(core_id, &cpuset);
 
-    int rc = pthread_setaffinity_np(th.native_handle(), sizeof(cpu_set_t), &cpuset);
-    if (rc != 0) {
-        std::cerr << "Error pinning thread to core " << core_id << std::endl;
-    } else {
-        std::cout << "Thread bound to Core " << core_id << std::endl;
-    }
-}
 
 //set the callback function for espeak
 //_instance is a pointer to the class
@@ -128,8 +117,8 @@ bool UsbSpeaker::open() {
     _playbackThread = std::thread(&UsbSpeaker::playbackLoop, this);
     _synthesisThread = std::thread(&UsbSpeaker::synthesisLoop, this);
 
-    pinThreadToCore(_synthesisThread, 3);
-    pinThreadToCore(_playbackThread, 3);
+    pinThreadToCore(_synthesisThread, "TTS",3);
+    pinThreadToCore(_playbackThread, "ALSA",3);
 
     return true;
 }
@@ -196,35 +185,6 @@ void UsbSpeaker::close() {
     }
 }
 
-// void UsbSpeaker::playbackLoop() {
-//     while (_running) {
-//         std::vector<short> buffer;
-//         bool hasData = false;
-//         {
-//             std::lock_guard<std::mutex> lock(_queueMutex);
-            
-//             if (!_dataQueue.empty()) {
-//                 buffer = std::move(_dataQueue.front());
-//                 _dataQueue.pop();
-//                 hasData = true;
-//             }
-
-//         }
-//         if (hasData) {
-//             if (!buffer.empty() && _handle) {
-//                 int rc = snd_pcm_writei(_handle, buffer.data(), buffer.size() / _channels);
-//                 if (rc == -EPIPE) {
-//                     snd_pcm_prepare(_handle);
-//                 } else if (rc < 0) {
-//                     std::cerr << "ALSA Write Error: " << snd_strerror(rc) << std::endl;
-//                 }
-//             }
-//         } else {
-//             std::this_thread::yield();
-//         }
-//     }
-// }
-
 void UsbSpeaker::playbackLoop() {
     while (_running) {
         std::vector<short> buffer;
@@ -238,8 +198,7 @@ void UsbSpeaker::playbackLoop() {
 
         buffer = std::move(_dataQueue.front());
         _dataQueue.pop();
-        
-        //lock.unlock(); 
+
     }
 
         if (!buffer.empty() && _handle) {
