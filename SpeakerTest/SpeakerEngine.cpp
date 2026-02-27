@@ -198,7 +198,7 @@ void UsbSpeaker::playbackLoop() {
 
         buffer = std::move(_dataQueue.front());
         _dataQueue.pop();
-
+        
     }
 
         if (!buffer.empty() && _handle) {
