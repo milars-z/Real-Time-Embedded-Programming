@@ -1,13 +1,10 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "SpeakerEngine.hpp" 
-#include "voiceInteraction.hpp"
-#include "VisonTools.hpp"
+
+#include "SpeakerEngine.hpp"
 
 namespace Config {
-
-    const std::string PROJECT_ROOT = "/home/milars/Real-Time-Embedded-Programming/VoiceInteraction";
 
     namespace Hardware {
         const std::string SPEAKER_NAME = "UACDemo";
@@ -16,16 +13,19 @@ namespace Config {
     }
 
     namespace Path {
+        // PRO
+        inline const std::string SRC_ROOT = PROJECT_ROOT_DIR;
+
         // NLU 
-        const std::string NLU_MODEL_DIR = PROJECT_ROOT + "/model_nlu"; 
+        const std::string NLU_MODEL_DIR = SRC_ROOT + "VoiceInteraction/model_nlu"; 
 
         // Vosk 
-        const std::string VOSK_MODEL_DIR = PROJECT_ROOT + "/../MicrophoneTest/model/model"; 
+        const std::string VOSK_MODEL_DIR = SRC_ROOT + "Microphone/model/model"; 
 
         // Speaker  (Sherpa/VITS)
         const ModelPaths SPEAKER_MODELS = {
-            PROJECT_ROOT + "/../SpeakerTest/model/vits-piper-en_GB-cori-medium-int8",
-            PROJECT_ROOT + "/../SpeakerTest/model/vits-piper-zh_CN-huayan-medium"
+            SRC_ROOT + "Speaker/model/vits-piper-en_GB-cori-medium-int8",
+            SRC_ROOT + "Speaker/model/vits-piper-zh_CN-huayan-medium"
         };
     }
 }
