@@ -106,3 +106,12 @@ VoiceInteraction/
 ├── voiceInteraction.hpp   # Core project header file
 └── README.md              # Project documentation
 ```
+# Version 3.0
+该模块已合并进micro_motord分支  
+子模块运行请进入microTest模块进行单元测试  
+cmakelist不沿用  
+This module has been integrated into the `micro_motor` branch.  
+To test this component, please run the unit tests in the `MicrophoneTest` module.  
+The original CMakeLists configuration is deprecated and no longer maintained.  
+get nlu model :wget https://huggingface.co/milars/CogniArm_nlu/resolve/main/nlu_model.onnx
+
