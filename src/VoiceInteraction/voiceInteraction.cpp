@@ -6,7 +6,8 @@
 
 
 // 构造函数
-RobotCore::RobotCore() : isRunning(false) {
+RobotCore::RobotCore() : motionManager("../../Motor/servo_config.txt"),
+      isRunning(false) {
 }
 
 // 析构函数 -停止所有相关模块运行
@@ -180,8 +181,22 @@ void RobotCore::nluWorker() {
             // 后续连接其他类进行语义处理
             if (nlu_outp.intent == "greet") {
                 responseText = "hello";
+                MotionTask motion_test_1 = {
+                    Joint::Base,
+                    MoveMethod::REL,
+                    10.0,
+                    100,
+                };
+                motionManager.enqueue_motion(motion_test_1);
             } else if (nlu_outp.intent == "bye") {
                 responseText = "bye";
+                MotionTask motion_test_2 = {
+                    Joint::Base,
+                    MoveMethod::REL,
+                    -10.0,
+                    100,
+                };
+                motionManager.enqueue_motion(motion_test_2);
             } else if (nlu_outp.intent == "check_host_name") {
                 responseText = "hello, milars";
             } else if (nlu_outp.intent == "check_rot_name") {

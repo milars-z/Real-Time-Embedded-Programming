@@ -1,153 +1,88 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <map>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
-#include <unistd.h>
-#include <cmath>
-#include <mutex>
-#include <cstdint>
-#include "KeypressPublisherStdFunc.h"
+#include "PwmBoardController.hpp"
 
-using namespace std;
+RobotArmController::RobotArmController(const std::string& configFile)
+{
+    _fd = open("/dev/i2c-1", O_RDWR);
 
-struct ServoConfig {
-    string name;
-    int channel;
-    float initAngle;
-    float minAngle;
-    float maxAngle;
-    float currentAngle;
-};
+    if (_fd < 0 || ioctl(_fd, I2C_SLAVE, 0x40) < 0) {
+        std::cerr << "wrong i2c device or slave address, check sudo i2cdetect -y 1" << std::endl;
+        lastStatus = WRONG_IIC;
+        return;
+    }
 
-enum BugCode {
-    SUCCESS = 0,
-    WRONG_IIC = -1,
-    PWM_FAIL = -2,
-    CONFIG_FAIL = -3,
-    ILLIGLE_NAME = -4,
-    SET_FAIL = -5
-};
+    if (!initHardware()) {
+        std::cerr << "failed to initialize PCA9685" << std::endl;
+        lastStatus = PWM_FAIL;
+        return;
+    }
 
+    if (!loadConfig(configFile)) {
+        std::cerr << "failed to load config file" << std::endl;
+        lastStatus = CONFIG_FAIL;
+        return;
+    }
 
-class RobotArmController {
-public:
+    std::cout << "wait for init complete" << std::endl;
 
-    BugCode lastStatus = SUCCESS;
-    map<string, ServoConfig> servos;
-
-    RobotArmController(const string& configFile) {
-
-        // init i2c device
-        _fd = open("/dev/i2c-1", O_RDWR);
-        if (_fd < 0 || ioctl(_fd, I2C_SLAVE, 0x40) < 0) {
-            cerr << "wrong i2c device or slave address, check sudo i2cdetect -y 1" << endl;
-            lastStatus = WRONG_IIC;
+    for (auto& pair : servos) {
+        if(!setAngle(pair.first, pair.second.initAngle)) {
+            std::cerr << "failed to set initial angle for servo: " << pair.first << std::endl;
+            lastStatus = SET_FAIL;
             return;
         }
-
-        // init PCA9685
-        if (!initHardware()) {
-            cerr << "failed to initialize PCA9685" << endl;
-            lastStatus = PWM_FAIL;
-            return;
-        }
-
-        // load config
-        if (!loadConfig(configFile)) {
-            cerr << "failed to load config file" << endl;
-            lastStatus = CONFIG_FAIL;
-            return;
-        }
-
-        // set initial angles
-        cout << "wait for init complete" << endl;
-        for (auto& pair : servos) {
-            if(!setAngle(pair.first, pair.second.initAngle)) {
-                cerr << "failed to set initial angle for servo: " << pair.first << endl;
-                lastStatus = SET_FAIL;
-                return;
-            }
-            usleep(100000); 
-        }
-        cout << "init complete" << endl;
+        usleep(100000);
     }
 
-    ~RobotArmController() {
-        detachAll();
-        if (_fd >= 0) close(_fd);
-    }
+    std::cout << "[Init] RobotArmController init successfully" << std::endl;
+}
 
+RobotArmController::~RobotArmController() {
+    detachAll();
+    if (_fd >= 0) close(_fd);
+}
 
-    // set angle by name, with bounds checking and register writing
-    bool setAngle(const string& name, float angle) {
-
-        if (servos.find(name) == servos.end()) 
-        return false;
-        
-        lock_guard<mutex> lock(_mtx);
-        ServoConfig& s = servos[name];
-
-        // set max and min angle limits
-        if (angle < s.minAngle) angle = s.minAngle;
-        if (angle > s.maxAngle) angle = s.maxAngle;
-        s.currentAngle = angle;
-
-        
-        // peior :0.5ms(0°) ≈ 102, 2.5ms(180°) ≈ 512
-        int offValue = (int)(102 + (s.currentAngle / 180.0) * (512 - 102));
-
-        // for every channel, there are 4 registers: ON_L, ON_H, OFF_L, OFF_H
-        // 0x06 is the base address for channel 0, then +4 for each subsequent channel
-        int regBase = (uint8_t)(0x06 + (4 * s.channel));
-
-        // cout << "set servo [" << s.name << "]  " << s.channel << " angle " << s.currentAngle << " reg 0x" << hex << regBase << dec << endl;
-
-        // servo signal:
-        // ON_L, ON_H: 0 (signal starts at the beginning of the cycle)
-        // OFF_L, OFF_H: calculated value based on angle (when the signal goes low [102 : (0);512 : (180)]
-        // write_state &= writeReg(regBase + 0, 0x00);         // ON_L
-        // write_state &= writeReg(regBase + 1, 0x00);         // ON_H
-        // write_state &= writeReg(regBase + 2, offValue & 0xFF);  // OFF_L
-        // write_state &= writeReg(regBase + 3, offValue >> 8);    // OFF_H
-
-        uint8_t buffer[5];
-        buffer[0] = regBase;    
-        buffer[1] = 0x00;        // ON_L
-        buffer[2] = 0x00;        // ON_H
-        buffer[3] = offValue & 0xFF; // OFF_L
-        buffer[4] = offValue >> 8;   // OFF_H
-        if (write(_fd, buffer, 5) != 5) {
-            cerr << "Failed to write servo " << s.name << " via batch write!" << endl;
-            return false;
-        }      
-        return true;
-    }
-
-    void detachAll() {
-        for (auto& pair : servos) {
-            int reg = 0x06 + (4 * pair.second.channel);
-            writeReg(reg + 2, 0); 
-            writeReg(reg + 3, 0);
-        }
-    }
-
-    float getAngle(const string& name) { 
-        if (servos.find(name) == servos.end()) return -1;
-        return servos[name].currentAngle; 
-    }
-
+bool RobotArmController::setAngle(const std::string& name, float angle){
+    if (servos.find(name) == servos.end()) 
+    return false;
     
+    lock_guard<mutex> lock(_mtx);
+    ServoConfig& s = servos[name];
 
-private:
-    int _fd;
-    mutex _mtx;
+    if (angle < s.minAngle) angle = s.minAngle;
+    if (angle > s.maxAngle) angle = s.maxAngle;
+    s.currentAngle = angle;
 
-    // 9865 init sequence:
-    bool initHardware() {
+    uint16_t offValue = static_cast<uint16_t>(102 + (s.currentAngle / 180.0) * (512 - 102));
+
+    uint8_t regBase = static_cast<uint8_t>(0x06 + (4 * s.channel));
+
+    uint8_t buffer[5];
+    buffer[0] = regBase;    
+    buffer[1] = 0x00;        
+    buffer[2] = 0x00;       
+    buffer[3] = static_cast<uint8_t>(offValue & 0xFF); 
+    buffer[4] = static_cast<uint8_t>(offValue >> 8);  
+    if (write(_fd, buffer, 5) != 5) {
+        cerr << "Failed to write servo " << s.name << " via batch write!" << endl;
+        return false;
+    }      
+    return true;
+}
+
+float RobotArmController::getAngle(const string& name){
+    if (servos.find(name) == servos.end()) return -1;
+        return servos[name].currentAngle; 
+}
+
+void RobotArmController::detachAll(){
+    for (auto& pair : servos) {
+        uint8_t  reg = (uint8_t)(0x06 + (4 * pair.second.channel));
+        writeReg(reg + 2, 0); 
+        writeReg(reg + 3, 0);
+    }
+}
+
+bool RobotArmController::initHardware() {
         
         bool init_state = true;
         // prescale calculation: 25MHz / (4096 * 50Hz) - 1
@@ -175,7 +110,7 @@ private:
         return init_state;
     }
 
-    bool writeReg(uint8_t reg, uint8_t val) {
+bool RobotArmController::writeReg(uint8_t reg, uint8_t val) {
         uint8_t buf[2] = {reg, val};
         if (write(_fd, buf, 2) != 2) {
             cerr << "failed to write register 0x" << hex << (int)reg << dec << endl;
@@ -184,7 +119,7 @@ private:
         return true;
     }
 
-    bool loadConfig(const string& path) {
+bool RobotArmController::loadConfig(const string& path) {
         ifstream file(path);
         if (!file.is_open()) { 
             cerr << "cant find config file: " << path << endl;
@@ -193,31 +128,23 @@ private:
 
         string name;
         
-        // get one line
         while (file >> name) {
-            // #for comment
             if (name[0] == '#') {
                 string dummy; 
                 getline(file, dummy); 
                 continue;
             }
-
-            // read data: name channel init min max
             int ch;
             float init, minA, maxA;
             if (file >> ch >> init >> minA >> maxA) {
-                // currentAngle = init
-                servos[name] = {name, ch, init, minA, maxA, init};
+                servos[name] = ServoConfig{name, ch, init, minA, maxA, init};
                 cout << "load: " << name << " channel: " << ch << endl;
             }
         }
         return true;
     }
-};
 
 
-// control for key envent
-// not use in feaure project
 RobotArmController* arm = nullptr;
 bool running = true;
 
@@ -244,28 +171,28 @@ void onKeyPress(int key) {
     fflush(stdout);
 }
 
-int main() {
+// int main() {
 
-    cout << "\nuse ws;ad;zx to control the robot arm" << endl;
-    cout << "\nuse r to detach all servos, q to quit" << endl;
+//     cout << "\nuse ws;ad;zx to control the robot arm" << endl;
+//     cout << "\nuse r to detach all servos, q to quit" << endl;
 
-    arm = new RobotArmController("servo_config.txt");
-    if (arm->lastStatus != SUCCESS) {
-        cerr << "failed to initialize robot arm controller, error code: " << arm->lastStatus << endl;
-        return -1;
-    }
+//     arm = new RobotArmController("../servo_config.txt");
+//     if (arm->lastStatus != SUCCESS) {
+//         cerr << "failed to initialize robot arm controller, error code: " << arm->lastStatus << endl;
+//         return -1;
+//     }
 
-    KeypressPublisherStdFunc publisher;
-    publisher.registerEventCallback(onKeyPress);
-    publisher.start();
+//     KeypressPublisherStdFunc publisher;
+//     publisher.registerEventCallback(onKeyPress);
+//     publisher.start();
 
-    while (running) {
-        this_thread::sleep_for(chrono::milliseconds(100));
-    }
+//     while (running) {
+//         this_thread::sleep_for(chrono::milliseconds(100));
+//     }
 
-    arm->detachAll();
-    publisher.stop();
-    delete arm;
-    cout << "\nsystem shutdown complete." << endl;
-    return 0;
-}
+//     arm->detachAll();
+//     publisher.stop();
+//     delete arm;
+//     cout << "\nsystem shutdown complete." << endl;
+//     return 0;
+// }

@@ -4,6 +4,7 @@
 #include "SpeakerEngine.hpp"
 #include "nlu_test.hpp"
 #include "ThreadSafeQueue.hpp" 
+#include "MotionManager.hpp"
 
 #include <vosk_api.h>
 #include <thread>
@@ -41,6 +42,8 @@ private:
     // init state
     void stopInternal();
 
+    //
+    MotionManager motionManager;
 private:
     
 

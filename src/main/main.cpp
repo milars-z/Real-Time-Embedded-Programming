@@ -1,10 +1,13 @@
 #include "voiceInteraction.hpp"
+// #include "MotionManager.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
 
 int main() {
     RobotCore robot_interactive;
+    // MotionManager *RobotMotion = nullptr;
+    // RobotMotion = new MotionManager("../servo_config.txt");
 
     if (!robot_interactive.init()) {
         std::cerr << "Initialization failed." << std::endl;

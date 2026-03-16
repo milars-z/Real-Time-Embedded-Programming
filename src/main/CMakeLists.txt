@@ -18,6 +18,9 @@ add_executable(main
     "${CMAKE_CURRENT_SOURCE_DIR}/../Tools/VisonTools.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/nlu_test.cpp" 
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/voiceInteraction.cpp" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/MotionManager.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/PwmBoardController.cpp"
+    
 )
 
 target_compile_definitions(main PRIVATE
@@ -58,6 +61,7 @@ target_include_directories(main PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../Microphone"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Microphone/model/vosk"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Speaker"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Motor"
 
     "${SHERPA_HOME}/include"
     "${ORT_ROOT}/include" 
