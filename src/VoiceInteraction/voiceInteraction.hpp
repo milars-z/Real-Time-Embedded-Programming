@@ -2,7 +2,9 @@
 
 #include "MicrophoneEngine.hpp"
 #include "SpeakerEngine.hpp"
-#include "nlu_test.hpp"
+#include "NluHandle.hpp"
+#include "MotionHandle.hpp"
+#include "CameraHandle.hpp"
 #include "ThreadSafeQueue.hpp" 
 #include "MotionManager.hpp"
 
@@ -65,4 +67,5 @@ private:
     std::thread speakerThread;
     std::atomic<bool> isRunning;
     
+    MotionHandle motionHandle;
 };

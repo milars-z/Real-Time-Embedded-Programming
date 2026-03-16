@@ -170,46 +170,45 @@ void RobotCore::audioCallback(const std::vector<short>& data) {
 // nlu thread
 void RobotCore::nluWorker() {
     std::string text;
+    MotionTask motion_test;
+    bool ismotion;
+    std::string responseText;
+    nlu_output nlu_outp;
     while (isRunning) {
         // // wait for audio--textInputQueue
         if (textInputQueue.pop(text)) {
 
-            nlu_output nlu_outp = nlu->predict(text);
-            
-            std::string responseText = "";
+            responseText = "";
 
-            // 后续连接其他类进行语义处理
-            if (nlu_outp.intent == "greet") {
-                responseText = "hello";
-                MotionTask motion_test_1 = {
-                    Joint::Base,
-                    MoveMethod::REL,
-                    10.0,
-                    100,
-                };
-                motionManager.enqueue_motion(motion_test_1);
-            } else if (nlu_outp.intent == "bye") {
-                responseText = "bye";
-                MotionTask motion_test_2 = {
-                    Joint::Base,
-                    MoveMethod::REL,
-                    -10.0,
-                    100,
-                };
-                motionManager.enqueue_motion(motion_test_2);
-            } else if (nlu_outp.intent == "check_host_name") {
-                responseText = "hello, milars";
-            } else if (nlu_outp.intent == "check_rot_name") {
-                responseText = "hello, i am cognitive robot arm";
-            } else if (nlu_outp.intent == "learn_motion") {
-                responseText = "i am learning how to " + nlu_outp.currentValue;
-            } else if (nlu_outp.intent == "learn_obj") {
-                responseText = "i am learning what is " + nlu_outp.currentValue;
-            } else if (nlu_outp.intent == "do_motion") {
-                responseText = "i am doing " + nlu_outp.currentValue;
-            } else if (nlu_outp.intent == "find_obj") {
-                responseText = "i am finding " + nlu_outp.currentValue;
-            } 
+            ismotion = motionHandle.parseMotionCommand(text,motion_test);
+            if (ismotion){
+                printf("get motion");
+                responseText = "get motion";
+                motionManager.enqueue_motion(motion_test);
+            }else{
+            
+                nlu_outp = nlu->predict(text);
+
+                // 后续连接其他类进行语义处理
+                if (nlu_outp.intent == "greet") {
+                    responseText = "hello";
+                    motionManager.read_motion_set("hello");
+                } else if (nlu_outp.intent == "bye") {
+                    responseText = "bye";
+                } else if (nlu_outp.intent == "check_host_name") {
+                    responseText = "hello, milars";
+                } else if (nlu_outp.intent == "check_rot_name") {
+                    responseText = "hello, i am cognitive robot arm";
+                } else if (nlu_outp.intent == "learn_motion") {
+                    responseText = "i am learning how to " + nlu_outp.currentValue;
+                } else if (nlu_outp.intent == "learn_obj") {
+                    responseText = "i am learning what is " + nlu_outp.currentValue;
+                } else if (nlu_outp.intent == "do_motion") {
+                    responseText = "i am doing " + nlu_outp.currentValue;
+                } else if (nlu_outp.intent == "find_obj") {
+                    responseText = "i am finding " + nlu_outp.currentValue;
+                } 
+            } // end motion judge
 
             if (!responseText.empty()) {
                 std::cout << "[NLU] Intent: " << nlu_outp.intent << " -> Reply: " << responseText << std::endl;

@@ -16,8 +16,9 @@ add_executable(main
     "${CMAKE_CURRENT_SOURCE_DIR}/../Microphone/MicrophoneEngine.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Speaker/SpeakerEngine.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Tools/VisonTools.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/nlu_test.cpp" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/NluHandle.cpp" 
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/voiceInteraction.cpp" 
+    "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/MotionHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/MotionManager.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/PwmBoardController.cpp"
     
