@@ -1,5 +1,23 @@
 #include "MotionManager.hpp"
 
+const std::unordered_map<std::string, MotionSet> MOTIONSET = {
+    
+    {
+        "hello",
+        {
+            "hello",
+            {
+                {Joint::Base, MoveMethod::REL,  20.0f, 50},
+                {Joint::Base, MoveMethod::REL, -20.0f, 50},
+                {Joint::Base, MoveMethod::REL,  20.0f, 50},
+                {Joint::Base, MoveMethod::REL, -20.0f, 50}
+            }
+        }
+    },
+};
+
+
+
 MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
 
     if (_arm.lastStatus != SUCCESS) {
@@ -57,8 +75,22 @@ void MotionManager::create_motion_set(std::string motion_set_name){
 
 // motion指令相关，读取指令集并将指令加入队列
 // 下版本更新
-void MotionManager::read_motion_set(std::string motion_set_name){
+bool MotionManager::read_motion_set(const std::string& motion_set_name){
 
+    
+    auto it = MOTIONSET.find(motion_set_name);
+    
+    if (it == MOTIONSET.end()){
+        return false;
+    }
+
+    const MotionSet& motion_set = it->second; 
+
+    for (const auto& task : motion_set.tasks){
+        enqueue_motion(task);
+    }
+    return true;
+    
 }
 
 // motion控制相关，链接底层pwm控制，将指定joint移动到指定角度
@@ -130,7 +162,7 @@ bool MotionManager::move_joint_with_val(Joint joint,float angleVal,int motionSpe
         // 后续追加小队列来解决sleep问题
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
-    printf("now_joint:base,target_:%f",nowAngle);
+    printf("[Motion]now_joint:base,target_:%f\n",nowAngle);
     return state;
 };
 
@@ -163,7 +195,6 @@ void MotionManager::motionworker(){
     MotionTask cmd;
 
     while ((_isRunning) && (MotionQueue.pop(cmd))) {
-        std::cout << "222" << std::endl;
         executeMotion(cmd);
 
     }

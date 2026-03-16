@@ -10,6 +10,7 @@ enum class Joint {
     Base,
     Shoulder,
     Elbow,
+    UNKNOWN,
 };
 
 enum class Motion_class {
@@ -33,6 +34,14 @@ struct MotionTask {
 
 };
 
+struct MotionSet {
+    std::string name;
+    std::vector<MotionTask> tasks;
+};
+
+extern const std::unordered_map<std::string, MotionSet> MOTIONSET;
+
+
 class MotionManager{
 public:
 
@@ -46,7 +55,7 @@ public:
     // 下版本更新
     void create_motion(std::string motion_name);
     void create_motion_set(std::string motion_set_name);
-    void read_motion_set(std::string motion_set_name);
+    bool read_motion_set(const std::string& motion_set_name);
 
 private:
 
