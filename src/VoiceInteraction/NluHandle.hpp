@@ -1,5 +1,5 @@
-#ifndef NLU_TEST_HPP
-#define NLU_TEST_HPP
+#ifndef HLUHANDLE_HPP
+#define HLUHANDLE_HPP
 
 #include <onnxruntime_cxx_api.h>
 
