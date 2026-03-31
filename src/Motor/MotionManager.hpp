@@ -2,9 +2,15 @@
 
 #include "PwmBoardController.hpp"
 #include "ThreadSafeQueue.hpp" 
+#include "VisonTools.hpp"
 
 #include <thread>
 #include <atomic>
+#include <set>
+#include <filesystem>
+#include <nlohmann/json.hpp>
+#include <fstream>
+
 
 enum class Joint {
     Base,
@@ -57,6 +63,15 @@ public:
     void create_motion_set(std::string motion_set_name);
     bool read_motion_set(const std::string& motion_set_name);
 
+    // 给外部一个接口刷新motion
+    void learn_motion_fresh();
+
+    // 改成外部函数算了
+    std::string JointName(Joint joint);
+    const std::string _motion_folder = "./Motion_set"; // 配置文件目录
+
+    void servo_set_init();
+
 private:
 
 
@@ -66,6 +81,9 @@ private:
 
     ThreadSafeQueue<MotionTask> MotionQueue; // MotionManager -> PwmBoardController
 
+    std::set<std::string> _available_motions; // 存储文件夹中搜到的动作集名称
+    
+
     // motion底层链接相关函数
     bool move_joint_to_angle(Joint joint,float targetAngle,int motionSpeed);
     bool move_joint_with_val(Joint joint,float angleVal,int motionSpeed);
@@ -73,8 +91,9 @@ private:
     bool reset();
     bool stop();
 
-    // 相关工具
-    std::string JointName(Joint joint);
+    // motion工具，刷新动作集列表
+    void refresh_motion_list();
+
 
     // motion thread
     void motionworker();
@@ -83,5 +102,8 @@ private:
     std::thread motionThread;
     std::atomic<bool> _isRunning;
     std::atomic<bool> _stopRequested;
+
+    Joint stringToJoint(const std::string& name);
+    MoveMethod stringToMethod(const std::string& method);
     
 };

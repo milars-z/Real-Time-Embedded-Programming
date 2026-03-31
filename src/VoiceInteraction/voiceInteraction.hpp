@@ -14,6 +14,23 @@
 #include <string>
 #include <vector>
 
+
+enum class RobotIntent {
+    DO_MOTION,
+    LEARN_MOTION,
+    FIND_OBJ,
+    LEARN_OBJ,
+    GREET,
+    NORMAL,
+    SERVO_INIT,
+    UNKNOWN
+};
+
+struct IntentContext {
+    RobotIntent intent;
+    std::string value; 
+};
+
 class RobotCore {
 public:
     RobotCore();
@@ -44,8 +61,26 @@ private:
     // init state
     void stopInternal();
 
-    //
-    MotionManager motionManager;
+    void handleDoMotion(const std::string& val, std::string& response);
+    void handleLearnMotion(const std::string& val, std::string& response);
+    void handleFindObj(const std::string& val, std::string& response);
+    void handleLearnObj(const std::string& val, std::string& response);
+    void handleNormal(const std::string& text, std::string& response);
+    RobotIntent mapToIntent(const std::string& nlu_intent);
+
+    // 外界调用函数
+    // 学习状态处理，传入motion名称，开始学习
+    void processLearningInput(const std::string& text, std::string& response);
+
+    // 内部处理
+    // 用来处理motion string，将motionstring中的joint 提取，并生成MotionSet保存
+    // 后续或许要追加motion的角度，例如将base旋转xx角度，所以输入时motion Task
+    // motion task中的速度，角度，相对方式暂时用默认值
+    bool saveMotionSet(std::string motionName, std::vector<MotionTask>& motionSet);
+
+
+    void get_motion_name_from_text(const std::string& text, std::string& val);
+
 private:
     
 
@@ -68,4 +103,13 @@ private:
     std::atomic<bool> isRunning;
     
     MotionHandle motionHandle;
+
+    MotionManager motionManager;
+
+    bool _isLearningMode = false;
+
+    // learn motion process temp storage
+    std::string _currentLearningName = "";
+    std::vector<MotionTask> _tempTasks; 
+    Joint _currentJoint = Joint::Base;  
 };
