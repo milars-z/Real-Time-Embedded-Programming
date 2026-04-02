@@ -15,7 +15,22 @@ int main() {
     robot_interactive.start();
 
     while (robot_interactive.running()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+        cv::Mat view = robot_interactive.getCamHandle()->getProcessedFrame();
+
+        if (!view.empty()) {
+            cv::imshow("Robot Camera Demo", view);
+        }
+
+        // Cam测试
+        int key = cv::waitKey(1); 
+        if (key == 'q') break;
+        
+        if (key == 'b') robot_interactive.getCamHandle()->Update_bg();
+        if (key == 's') robot_interactive.getCamHandle()->Learn_obj("obj_1");
+        if (key == 'm') robot_interactive.getCamHandle()->Find_obj("obj_1");
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     }
 

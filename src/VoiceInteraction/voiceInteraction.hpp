@@ -48,6 +48,10 @@ public:
     // 检查是否正在运行
     bool running() const;
 
+    // 外界调用Cam接口
+    // 用来推流测试
+    CameraHandle* getCamHandle() const;
+
 private:
     // user input
     void audioCallback(const std::vector<short>& data);
@@ -88,6 +92,7 @@ private:
     UsbMicrophone* mic = nullptr;
     UsbSpeaker* speaker = nullptr;
     NLUEngine* nlu = nullptr;
+    CameraHandle* cam = nullptr;
     
     // Vosk 
     VoskModel* voskModel = nullptr;
@@ -112,4 +117,6 @@ private:
     std::string _currentLearningName = "";
     std::vector<MotionTask> _tempTasks; 
     Joint _currentJoint = Joint::Base;  
+
+
 };

@@ -8,6 +8,8 @@
 #include <string>
 #include <iostream>
 
+#include "VisonTools.hpp"
+
 /**
  * CameraEngine - raspi5 CameraEngine
  * 

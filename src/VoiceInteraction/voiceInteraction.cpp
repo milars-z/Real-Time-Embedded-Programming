@@ -59,6 +59,12 @@ bool RobotCore::init() {
         goto fail;
     }
 
+    cam = new CameraHandle("../../Camera/model/mobilenet_v2_slice.onnx", "../../Camera/feature/my_features.yml");
+    if (!cam->open()) {
+        std::cerr << "[Error] Camera open failed" << std::endl;
+        goto fail;
+    }
+
     std::cout << "[Init] System initialized successfully." << std::endl;
     return true;
 
@@ -68,6 +74,7 @@ fail:
     if(recognizer){ vosk_recognizer_free(recognizer); recognizer = nullptr;}
     if(voskModel) { vosk_model_free(voskModel); voskModel = nullptr;}
     if(nlu)       { delete nlu; nlu = nullptr; }
+    if(cam)       { delete cam; cam = nullptr; }
     return false;
 }
 
@@ -128,10 +135,14 @@ void RobotCore::stop() {
     if (recognizer) { vosk_recognizer_free(recognizer); recognizer = nullptr; }
     if (voskModel)  { vosk_model_free(voskModel); voskModel = nullptr; }
 
+    // 关闭Camera
+    if (cam) cam->stop();
+
     // 删除对象
     delete mic; mic = nullptr;
     delete speaker; speaker = nullptr;
     delete nlu; nlu = nullptr;
+    delete cam; cam = nullptr;
 
     std::cout << "[System] Stopped and resources cleaned." << std::endl;
 }
@@ -148,6 +159,8 @@ void RobotCore::stopInternal() {
     if (nluThread.joinable()) nluThread.join();
     if (speakerThread.joinable()) speakerThread.join();
     if(mic) mic->stop();
+    if(cam) cam->stop();
+
 }
 
 
@@ -283,6 +296,7 @@ void RobotCore::handleFindObj(const std::string& val, std::string& response) {
 
 // 状态：学习物体逻辑
 void RobotCore::handleLearnObj(const std::string& val, std::string& response) {
+    cam->Learn_obj(val);
     response = "Camera model is not ready yet.";
 }
 
@@ -408,4 +422,8 @@ void RobotCore::get_motion_name_from_text(const std::string& text, std::string& 
 
         val = raw_name.substr(first, (last - first + 1));
     }
+}
+
+CameraHandle* RobotCore::getCamHandle() const {
+    return cam;
 }

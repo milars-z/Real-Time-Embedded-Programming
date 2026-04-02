@@ -38,6 +38,8 @@ bool CameraEngine::start(int width, int height, int fps) {
 
     active = true;
     workerThread = std::thread(&CameraEngine::captureLoop, this);
+    pinThreadToCore(workerThread, "CamCapThread", 2);
+    printf("[Init/Start] Camera started successfully in core 2\n");
 
     
     return true;

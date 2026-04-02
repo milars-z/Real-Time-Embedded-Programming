@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Threads REQUIRED)
 find_package(ALSA REQUIRED)
 find_package(nlohmann_json 3 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # --- Executable ---
 add_executable(main
@@ -19,9 +20,12 @@ add_executable(main
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/NluHandle.cpp" 
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/voiceInteraction.cpp" 
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/MotionHandle.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/CameraHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/MotionManager.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/PwmBoardController.cpp"
-    
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/CameraEngine.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/AttentionDetector.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/FeatureManager.cpp"
 )
 
 target_compile_definitions(main PRIVATE
@@ -56,6 +60,7 @@ set(ORT_LIB    "${ORT_ROOT}/lib/libonnxruntime.so")
 target_include_directories(main PRIVATE
     ${ALSA_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS} 
     "${CMAKE_CURRENT_SOURCE_DIR}/../main"
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Tools"
@@ -63,6 +68,7 @@ target_include_directories(main PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../Microphone/model/vosk"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Speaker"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Motor"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Camera"
 
     "${SHERPA_HOME}/include"
     "${ORT_ROOT}/include" 
@@ -82,6 +88,7 @@ target_link_libraries(main PRIVATE
     ALSA::ALSA
     Threads::Threads
     dl
+    ${OpenCV_LIBS} 
 )
 
 # --- RPATH Settings ---
