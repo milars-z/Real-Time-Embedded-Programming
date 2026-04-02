@@ -291,13 +291,22 @@ void RobotCore::handleLearnMotion(const std::string& val, std::string& response)
 
 // 状态：寻找物体逻辑
 void RobotCore::handleFindObj(const std::string& val, std::string& response) {
-    response = "Camera model is not ready yet.";
+    if (val.empty()) {
+        response = "find what?";
+        return;
+    }
+    cam->Find_obj(val);
+
 }
 
 // 状态：学习物体逻辑
 void RobotCore::handleLearnObj(const std::string& val, std::string& response) {
+    if (val.empty()) {
+        response = "learn what?";
+        return;
+    }
     cam->Learn_obj(val);
-    response = "Camera model is not ready yet.";
+    response = "learn object " + val;
 }
 
 // 状态：一般
