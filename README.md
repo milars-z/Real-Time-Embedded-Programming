@@ -28,7 +28,7 @@ The system is built on five modular pillars:
 
 ### Stage 2: Embedded Deployment & Kinematics (02/23 – 03/09)
 - [x] **Embedded Migration**: Transition control from PC to standalone embedded deployment.
-- [ ] ~~**Mathematics**: Implement **Inverse Kinematics (IK)** and coordinate system transformations.~~
+- [x] **Kinematics Foundation**: Implemented 3D coordinate system transformations (Homogeneous Transformation, Pixel-to-Base) with dynamic configuration and workspace safety boundaries.
 - [x] **System Integration**: Synchronous display between the physical arm and simulation.
 
 ### Stage 3: Intelligent Perception (03/10 – 04/03)
@@ -71,7 +71,7 @@ The intended architecture is shown in the diagram below.
 - Robotic arm can learn and execute predefined motion sets  
 - Object detection and recognition are functional  
 - Basic speech recognition and interaction are implemented  
-
+- Coordinate Transformation: Successfully mapping 2D camera pixels to 3D physical base coordinates with safety validations.
 ---
 
 ## ⚠️ Current Limitations
@@ -79,8 +79,7 @@ The intended architecture is shown in the diagram below.
 - Motion recording process is cumbersome and inefficient  
 - NLU accuracy is limited; text output from the speaker module is not always reliable  
 - Camera module can only distinguish objects that are relatively far apart  
-- NO IK！
-
+- Full Inverse Kinematics (IK) is not yet implemented (though the coordinate transformation baseline is now complete).
 ---
 
 ## 🚀 Next Steps
@@ -121,7 +120,7 @@ The intended architecture is shown in the diagram below.
 - 1 motion动作录入繁琐 
 - 2 nlu识别不够精准，speaker模块获取到的text不够精准 
 - 3 cam模块只能比较两个距离较远的物体 
-- 4 没有做IK，应该得等到4.10之后研究了
+- 4 完整的 IK (逆运动学) 尚未完全实现（但坐标转换的基础已经打好，预计 4.10 之后继续深入研究）。
 
 下一阶段将对这几个模块进行升级优化 
 - 1 尝试加入screen，手动操作录入motion，并且可以远程查看cam的检测结果，完全脱离pc 
