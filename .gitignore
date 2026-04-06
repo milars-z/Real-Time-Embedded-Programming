@@ -75,3 +75,5 @@ model/
 vosk*
 
 VoiceInteraction/model_nlu/nlu_model.onnx
+
+src/VoiceInteraction/model_nlu/nlu_model.onnx
