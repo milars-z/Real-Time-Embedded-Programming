@@ -171,10 +171,12 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         objs = _detector.detect(target_img);
         match_idx = _feat_mgr.match_object(target_name, objs, 0.2f);
 
-        last_found_index = match_idx;
 
         if (match_idx != -1) {
             std::cout << "[Core 2] Found " << target_name << " at index " << match_idx << std::endl;
+            cv::Rect _box = objs[match_idx].box ;
+            std::cout << "Bounding Box: x=" << _box.x + _box.width/2 << ", y=" << _box.y + _box.height/2 << std::endl;
+
         } else {
             std::cout << "[Core 2] " << target_name << " not found." << std::endl;
         }
@@ -187,6 +189,8 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     std::lock_guard<std::mutex> lock(_result_mtx);
     _latest_objects = objs;
     _last_inference_ms = duration;
+    last_found_index = match_idx;
+    
 };
 
 
@@ -233,4 +237,15 @@ cv::Mat CameraHandle::getProcessedFrame() {
     }
 
     return canvas;
+}
+
+ObjPosition CameraHandle::getObjectPosition() {
+    
+    std::lock_guard<std::mutex> lock(_result_mtx);
+
+    last_position.x = (last_found_index != -1) ? (_latest_objects[last_found_index].box.x + _latest_objects[last_found_index].box.width / 2) : -1;
+    last_position.y = (last_found_index != -1) ? (_latest_objects[last_found_index].box.y + _latest_objects[last_found_index].box.height / 2) : -1;
+
+    return last_position;
+
 }

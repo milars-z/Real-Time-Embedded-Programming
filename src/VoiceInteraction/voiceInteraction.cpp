@@ -296,7 +296,18 @@ void RobotCore::handleFindObj(const std::string& val, std::string& response) {
         return;
     }
     cam->Find_obj(val);
-
+    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    ObjPosition pos = cam->getObjectPosition();
+    printf("Object Position - x: %d, y: %d\n", pos.x, pos.y);
+    if (pos.x != -1 && pos.y != -1) {
+        if (pos.x < 320) {
+            response +=  val + " is on the left. ";
+        } else {
+            response +=  val + " is on the right. ";
+        }
+    } else {
+        response = "can't find " + val;
+    }
 }
 
 // 状态：学习物体逻辑

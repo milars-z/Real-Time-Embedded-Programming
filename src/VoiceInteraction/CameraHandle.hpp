@@ -24,6 +24,11 @@ enum class CamState {
     UPDATING_BG // 更新背景状态
 };
 
+struct ObjPosition {
+    int x = -1;
+    int y = -1;
+};
+
 class CameraHandle {
 public:
 
@@ -53,6 +58,9 @@ public:
     bool stop();
 
     cv::Mat getProcessedFrame();
+
+    // 获取物体位置
+    ObjPosition getObjectPosition();    
 
 
 private:
@@ -111,6 +119,8 @@ private:
     std::mutex _result_mtx;     
     
     std::atomic<int> last_found_index;
+
+    ObjPosition last_position;
 };
 
 #endif // CAMERA_HANDLE_HPP

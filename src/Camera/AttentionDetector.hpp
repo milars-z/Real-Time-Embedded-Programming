@@ -10,8 +10,8 @@
 // 配置参数
 struct DetConfig {
     cv::Size INPUT_SIZE = cv::Size(224, 224);
-    float BINARY_THRESH = 0.25f;       // 二值化阈值
-    int MIN_PIXEL_AREA = 100;          // 最小面积
+    float BINARY_THRESH = 0.5f;       // 二值化阈值
+    int MIN_PIXEL_AREA = 300;          // 最小面积
     float EDGE_SUPPRESSION_RATIO = 0.1f;
     int MAX_OUTPUT_TARGETS = 10;
 };
