@@ -94,4 +94,12 @@ model/
 
 vosk*
 
+<<<<<<< HEAD
 src/VoiceInteraction/model_nlu/nlu_model.onnx
+=======
+VoiceInteraction/model_nlu/nlu_model.onnx
+
+src/VoiceInteraction/model_nlu/nlu_model.onnx
+
+lvgl/
+>>>>>>> ScreenTest

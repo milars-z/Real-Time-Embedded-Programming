@@ -27,13 +27,13 @@ The system is built on five modular pillars:
 - [x] **Speech/Vision Baseline**: Implement basic keyword extraction and image matching benchmarks (accuracy & blurriness analysis).
 
 ### Stage 2: Embedded Deployment & Kinematics (02/23 – 03/09)
-- [ ] **Embedded Migration**: Transition control from PC to standalone embedded deployment.
-- [ ] **Mathematics**: Implement **Inverse Kinematics (IK)** and coordinate system transformations.
-- [ ] **System Integration**: Synchronous display between the physical arm and simulation.
+- [x] **Embedded Migration**: Transition control from PC to standalone embedded deployment.
+- [ ] ~~**Mathematics**: Implement **Inverse Kinematics (IK)** and coordinate system transformations.~~
+- [x] **System Integration**: Synchronous display between the physical arm and simulation.
 
 ### Stage 3: Intelligent Perception (03/10 – 04/03)
-- [ ] **Voice Control**: Deploy full voice command chain for directional movement and grasping.
-- [ ] **Object Matching**: Real-time identification of desktop objects against existing image datasets.
+- [x] **Voice Control**: Deploy full voice command chain for directional movement and grasping.
+- [x] **Object Matching**: Real-time identification of desktop objects against existing image datasets.
 - [ ] **Hardware Iteration**: (Optional) Refine 3D printed components for better grip/accuracy.
 
 ### Stage 4: Advanced Learning (Independent Track)
@@ -43,7 +43,7 @@ The system is built on five modular pillars:
 
 ## 🚩 Key Milestones
 - [ √ ] **Lunar New Year (Feb 15)**: Prototype verification (Physical arm is fully mobile).
-- [ ] **Early March**: Standalone embedded control (PC-independent).
+- [ √ ] **Early March**: Standalone embedded control (PC-independent).
 - [ ] **Early April**: Full deployment of Speech and Image Recognition systems.
 
 ---
@@ -58,3 +58,72 @@ The final weeks will be dedicated to:
 
 ### 📝 Note
 *Stage 4 development is handled as an independent advanced track.*
+
+
+## 📌 Progress Summary (as of 02/04)
+
+As of April 2th, the basic system framework has been successfully established.  
+The intended architecture is shown in the diagram below.
+![Architecture](docs/pic/architecture.png)
+
+### ✅ Current Capabilities
+
+- Robotic arm can learn and execute predefined motion sets  
+- Object detection and recognition are functional  
+- Basic speech recognition and interaction are implemented  
+
+---
+
+## ⚠️ Current Limitations
+
+- Motion recording process is cumbersome and inefficient  
+- NLU accuracy is limited; text output from the speaker module is not always reliable  
+- Camera module can only distinguish objects that are relatively far apart  
+- NO IK！
+
+---
+
+## 🚀 Next Steps
+
+### 1. Interface & Usability
+- Introduce a screen interface  
+- Enable manual motion recording  
+- Support remote visualization of camera detection results  
+- Goal: Fully operate without reliance on a PC  
+
+### 2. NLU Optimization
+- Improve model accuracy and intent recognition  
+- Enhance robustness of speech-to-text pipeline  
+
+### 3. Camera Module Enhancement
+- Improve detection accuracy  
+- Allocate more memory for better performance  
+- Optimize usage since the camera is only activated during detection/recognition tasks  
+
+### Note
+- The current 3D-printed model is sufficient for now, so no reprinting was required.
+
+---
+
+## 📊 Notes
+
+- Current system focuses on modular integration  
+- Next phase emphasizes optimization, usability, and system independence  
+
+
+## chinese
+
+截至4月2日，已完成基本框架的搭建，理想框架如下图 机械臂可以实现motion动作组的学习，物品的识别与检测，语音识别交互功能 
+
+现版本的3D打印模型暂时够用，因此没有再次打印 
+
+仍存在问题如下： 
+- 1 motion动作录入繁琐 
+- 2 nlu识别不够精准，speaker模块获取到的text不够精准 
+- 3 cam模块只能比较两个距离较远的物体 
+- 4 没有做IK，应该得等到4.10之后研究了
+
+下一阶段将对这几个模块进行升级优化 
+- 1 尝试加入screen，手动操作录入motion，并且可以远程查看cam的检测结果，完全脱离pc 
+- 2 优化nlu模型 
+- 3 优化cam模型，现阶段仅在调用cam进行检测/识别的时候使用cam模块，因此可以考虑多使用一部分内存来换取更高的精度
