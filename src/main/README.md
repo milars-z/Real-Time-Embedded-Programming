@@ -28,3 +28,9 @@ src/
 
 ## Demo 
 link: https://youtube.com/shorts/TRHH_WaZd8w?feature=share
+
+
+# Version 2.0
+
+## 模块重构
+0409不写那么多了，详细重构结果看main的readme
