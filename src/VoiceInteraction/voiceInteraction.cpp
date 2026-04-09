@@ -5,6 +5,10 @@
 #include <chrono>
 
 
+// 该文件在先版本已不适用
+// 重构为一个整体的 RobotSystem 类，负责管理所有模块的生命周期和交互
+// 重构后的文档为interaction文件夹下的文件
+
 // 构造函数
 RobotCore::RobotCore() : motionManager("../../Motor/servo_config.txt"),
       isRunning(false) {
