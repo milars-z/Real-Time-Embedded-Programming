@@ -105,6 +105,7 @@ void CameraHandle::Find_obj(const std::string name) {
 
 // 获取用于显示的图像
 // 后续外接显示模块时用
+// 未使用
 cv::Mat CameraHandle::getDisplayFrame() {
     std::lock_guard<std::mutex> lock(display_mtx);
     return display_frame.clone();
@@ -127,7 +128,15 @@ void CameraHandle::cameraWorker() {
 
             // 保证稳定性，取5张只用最后一张进行处理
             if (Camera_worker_buffer.size() >= 5) {
-                processTask(Camera_worker_buffer.back()); 
+
+                cv::Mat task_img = Camera_worker_buffer.back();
+
+                // camera内部使用，根据当前状态进行逻辑处理，并绘制框图
+                processTask(task_img); 
+
+                // // lvgl侧使用，将最新的结果叠加到UI专用的图上，供UI线程调用
+                // prepareUIFrame(task_img); 
+
                 Camera_worker_buffer.clear();
                 state.store(CamState::IDLE);
             }
@@ -147,7 +156,12 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 
     std::vector<DetectedObject> objs;
     int match_idx = -1; 
+    
+    {
+    // 执行任务之前清空状态
+    std::lock_guard<std::mutex> lock(_result_mtx);
     last_found_index = -1;
+    }
 
     // 延迟计算，记录处理时间
     auto start = std::chrono::high_resolution_clock::now();
@@ -196,6 +210,8 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 
 // 在推流后绘制图用
 // 显示检测结果，框，检测时间
+// 现已使用，在main循环中调用
+// 返回mat
 cv::Mat CameraHandle::getProcessedFrame() {
     cv::Mat canvas;
     std::vector<DetectedObject> objs;
@@ -208,33 +224,38 @@ cv::Mat CameraHandle::getProcessedFrame() {
         if (display_frame.empty()) return cv::Mat();
         canvas = display_frame.clone();
     }
-    {
+
+    // 如果有检测结果
+    if (match_idx != -1) {
+
+        {
         std::lock_guard<std::mutex> lock(_result_mtx);
         objs = _latest_objects;
         ms = _last_inference_ms;
+        }
+
+        for (int i = 0; i < objs.size(); i++) {
+            auto& obj = objs[i];
+            
+            cv::Scalar color = (i == match_idx) ? cv::Scalar(0, 0, 255) : cv::Scalar(0, 255, 0);
+            int thickness = (i == match_idx) ? 3 : 2;
+
+            cv::rectangle(canvas, obj.box, color, thickness);
+            
+            std::string label = (i == match_idx) ? "MATCH: " + target_name : "ID: " + std::to_string(obj.id);
+            cv::putText(canvas, label, cv::Point(obj.box.x, obj.box.y - 10), 
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
+        }
+
+        if (ms > 0) {
+            std::string time_text = cv::format("Inference: %.2f ms", ms);
+            cv::putText(canvas, time_text, cv::Point(20, 30), 
+                        cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 0), 2);
+        }
     }
 
-    // 绘制框
-    for (int i = 0; i < objs.size(); i++) {
-        auto& obj = objs[i];
-        
-        // 如果是匹配到的物体，画红框，否则画绿框
-        cv::Scalar color = (i == match_idx) ? cv::Scalar(0, 0, 255) : cv::Scalar(0, 255, 0);
-        int thickness = (i == match_idx) ? 3 : 2;
-
-        cv::rectangle(canvas, obj.box, color, thickness);
-        
-        std::string label = (i == match_idx) ? "MATCH: " + target_name : "ID: " + std::to_string(obj.id);
-        cv::putText(canvas, label, cv::Point(obj.box.x, obj.box.y - 10), 
-                    cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
-    }
-
-    // 绘制时间
-    if (ms > 0) {
-        std::string time_text = cv::format("Inference: %.2f ms", ms);
-        cv::putText(canvas, time_text, cv::Point(20, 30), 
-                    cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 0), 2);
-    }
+    // cv::resize(canvas, canvas, _ui_size);
+    // cv::cvtColor(canvas, canvas, cv::COLOR_BGR2RGB);
 
     return canvas;
 }
@@ -249,3 +270,5 @@ ObjPosition CameraHandle::getObjectPosition() {
     return last_position;
 
 }
+
+

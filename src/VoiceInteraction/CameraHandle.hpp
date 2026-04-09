@@ -75,6 +75,12 @@ private:
     // 后续会更改返回值
     void processTask(const cv::Mat& target_img);
 
+    void prepareUIFrame(const cv::Mat& raw_img);
+
+    cv::Mat getFrameForUI();
+
+    cv::Mat lvgl_frame();
+    
 private:
     
     // 外界调用路径相关
@@ -121,6 +127,11 @@ private:
     std::atomic<int> last_found_index;
 
     ObjPosition last_position;
+
+    // lvgl相关
+    cv::Mat _ui_ready_frame;       
+    std::mutex _ui_frame_mtx;      
+    const cv::Size _ui_size = cv::Size(640, 480); 
 };
 
 #endif // CAMERA_HANDLE_HPP
