@@ -60,7 +60,7 @@ The final weeks will be dedicated to:
 *Stage 4 development is handled as an independent advanced track.*
 
 
-## 📌 Progress Summary (as of 02/04)
+## 📌 Progress Summary (as of 02/04)  V 1.5
 
 As of April 2th, the basic system framework has been successfully established.  
 The intended architecture is shown in the diagram below.
@@ -111,7 +111,7 @@ The intended architecture is shown in the diagram below.
 - Next phase emphasizes optimization, usability, and system independence  
 
 
-## chinese
+## chinese  V 1.5 
 
 截至4月2日，已完成基本框架的搭建，理想框架如下图 机械臂可以实现motion动作组的学习，物品的识别与检测，语音识别交互功能 
 
@@ -127,3 +127,52 @@ The intended architecture is shown in the diagram below.
 - 1 尝试加入screen，手动操作录入motion，并且可以远程查看cam的检测结果，完全脱离pc 
 - 2 优化nlu模型 
 - 3 优化cam模型，现阶段仅在调用cam进行检测/识别的时候使用cam模块，因此可以考虑多使用一部分内存来换取更高的精度
+
+
+## Version Update V2.0
+
+This release introduces a major refactor of the system architecture, transitioning to a structured **Producer–Brain–Executor** model.
+
+The overall system workflow is illustrated in the diagram above.
+
+![Architecture_02](docs/pic/architecture_02.png)
+
+### Key Changes
+
+- Introduced a Screen module
+- Unified input handling by treating both Screen and Microphone as producer modules
+- Part of the Screen module was designed with AI assistance
+- Updated camera parameters for improved performance
+
+### Improvements
+
+- Conducted a full system-level review to ensure proper thread lifecycle management
+- For more details, please refer to docs/Project_Planning/overall.xlsx
+
+![Thread_check](docs/pic/thread_check.png)
+
+### Known Issues
+
+- Thread start/stop behaviors are not yet fully unified
+- This will be addressed in future updates
+
+## 版本更新 V2.0
+
+4月9日
+
+该版本重构了原代码解构，完善了生产者决策者执行者的模型设计  
+具体逻辑构造如图（英文版中）
+### 修改点如下  
+- 增加了screen  
+- screen和microphone模块都作为生产者输入指令 
+- screen模块部分设计由AI辅助完成  
+
+- 修改了camera的参数
+
+### 优化
+- 同时对设计进行了整体检查，确保了线程生命周期完整
+- 同时也暴露出了一些问题，线程的开始与结束事件并不统一，将会在后续版本中修改完善
+
+
+
+
