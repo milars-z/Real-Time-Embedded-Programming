@@ -10,6 +10,7 @@ find_package(Threads REQUIRED)
 find_package(ALSA REQUIRED)
 find_package(nlohmann_json 3 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(SDL2 REQUIRED)
 
 # --- Executable ---
 add_executable(main
@@ -18,7 +19,7 @@ add_executable(main
     "${CMAKE_CURRENT_SOURCE_DIR}/../Speaker/SpeakerEngine.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Tools/VisonTools.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/NluHandle.cpp" 
-    "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/voiceInteraction.cpp" 
+    # "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/voiceInteraction.cpp" 
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/MotionHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/CameraHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/MotionManager.cpp"
@@ -26,11 +27,26 @@ add_executable(main
     "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/CameraEngine.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/AttentionDetector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/FeatureManager.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Screen/Screen_ui.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/cogniArm.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/MotionApp.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/CameraApp.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/SpeakerApp.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/ScreenApp.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/RobotBrain.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/MicrophoneApp.cpp"
 )
 
 target_compile_definitions(main PRIVATE
     PROJECT_ROOT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../"
 )
+
+add_library(lvgl_lib STATIC IMPORTED)
+set_target_properties(lvgl_lib PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../Screen/lvgl_lib/liblvgl.a"
+)
+
 
 # --- Path Definitions & Checks ---
 
@@ -69,6 +85,9 @@ target_include_directories(main PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../Speaker"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Motor"
     "${CMAKE_CURRENT_SOURCE_DIR}/../Camera"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Screen"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../interaction"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../Screen/lvgl"
 
     "${SHERPA_HOME}/include"
     "${ORT_ROOT}/include" 
@@ -88,7 +107,9 @@ target_link_libraries(main PRIVATE
     ALSA::ALSA
     Threads::Threads
     dl
+    lvgl_lib
     ${OpenCV_LIBS} 
+    ${SDL2_LIBRARIES}
 )
 
 # --- RPATH Settings ---
