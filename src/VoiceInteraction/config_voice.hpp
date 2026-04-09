@@ -28,4 +28,14 @@ namespace Config {
             SRC_ROOT + "Speaker/model/vits-piper-zh_CN-huayan-medium"
         };
     }
+
+    namespace Camera {
+        const std::string CAMERA_MODEL = "../../Camera/model/mobilenet_v2_slice.onnx";
+        const std::string CAMERA_FEATURE = "../../Camera/feature/my_features.yml";
+    }
+
+    namespace Motion {
+        const std::string MOTION_CONFIG = "../../Motor/servo_config.txt";
+    }
+
 }
