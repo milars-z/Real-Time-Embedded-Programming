@@ -3,12 +3,29 @@
 #include <memory>
 #include <string>
 #include <atomic>
+#include <vector>
+
+#include "NluHandle.hpp"
+
 
 class SpeakerExecutor;
 class MotionExecutor;
 class CameraExecutor;
 class NLUEngine;
 
+
+enum class IntentType {
+    OTHER,
+    DO_MOTION,
+    FIND_OBJ,
+    LEARN_MOTION,
+    LEARN_OBJ,
+    CHECK_HOST_NAME,
+    CHECK_ROT_NAME,
+    GREET,
+    BYE,
+    UNKNOWN
+};
 
 class RobotBrain {
 private:
@@ -35,4 +52,14 @@ public:
 private:
     // 内部状态，有点突兀后续找办法解决
     void processLearning(const std::string& text);
+
+    bool nlu_detected(const nlu_output& res);
+
+    bool btn_detected(const std::string& type, const std::string& data);
+
+    bool extractIntent(const std::string& text);
+
+    IntentType parseIntent(const std::string& intent);
+
+    std::vector<std::string> split_text(const std::string& text);
 };
