@@ -6,6 +6,11 @@
 #include <opencv2/opencv.hpp> 
 #include "Executor.hpp"       
 
+struct CameraCommand{
+    std::string command;
+    std::string obj;
+};
+
 class CameraHandle;
 
 class CameraExecutor : public BaseExecutor<std::string> {
@@ -24,6 +29,6 @@ public:
     void findObject(const std::string& name);
     void learnObject(const std::string& name);
 
-    std::string action = "None";
-    std::string target = "None";
+    CameraCommand analyzecommand(const std::string& text);
+
 };
