@@ -37,7 +37,9 @@ MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
     _stopRequested = false;
 
     _motionworker = std::thread(&MotionManager::motionworker, this);
+    _servoworker  = std::thread(&MotionManager::servoworker, this);
     pinThreadToCore(_motionworker,"motion", 1);
+    pinThreadToCore(_servoworker, "servo", 1);
 
 };
 
@@ -46,9 +48,13 @@ MotionManager::~MotionManager(){
     _isRunning = false;
     _stopRequested = true;
     MotionQueue.stop();
+    ServoQueue.stop();
 
     if (_motionworker.joinable()) {
         _motionworker.join();
+    }
+    if (_servoworker.joinable()) {
+        _servoworker.join();
     }
 };
 
@@ -96,18 +102,22 @@ void MotionManager::create_motion_set(std::string motion_set_name){
     
 // }
 
-bool MotionManager::read_motion_set(const std::string& motion_set_name) {
+BugCode_M MotionManager::read_motion_set(const std::string& motion_set_name) {
 
-    // 找name
-    if (_available_motions.find(motion_set_name) == _available_motions.end()) {
-        std::cerr << "[Motion] Motion set '" << motion_set_name << "' not found in folder." << std::endl;
-        return false;
-    }
+    // // 找name
+    // if (_available_motions.find(motion_set_name) == _available_motions.end()) {
+    //     std::cerr << "[Motion] Motion set '" << motion_set_name << "' not found in folder." << std::endl;
+    //     return false;
+    // }
 
     // 找motion
+    BugCode_M state = BugCode_M::Init;
     std::string filePath = _motion_folder + "/" + motion_set_name + ".json";
     std::ifstream file(filePath);
-    if (!file.is_open()) return false;
+    if (!file.is_open()) {
+        state = BugCode_M::CannotOpenMotionFile;
+        return state;
+    }
 
     try {
         nlohmann::json j;
@@ -123,32 +133,37 @@ bool MotionManager::read_motion_set(const std::string& motion_set_name) {
             enqueue_motion(task);
         }
         std::cout << "[Motion] Loaded and enqueued: " << motion_set_name << std::endl;
-        return true;
+        state = BugCode_M::Success;
+        return state;
 
     } catch (nlohmann::json::parse_error& e) {
         std::cerr << "[Motion] Parse error in " << motion_set_name << ": " << e.what() << std::endl;
-        return false;
+        state = BugCode_M::ReadInvalidSet;
+        return state;
     }
 }
 
 // motion控制相关，链接底层pwm控制，将指定joint移动到指定角度
-bool MotionManager::move_joint_to_angle(Joint joint,float targetAngle,int motionSpeed){
+// 将详细指令push进pwm控制层的队列中
+// 暂时不需要反馈，因此改成void
+void MotionManager::move_joint_to_angle(Joint joint,float targetAngle,int motionSpeed){
 
     std::string name;
     float nowAngle;
     float angleChange;
     bool state = false;
     int step;
+    ServoTask cmd;
 
     name = JointName(joint);
-    if (name == "None") return state;
+    // if (name == "None") return state;
 
     nowAngle = _arm.getAngle(name);
     angleChange = motionSpeed * 0.02f; 
 
-    if (angleChange <= 0.0f) return state;
-    while(std::abs(targetAngle - nowAngle)>0.1f){
-        if (_stopRequested) break;
+    // if (angleChange <= 0.0f) return state;
+    while(std::abs(targetAngle - nowAngle)>1.0f){
+        // if (_stopRequested) break;
 
         if (nowAngle - targetAngle < -angleChange){
             nowAngle = nowAngle + angleChange;
@@ -158,34 +173,38 @@ bool MotionManager::move_joint_to_angle(Joint joint,float targetAngle,int motion
             nowAngle = targetAngle;
         }
 
-        state = _arm.setAngle(name, nowAngle);
+        // state = _arm.setAngle(name, nowAngle);
         // 后续追加小队列来解决sleep问题
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        cmd.name = name;
+        cmd.nowAngle = nowAngle;
+        ServoQueue.push(cmd);
     }
 
-    return state;
+    // return state;
 };
 
 // motion控制相关，链接底层pwm控制，将指定joint移动相对角度
-bool MotionManager::move_joint_with_val(Joint joint,float angleVal,int motionSpeed){
+void MotionManager::move_joint_with_val(Joint joint,float angleVal,int motionSpeed){
 
     std::string name;
     float nowAngle;
     float angleChange;
     float targetAngle;
-    bool state = false;
+    // bool state = false;
     int step;
+    ServoTask cmd;
 
     name = JointName(joint);
-    if (name == "None") return state;
+    // if (name == "None") return state;
 
     nowAngle = _arm.getAngle(name);
     angleChange = motionSpeed * 0.02f;
     targetAngle = nowAngle + angleVal;
 
-    if (angleChange <= 0.0f) return state;
-    while(std::abs(targetAngle - nowAngle)>0.1f){
-        if (_stopRequested) break;
+    // if (angleChange <= 0.0f) return state;
+    while(std::abs(targetAngle - nowAngle)>1.0f){
+        // if (_stopRequested) break;
 
         if (nowAngle - targetAngle < -angleChange){
             nowAngle = nowAngle + angleChange;
@@ -195,13 +214,18 @@ bool MotionManager::move_joint_with_val(Joint joint,float angleVal,int motionSpe
             nowAngle = targetAngle;
         }
 
-        state = _arm.setAngle(name, nowAngle);
+        // state = _arm.setAngle(name, nowAngle);
         
         // 后续追加小队列来解决sleep问题
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+        // 追加队列
+        cmd.name = name;
+        cmd.nowAngle = nowAngle;
+        ServoQueue.push(cmd);
     }
     printf("[Motion]now_joint:base,target_:%f\n",nowAngle);
-    return state;
+    // return state;
 };
 
 // motion控制相关，队列指令执行，通过method来调用不同函数
@@ -240,10 +264,11 @@ void MotionManager::learn_motion_fresh() {
 
 
 
-// motion控制相关，重置当前状态
-bool MotionManager::reset(){
-    return true;
-};
+// // motion控制相关，重置当前状态
+// 写在了excuteReset
+// bool MotionManager::reset(){
+//     return true;
+// };
 
 // motion控制相关，停止一切动作且清空指令集队列
 bool MotionManager::stop(){
@@ -251,13 +276,21 @@ bool MotionManager::stop(){
 };
 
 // motion线程，执行队列中的指令，与Pwm类接轨
+// 其实是大任务分小任务，现已优化
 void MotionManager::motionworker(){
 
     MotionTask cmd;
-
     while ((_isRunning) && (MotionQueue.pop(cmd))) {
         executeMotion(cmd);
+    }
+}
 
+// motion线程，执行详细任务，manager模块与pwm的唯一接口
+void MotionManager::servoworker(){
+
+    ServoTask cmd;
+    while ((_isRunning) && (ServoQueue.pop(cmd)) && (!_stopRequested)) {
+        _arm.setAngle(cmd.name,cmd.nowAngle);
     }
 }
 
@@ -292,4 +325,59 @@ void MotionManager::servo_set_init()
     move_joint_to_angle(Joint::Base, 90.0f, 100);
     move_joint_to_angle(Joint::Shoulder, 0.0f, 100);
     move_joint_to_angle(Joint::Elbow, 45.0f, 100);
+}
+
+// string -> MotionTask
+// 抽象指令到具象指令的转换
+// 后续直接可直接升级
+MotionTask MotionManager::getMotionTask(const std::string& cmd) {
+    auto it = motion_map.find(cmd);
+    if (it != motion_map.end()) {
+        return it->second;
+    }
+    return {Joint::UNKNOWN, MoveMethod::REL, 0.0f, 0};
+}
+
+// 执行简单任务
+// APP侧接口
+void MotionManager::excuteTask(const std::string& cmd){
+    MotionTask task;
+    task = getMotionTask(cmd);
+    if(task.joint != Joint::UNKNOWN) 
+        executeMotion(task);
+}
+
+// 执行指令集
+// APP侧接口
+BugCode_M MotionManager::excuteMotionSet(const std::string& name){
+    
+    BugCode_M state = BugCode_M::Init;
+
+    // 找name
+    if (_available_motions.find(name) == _available_motions.end()) {
+        std::cerr << "[Motion] Motion set '" << name << "' not found in folder." << std::endl;
+        state = BugCode_M::NoMotion;
+        return state;
+    }
+
+    state = read_motion_set(name);
+    return state;
+
+}
+
+void MotionManager::excuteReset(){
+    
+    servo_set_init();
+
+}
+
+void MotionManager::excuteStop(){
+
+    // 怎么实现？
+    // 状态反转
+    if(_isRunning){
+        _stopRequested = !_stopRequested;
+    }
+    
+
 }

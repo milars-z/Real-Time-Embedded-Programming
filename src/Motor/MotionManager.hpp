@@ -3,6 +3,8 @@
 #include "PwmBoardController.hpp"
 #include "ThreadSafeQueue.hpp" 
 #include "VisonTools.hpp"
+#include "BugCode.hpp"
+#include "config_voice.hpp"
 
 #include <thread>
 #include <atomic>
@@ -45,7 +47,31 @@ struct MotionSet {
     std::vector<MotionTask> tasks;
 };
 
-extern const std::unordered_map<std::string, MotionSet> MOTIONSET;
+// 这个没用了，上版本set集测试用
+// extern const std::unordered_map<std::string, MotionSet> MOTIONSET;
+
+// APP层的string在这里转换为具体的Task
+static const std::unordered_map<std::string, MotionTask> motion_map = {
+
+    // LEFT
+    {"left_l",  {Joint::Base,     MoveMethod::REL, -5.0f, 100}},
+    {"left_r",  {Joint::Base,     MoveMethod::REL,  5.0f, 100}},
+    {"left_u",  {Joint::Shoulder, MoveMethod::REL,  5.0f, 100}},
+    {"left_d",  {Joint::Shoulder, MoveMethod::REL, -5.0f, 100}},
+
+    // RIGHT
+    // 还没拉电线，正好验证下无效映射会不会出bug
+    // {"right_l", {Joint::Hand,     MoveMethod::REL, -5.0f, 100}},
+    // {"right_r", {Joint::Hand,     MoveMethod::REL,  5.0f, 100}},
+    {"right_u", {Joint::Elbow,    MoveMethod::REL,  5.0f, 100}},
+    {"right_d", {Joint::Elbow,    MoveMethod::REL, -5.0f, 100}},
+};
+
+struct ServoTask{
+    std::string name;
+    float nowAngle;
+};
+
 
 
 class MotionManager{
@@ -61,32 +87,55 @@ public:
     // 下版本更新
     void create_motion(std::string motion_name);
     void create_motion_set(std::string motion_set_name);
-    bool read_motion_set(const std::string& motion_set_name);
+    BugCode_M read_motion_set(const std::string& motion_set_name);
 
     // 给外部一个接口刷新motion
     void learn_motion_fresh();
 
     // 改成外部函数算了
     std::string JointName(Joint joint);
-    const std::string _motion_folder = "./Motion_set"; // 配置文件目录
+    const std::string _motion_folder = Config::Motion::MOTION_SET; // 配置文件目录
 
     void servo_set_init();
+
+    //do easy task
+    void excuteTask(const std::string& task);
+
+    // do motion set
+    // 需返回执行结果
+    // 改成返回错误码了
+    BugCode_M excuteMotionSet(const std::string& name);
+
+    // stop motion
+    void excuteStop();
+
+    // reset motion
+    void excuteReset();
+
+
+
 
 private:
 
 
     RobotArmController _arm;
     bool _ready = false;
+    
+    // app -> manager
     std::thread _motionworker;
+    // manager -> servo
+    std::thread _servoworker;
 
-    ThreadSafeQueue<MotionTask> MotionQueue; // MotionManager -> PwmBoardController
+    ThreadSafeQueue<MotionTask> MotionQueue; // App -> Manager
+
+    ThreadSafeQueue<ServoTask> ServoQueue; // MotionManager -> PwmBoardController
 
     std::set<std::string> _available_motions; // 存储文件夹中搜到的动作集名称
     
 
     // motion底层链接相关函数
-    bool move_joint_to_angle(Joint joint,float targetAngle,int motionSpeed);
-    bool move_joint_with_val(Joint joint,float angleVal,int motionSpeed);
+    void move_joint_to_angle(Joint joint,float targetAngle,int motionSpeed);
+    void move_joint_with_val(Joint joint,float angleVal,int motionSpeed);
     void executeMotion(const MotionTask& cmd);
     bool reset();
     bool stop();
@@ -94,16 +143,21 @@ private:
     // motion工具，刷新动作集列表
     void refresh_motion_list();
 
-
     // motion thread
     void motionworker();
+    // 新建线程，用来放直接给servo的命令
+    void servoworker();
 
-    // thread
-    std::thread motionThread;
     std::atomic<bool> _isRunning;
+    // 紧急停止
     std::atomic<bool> _stopRequested;
 
     Joint stringToJoint(const std::string& name);
     MoveMethod stringToMethod(const std::string& method);
+
+    //string -> MotionTask
+    MotionTask getMotionTask(const std::string& cmd);
+
+    
     
 };
