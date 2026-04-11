@@ -93,7 +93,23 @@ void ScreenUI::showMotionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("MOTION_CONFIRM");
     }, LV_EVENT_CLICKED, this);
 
+    lv_obj_t* btn_s = lv_button_create(main_screen);
+    lv_obj_align(btn_s, LV_ALIGN_TOP_RIGHT, -10, 10);
+    lv_label_set_text(lv_label_create(btn_s), "Do");
+    lv_obj_add_event_cb(btn_s, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->createKeyboard("MOTION_SET");
+    }, LV_EVENT_CLICKED, this);
+
+    lv_obj_t* btn_re = lv_button_create(main_screen);
+    lv_obj_align(btn_re, LV_ALIGN_TOP_RIGHT, -10, 70);
+    lv_label_set_text(lv_label_create(btn_re), "Reset");
+    lv_obj_add_event_cb(btn_re, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->createKeyboard("RESET");
+    }, LV_EVENT_CLICKED, this);
+
     lv_screen_load(main_screen);
+
+    
 }
 
 // Vision 界面 
@@ -211,7 +227,7 @@ void ScreenUI::createKeyboard(std::string signal_type) {
     // 创建容器
     lv_obj_t* cont = lv_obj_create(mask);
     lv_obj_set_size(cont, 600, 80);
-    lv_obj_align(cont, LV_ALIGN_TOP_MID, 0, 50);
+    lv_obj_align(cont, LV_ALIGN_TOP_MID, 0, 100);  // 修改了位置
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW); 
     lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
