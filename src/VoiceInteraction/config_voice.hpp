@@ -30,12 +30,15 @@ namespace Config {
     }
 
     namespace Camera {
-        const std::string CAMERA_MODEL = "../../Camera/model/mobilenet_v2_slice.onnx";
-        const std::string CAMERA_FEATURE = "../../Camera/feature/my_features.yml";
+        inline const std::string SRC_ROOT = PROJECT_ROOT_DIR;
+
+        const std::string CAMERA_MODEL = SRC_ROOT + "Camera/model/mobilenet_v2_slice.onnx";
+        const std::string CAMERA_FEATURE = SRC_ROOT + "Camera/feature/my_features.yml";
     }
 
     namespace Motion {
         const std::string MOTION_CONFIG = "../../Motor/servo_config.txt";
+        const std::string MOTION_SET = "../../Motor/motion_set.txt"
     }
 
 }
