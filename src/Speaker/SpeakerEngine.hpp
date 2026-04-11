@@ -13,6 +13,7 @@
 #include <queue>
 
 #include "c-api.h"
+#include "VisonTools.hpp"
 
 
 struct ModelPaths {

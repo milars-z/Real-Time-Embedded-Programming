@@ -18,6 +18,8 @@ SpeakerExecutor::SpeakerExecutor(const std::string& path) {
     } else {
         std::cerr << "[Speaker] 无法打开音频设备: " << path << std::endl;
     }
+
+    pinThreadToCore(worker,"SpeakerTask",3);
 }
 
 // 暂时用不到结构函数
