@@ -234,6 +234,7 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         return true;
     }else if (type == "MOTION_CONFIRM") {
         isLearningMode = false;
+        motion->pushTask("CONFIRM");
         speaker->pushTask("i know how to " + data);
         return true;
     }else if (type == "VISION_LEARN") {
@@ -262,10 +263,6 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
     }else if (type == "STOP") {
         motion->pushTask("STOP");
         speaker->pushTask("stop now");
-        return true;
-    }else if (type == "CONFIRM") {
-        motion->pushTask("CONFIRM");
-        speaker->pushTask("motion confirm");
         return true;
     }
 
