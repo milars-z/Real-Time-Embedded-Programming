@@ -37,8 +37,10 @@ namespace Config {
     }
 
     namespace Motion {
-        const std::string MOTION_CONFIG = "../../Motor/servo_config.txt";
-        const std::string MOTION_SET = "../../Motor/motion_set.txt"
+        inline const std::string SRC_ROOT = PROJECT_ROOT_DIR;
+
+        const std::string MOTION_CONFIG = SRC_ROOT + "Motor/servo_config.txt";
+        const std::string MOTION_SET = SRC_ROOT + "Motor/motion_set";
     }
 
 }
