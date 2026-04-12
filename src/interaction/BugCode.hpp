@@ -5,11 +5,14 @@
 // Motion_APP层的一些bug
 enum class BugCode_M {
     Success = 0,
+    LearningSuccess = 1,
     NoMotion = -1,
     CannotOpenMotionFile = -2,
     ReadInvalidSet = -3,
     MotionSaveWrong = -4,
     WriteInvalidSet = -5,
-    Init = -6
+    UnkonwJoint = -6,
+    MotionQueError = -7,
+    Init = -8
 };
 
