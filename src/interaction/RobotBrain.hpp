@@ -62,4 +62,11 @@ private:
     IntentType parseIntent(const std::string& intent);
 
     std::vector<std::string> split_text(const std::string& text);
+
+    // 大脑记一下上一个学的是什么动作不过分吧
+    std::string _lastlearnmotion = "None" ;
+
+    std::string _currentJoint = "left_";
+
+    std::string _currentWay = "l";
 };

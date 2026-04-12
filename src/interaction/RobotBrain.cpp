@@ -59,9 +59,14 @@ RobotBrain::~RobotBrain() = default;
 void RobotBrain::handleIncomingText(const std::string& text) {
     // 处理来自麦克风的文本信号
     if (text.empty()) return;
+    
+    // if(motion->checklearningstate()){
+    //     isLearningMode = false;
+    // }
 
     if (isLearningMode) {
         processLearning(text);
+
         return;
     }
 
@@ -80,15 +85,48 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 
 void RobotBrain::handleUISignal(const std::string& type, const std::string& data) {
     // 处理来自 ScreenApp 的 UI 交互信号
-    printf("[Brain] 收到 UI 信号: %s, 数据: %s\n", type.c_str(), data.c_str());
-    if (!btn_detected(type, data)) {
+    
+    // if(motion->checklearningstate()){
+    //     isLearningMode = false;
+    // }
+
+    // std::cout << "[handleUISignal]" << type << std::endl;
+    // std::cout << isLearningMode << std::endl;
+    // 学习模式只处理两种信号
+    if (isLearningMode){
+       
+        if( (type == "MOTION_CONFIRM") || (type == "DO_MOTION") ){
+            std::cout << "[onLearningMode]" << type << std::endl;
+            btn_detected(type, data);
+            return;
+        }else{
+            std::cout << "信号错误" << std::endl;
+            return;
+        }
+
+    }else if (!btn_detected(type, data)) {
         std::cout << "[Brain] 未能识别有效 UI 信号: " << type << std::endl;
+        return;
     }
 }
 
 
+// 学习模式下，需要对语音信号重新分词
+// 分词以前有写在app里直接搬家
+// 不搬家了，直接都丢进去
 void RobotBrain::processLearning(const std::string& text) {
-    printf("[Brain] 学习模式 - 正在记录特征: %s\n", text.c_str());
+    // printf("[Brain] 学习模式 - 正在记录特征: %s\n", text.c_str());
+    // 这里是学习模式的一些信息处理
+    // 学习模式启动后在此进行逻辑分发
+
+    // 后续应该再加个错误管理
+
+    // 双重保险
+    if(!isLearningMode) return;
+
+    motion->pushTask(text);
+
+
 }
 
 
@@ -133,7 +171,7 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
             speaker->pushTask("hello good morning " + _username);
             return true;
         case IntentType::DO_MOTION: {
-            std::string motion_cmd = "DO:" + res.currentValue;
+            std::string motion_cmd = "DOMOTION:" + res.currentValue;
             motion->pushTask(motion_cmd);
             speaker->pushTask("do motion " + res.currentValue);
             return true;
@@ -216,6 +254,11 @@ bool RobotBrain::extractIntent(const std::string& text) {
             speaker->pushTask("learn object " + tokens[i + 2]);
             return true;
         }
+
+        if (text.find("done") != std::string::npos || text.find("stop") != std::string::npos || text.find("finish") != std::string::npos) {
+            isLearningMode = false;
+            return true;
+    }
     }
 
     return false; // 没找到
@@ -231,11 +274,13 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         isLearningMode = true;
         motion->pushTask("LEARNMOTION:" + data);
         speaker->pushTask("learn motion " + data);
+        _lastlearnmotion = data; // 记录正在学习的动作
         return true;
     }else if (type == "MOTION_CONFIRM") {
         isLearningMode = false;
         motion->pushTask("CONFIRM");
-        speaker->pushTask("i know how to " + data);
+        speaker->pushTask("i know how to " + _lastlearnmotion);
+        _lastlearnmotion = "None";
         return true;
     }else if (type == "VISION_LEARN") {
         camera->pushTask("LEARNOBJ:" + data);
@@ -250,7 +295,7 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         speaker->pushTask("update vision");
         return true;
     }else if (type == "DO_MOTION") {
-        motion->pushTask("DOMOTION:");
+        motion->pushTask("DOMOTION:" + data);
         return true;
     }else if (type == "MOTION_SET") {
         motion->pushTask("MOTIONSET:" + data);
