@@ -19,7 +19,7 @@ SpeakerExecutor::SpeakerExecutor(const std::string& path) {
         std::cerr << "[Speaker] 无法打开音频设备: " << path << std::endl;
     }
 
-    pinThreadToCore(worker,"SpeakerTask",3);
+    
 }
 
 // 暂时用不到结构函数
@@ -31,4 +31,8 @@ void SpeakerExecutor::onExecute(const std::string& text) {
         // 调用底层speaker的播放接口
         speaker->play(text);
     }
+}
+
+void SpeakerExecutor::pinThread(int num){
+    pinThreadToCore(this->worker, "SpeakerTask", num);
 }

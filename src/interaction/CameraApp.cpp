@@ -15,10 +15,13 @@ CameraExecutor::CameraExecutor() {
         std::cerr << "[CameraExecutor] 硬件打开失败！" << std::endl;
     }
 
-    pinThreadToCore(worker,"CameraTask",2);
 }
 
 CameraExecutor::~CameraExecutor() = default;
+
+void CameraExecutor::pinThread(int num){
+    pinThreadToCore(this->worker, "CameraTask", num);
+}
 
 void CameraExecutor::onExecute(const std::string& task) {
 

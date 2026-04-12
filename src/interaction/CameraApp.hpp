@@ -22,6 +22,8 @@ public:
     CameraExecutor();
     ~CameraExecutor(); 
 
+    void pinThread(int num);
+
     void onExecute(const std::string& task) override;
 
     cv::Mat getLatestFrame();

@@ -43,6 +43,8 @@ private:
 public:
     MotionExecutor();
     ~MotionExecutor(); 
+    
+    void pinThread(int num);
 
     // 处理来自 Brain 的异步动作指令
     void onExecute(const std::string& motionName) override;
@@ -50,18 +52,21 @@ public:
     // 测试用
     void doDirectTask(const MotionTask& t);
 
+    // 学习状态
+    bool checklearningstate();
+
 
 private:    
     MotionCommand analyzecommand(const std::string& task);
     void HandleState(BugCode_M msg);
 
 
-    // 屎山搬家来了
-    BugCode_M processLearningInput(const std::string& text);
-    BugCode_M saveMotionSet(std::string motionName, std::vector<MotionTask>& rawTasks);
+    // // 屎山搬家来了
+    // BugCode_M processLearningInput(const std::string& text);
+    // BugCode_M saveMotionSet(std::string motionName, std::vector<MotionTask>& rawTasks);
 
-    std::string _currentLearningName = "";
-    std::vector<MotionTask> _tempTasks ; 
-    Joint _currentJoint = Joint::Base;
-    std::string motionsetPath = Config::Motion::MOTION_SET;
+    std::atomic<bool> _islearningfinish = true;
+
+    std::string motion_name = "None";
+
 };

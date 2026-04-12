@@ -18,4 +18,6 @@ public:
 
     // 任务实现
     void onExecute(const std::string& text) override;
+
+    void pinThread(int core);
 };
