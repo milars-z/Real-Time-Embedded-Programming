@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <string>
+#include <iostream>
 
 template <typename T>
 class BaseExecutor {
@@ -15,7 +16,13 @@ protected:
     std::thread worker;
     std::atomic<bool> isRunning{false};
 
+    virtual std::string get_module_name() = 0; 
+
     virtual void onExecute(const T& task) = 0;
+
+    virtual void _stop() = 0;
+
+    virtual void _start(int core) = 0;
 
     void threadLoop() {
         while (isRunning) {
@@ -32,17 +39,21 @@ protected:
     }
 
 public:
-    virtual ~BaseExecutor() { stop(); }
+    virtual ~BaseExecutor()= default;
+
     void start() {
         if (isRunning) return;
         isRunning = true;
         worker = std::thread(&BaseExecutor::threadLoop, this);
     }
+
     void stop() {
         isRunning = false;
         cv.notify_all();
         if (worker.joinable()) worker.join();
+        std::cout << "[Executor] Task thread stopped:" << get_module_name() << std::endl;
     }
+
     void pushTask(T task) {
         {
             std::lock_guard<std::mutex> lock(mtx);

@@ -27,4 +27,7 @@ public:
 
     void start();
     void stop();
+
+    void _start(int core);
+    void _stop();
 };

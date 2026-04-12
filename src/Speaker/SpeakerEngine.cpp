@@ -72,7 +72,6 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 }
 
 UsbSpeaker::~UsbSpeaker() {
-    stop();
     close();
     //espeak_Terminate();
     if (_tts) {
@@ -83,6 +82,29 @@ UsbSpeaker::~UsbSpeaker() {
     // use for VITS
     // if (_config.model.vits.lexicon) free((void*)_config.model.vits.lexicon);
     if (_config.model.vits.tokens) free((void*)_config.model.vits.tokens);
+}
+
+void UsbSpeaker::start_thread(int core){
+
+    _playbackThread = std::thread(&UsbSpeaker::playbackLoop, this);
+    _synthesisThread = std::thread(&UsbSpeaker::synthesisLoop, this);
+
+    pinThreadToCore(_synthesisThread, "TTS",core);
+    pinThreadToCore(_playbackThread, "ALSA",core);
+
+}
+
+// speaker模块设计的时候还没有ThreadSafeQueue
+void UsbSpeaker::stop_thread() {
+    if (!_running) return ;
+    _running = false;
+    
+    _textCV.notify_all();
+    _audioCV.notify_all();
+
+    if (_playbackThread.joinable()) _playbackThread.join();
+    if (_synthesisThread.joinable()) _synthesisThread.join();
+
 }
 
 bool UsbSpeaker::open() {
@@ -114,12 +136,6 @@ bool UsbSpeaker::open() {
     if (rc < 0) return false;
 
     _running = true;
-    _playbackThread = std::thread(&UsbSpeaker::playbackLoop, this);
-    _synthesisThread = std::thread(&UsbSpeaker::synthesisLoop, this);
-
-    pinThreadToCore(_synthesisThread, "TTS",3);
-    pinThreadToCore(_playbackThread, "ALSA",3);
-
     return true;
 }
 
@@ -167,16 +183,7 @@ void UsbSpeaker::synthesisTask(std::string text) {
     }
 }
 
-void UsbSpeaker::stop() {
-    if (!_running) return;
-    _running = false;
-    
-    _textCV.notify_all();
-    _audioCV.notify_all();
 
-    if (_playbackThread.joinable()) _playbackThread.join();
-    if (_synthesisThread.joinable()) _synthesisThread.join();
-}
 
 void UsbSpeaker::close() {
     if (_handle) {

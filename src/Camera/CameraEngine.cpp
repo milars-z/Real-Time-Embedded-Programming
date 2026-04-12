@@ -13,13 +13,6 @@
 bool CameraEngine::start(int width, int height, int fps) {
     if (active) return true;
 
-    //pi5 pipe initial setting (GStreamer)
-    // std::string pipeline = 
-    //     "libcamerasrc ! "
-    //     "video/x-raw,format=I420,width=640,height=480 ! "
-    //     "videoconvert ! "
-    //     "video/x-raw,format=BGR ! "
-    //     "appsink drop=true";
     std::string pipeline =        
         "libcamerasrc ! "
         "video/x-raw,format=I420,width=" + std::to_string(width) + 
@@ -36,29 +29,24 @@ bool CameraEngine::start(int width, int height, int fps) {
         return false;
     }
 
-    active = true;
-    workerThread = std::thread(&CameraEngine::captureLoop, this);
-    pinThreadToCore(workerThread, "CamCapThread", 2);
-    printf("[Init/Start] Camera started successfully in core 2\n");
-
-    
     return true;
 }
 
-// bool CameraEngine::startFromFile(const std::string& path) {
-//     if (active) return true;
+void CameraEngine::start_thread(int core){
+    active = true;
+    workerThread = std::thread(&CameraEngine::captureLoop, this);
+    pinThreadToCore(workerThread, "CamCapThread", core);
+}
 
-//     cap.open(path);
-//     if (!cap.isOpened()) {
-//         std::cerr << "[CameraEngine] wrong!:can't open video file: " << path << std::endl;
-//         return false;
-//     }
-
-//     active = true;
-//     workerThread = std::thread(&CameraEngine::captureLoop, this);
-
-//     return true;
-// }
+void CameraEngine::stop_thread() {
+    active = false; 
+    if (workerThread.joinable()) {
+        workerThread.join();
+    }
+    if (cap.isOpened()) {
+        cap.release();
+    }
+}
 
 void CameraEngine::captureLoop() {
     cv::Mat frame;
@@ -66,19 +54,8 @@ void CameraEngine::captureLoop() {
         if (!cap.read(frame) || frame.empty()) {
             continue;
         }
-            // do something
         if (callback) {
             callback(frame);
         }
-    }
-}
-
-void CameraEngine::stop() {
-    active = false; 
-    if (workerThread.joinable()) {
-        workerThread.join();
-    }
-    if (cap.isOpened()) {
-        cap.release();
     }
 }

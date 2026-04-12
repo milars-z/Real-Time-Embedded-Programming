@@ -23,13 +23,15 @@ int main() {
     
     // 退出信号处理
     std::signal(SIGINT, handleSigint);
-    RobotSystem robot;
+    {
+        RobotSystem robot;
 
-    if (!robot.init()) {
-        return -1;
+        if (!robot.init()) {
+            return -1;
+        }
+
+        robot.start(); 
     }
-
-    robot.start(); 
-
+    std::cout << "[main] system close successfully" << std::endl;
     return 0;
 }

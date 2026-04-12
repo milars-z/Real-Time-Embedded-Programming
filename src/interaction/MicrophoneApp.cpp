@@ -12,7 +12,7 @@ VoiceProducer::VoiceProducer(const std::string& path, TextCallback callback)
     // ASR 模型加载
     model = vosk_model_new(Config::Path::VOSK_MODEL_DIR.c_str());
     if (!model) {
-        std::cerr << "[Error] 无法加载 Vosk 模型" << std::endl;
+        std::cerr << "[Error][MicrophoneApp] Failed to load Vosk model." << std::endl;
         return;
     }
     recognizer = vosk_recognizer_new(model, 16000.0);
@@ -20,12 +20,12 @@ VoiceProducer::VoiceProducer(const std::string& path, TextCallback callback)
     // 初始化麦克风模块
     mic = std::make_unique<UsbMicrophone>(path, 16000, 1);
     if (!mic->open()) {
-        std::cerr << "[Error] 无法打开麦克风设备" << std::endl;
+        std::cerr << "[Error][MicrophoneApp] Failed to open microphone device." << std::endl;
     }
 }
 
 VoiceProducer::~VoiceProducer() {
-    stop(); 
+    // stop(); 
     
     if (recognizer) {
         vosk_recognizer_free(recognizer);
@@ -35,12 +35,12 @@ VoiceProducer::~VoiceProducer() {
         vosk_model_free(model);
         model = nullptr;
     }
-    std::cout << "[VoiceProducer] 语音资源已释放" << std::endl;
+    std::cout << "[MicrophoneApp] Voice resources released." << std::endl;
 }
 
 void VoiceProducer::start() {
     if (!mic) return;
-    std::cout << "[VoiceProducer] 启动语音监听..." << std::endl;
+    std::cout << "[MicrophoneApp] Starting voice listening..." << std::endl;
     
     mic->start([this](const std::vector<short>& data) {
         if (!recognizer) return;
@@ -60,9 +60,15 @@ void VoiceProducer::start() {
     });
 }
 
+void VoiceProducer::_start(int core){
+    mic->start_thread(core);
+    std::cout << "[MicrophoneApp] Internal thread started, pinned to core:" << core << std::endl;
+}
+
+
 void VoiceProducer::stop() {
     if (mic) {
         mic->stop(); 
-        std::cout << "[VoiceProducer] 麦克风已停止" << std::endl;
+        std::cout << "[MicrophoneApp] Microphone stopped." << std::endl;
     }
 }

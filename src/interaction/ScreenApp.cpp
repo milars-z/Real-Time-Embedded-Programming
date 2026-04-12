@@ -10,8 +10,9 @@ ScreenProducer::ScreenProducer(std::shared_ptr<CameraExecutor> cam,
 }
 
 ScreenProducer::~ScreenProducer() {
-    stop();
+    std::cout << "[ScreenProducer] destructor end" << std::endl;
 }
+
 
 void ScreenProducer::start() {
     std::cout << "[Screen] 正在初始化 LVGL 环境..." << std::endl;
@@ -31,7 +32,15 @@ void ScreenProducer::start() {
 
 
 void ScreenProducer::stop() {
+    // stop();
     std::cout << "[Screen] 正在停止 UI..." << std::endl;
+    
+    // 清空producer的内容
+    lv_deinit();
+    // 清空screen_ui的内容
+    if(ui){
+        ui.reset();
+    }
 }
 
 uint32_t ScreenProducer::update() {

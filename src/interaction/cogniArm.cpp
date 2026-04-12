@@ -21,7 +21,7 @@ RobotSystem::~RobotSystem() {
 }
 
 bool RobotSystem::init() {
-    std::cout << "[System] 正在初始化硬件..." << std::endl;
+    std::cout << "[CogniArm] Initializing hardware..." << std::endl;
 
     // 硬件路径查找
     std::string speaker_path = find_alsa_device(Config::Hardware::SPEAKER_NAME);
@@ -30,13 +30,16 @@ bool RobotSystem::init() {
     // 判定
     // 其实有点多余，麦克风不开初始化不了
     if (speaker_path.empty() || mic_path.empty()) {
-        std::cerr << "[Fatal] 找不到音频硬件设备！" << std::endl;
+        std::cerr << "[Fatal][CogniArm] Audio hardware device not found!" << std::endl;
         return false;
     }
 
     // 初始化执行层
+    std::cout << "[CogniArm] Initializing Speaker..." << std::endl;
     speaker = std::make_shared<SpeakerExecutor>(speaker_path);
+    std::cout << "[CogniArm] Initializing Motion..." << std::endl;
     motion  = std::make_shared<MotionExecutor>();
+    std::cout << "[CogniArm] Initializing Camera..." << std::endl;
     camera  = std::make_shared<CameraExecutor>();
 
     // 初始化brain逻辑层
@@ -60,22 +63,43 @@ bool RobotSystem::init() {
 // 后续可能要再维护一下
 void RobotSystem::start() {
     if (isRunning) return;
+
+    _exit_signal = false;
     isRunning = true;
 
-    // 启动各个执行器的线程
-    speaker->start();
-    motion->start();
-    camera->start();
+    
 
     voiceIn->start();
     screenIn->start();
 
-    std::cout << "[System] 模块化系统已启动" << std::endl;
+    std::cout << "[CogniArm] Modular system started." << std::endl;
+
+    // 优先开启底层执行者线程
+    std::cout << "[CogniArm] Starting executor threads..." << std::endl;
+    speaker->_start(2);
+    motion->_start(1);
+    camera->_start(3);
+
+    // 启动任务线程
+    std::cout << "[CogniArm] Starting task threads..." << std::endl;
+    speaker->start();
+    motion->start();
+    camera->start();
+
+    std::cout << "[CogniArm] Binding task threads..." << std::endl;
+    speaker->pinThread(3);
+    motion->pinThread(1);
+    camera->pinThread(2);
+    
+    std::cout << "[CogniArm] Starting producer threads..." << std::endl;
+    voiceIn->_start(3);
+
+
+    std::cout << "[CogniArm] Initialization complete." << std::endl;
 
     while (isRunning) {
 
         if (_exit_signal) {
-            stop();
             break;
         }
 
@@ -86,6 +110,7 @@ void RobotSystem::start() {
         next_ms = std::max(1u, std::min(next_ms, 30u));
         usleep(next_ms * 1000);
     }
+    stop();
 }
 
 // 停止系统，清空资源
@@ -93,11 +118,22 @@ void RobotSystem::stop() {
     if (!isRunning) return;
     isRunning = false;
 
-    std::cout << "[System] 正在停止系统..." << std::endl;
+    std::cout << "[CogniArm] Stopping system..." << std::endl;
+    // 停止输入任务
     voiceIn->stop();
     screenIn->stop();
+
+    // 停止输出任务
+    // 退出任务线程
     motion->stop();
     speaker->stop();
     camera->stop();
+
+    // 退出底部线程
+    motion->_stop();
+    speaker->_stop();
+    camera->_stop();
+
+    std::cout << "[CogniArm] Threads exited safely... destroying resources..." << std::endl;
 }
 

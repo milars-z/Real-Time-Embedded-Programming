@@ -26,6 +26,12 @@ public:
 
     void onExecute(const std::string& task) override;
 
+    std::string get_module_name() override;
+
+    void _stop() override;
+
+    void _start(int core) override;
+
     cv::Mat getLatestFrame();
     
     void findObject(const std::string& name);

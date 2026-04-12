@@ -20,6 +20,25 @@ ScreenUI::ScreenUI(ScreenUI::UIEventCallback callback)
     showHomeScreen();
 }
 
+ScreenUI::~ScreenUI() = default ;
+
+void ScreenUI::_stop(){
+
+    onSignalEvent = nullptr;
+
+    // 键盘遮罩
+    lv_obj_t* active_scr = lv_screen_active();
+    if (active_scr) {
+        lv_obj_clean(active_scr); 
+    }
+
+    // 主屏幕
+    if (main_screen) {
+            lv_obj_delete(main_screen);
+            main_screen = nullptr;
+        }
+}
+
 void ScreenUI::sendSignal(std::string type, std::string data) {
         
     printf("[ScreenUI] Triggered callback: %s:%s\n", type.c_str(), data.c_str());
@@ -35,6 +54,13 @@ void ScreenUI::showHomeScreen() {
     is_in_vision_screen = false;
 
     prepareMainScreen();
+
+    lv_obj_t* btn_close = lv_button_create(main_screen);
+    lv_obj_align(btn_close, LV_ALIGN_TOP_LEFT, 10, 10);
+    lv_label_set_text(lv_label_create(btn_close), "Close");
+    lv_obj_add_event_cb(btn_close, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("STOP_SYSTEM");
+    }, LV_EVENT_CLICKED, this);
     
     // Motion 按钮
     lv_obj_t* btn_m = lv_button_create(main_screen);
@@ -101,7 +127,6 @@ void ScreenUI::showMotionScreen() {
     }, LV_EVENT_CLICKED, this);
 
     lv_obj_t* btn_reset = lv_button_create(main_screen);
-    lv_obj_set_size(btn_reset, 80, 80);
     lv_obj_align(btn_reset, LV_ALIGN_TOP_RIGHT, -10, 130);
     lv_label_set_text(lv_label_create(btn_reset), "Reset");
     lv_obj_add_event_cb(btn_reset, [](lv_event_t* e){
@@ -133,9 +158,17 @@ void ScreenUI::showVisionScreen() {
     vision_img_dsc.header.stride = 640 * 3;
     vision_img_dsc.data_size = 640 * 480 * 3;
 
+    // malloc不能用
     // 分配持久化缓冲区
-    if(!canvas_buffer) canvas_buffer = (uint8_t*)malloc(640 * 480 * 3);
-    vision_img_dsc.data = canvas_buffer;
+    // if(!canvas_buffer) canvas_buffer = (uint8_t*)malloc(640 * 480 * 3);
+    // vision_img_dsc.data = canvas_buffer;
+
+    size_t required_size = 640 * 480 * 3;
+    if(canvas_buffer.size() != required_size) {
+        canvas_buffer.resize(required_size);
+    }
+
+    vision_img_dsc.data = canvas_buffer.data();
 
     lv_image_set_src(vision_img_obj, &vision_img_dsc);
 
@@ -287,7 +320,9 @@ void ScreenUI::createKeyboard(std::string signal_type) {
 void ScreenUI::updateVisionFrame(const cv::Mat& frame) {
     if (!is_in_vision_screen || frame.empty() || !vision_img_obj) return;
 
-    memcpy(canvas_buffer, frame.data, 640 * 480 * 3);
+    // memcpy(canvas_buffer, frame.data, 640 * 480 * 3);
+
+    memcpy(canvas_buffer.data(), frame.data, canvas_buffer.size());
 
     // 刷新逻辑
     lv_image_set_src(vision_img_obj, &vision_img_dsc);

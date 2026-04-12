@@ -67,22 +67,38 @@ void UsbMicrophone::close() {
 bool UsbMicrophone::start(AudioCallback callback) {
     if (_running) return true;
     _callback = callback;
-    _running = true;
-    try{
-        captureThread = std::thread(&UsbMicrophone::captureLoop, this);
-        pinThreadToCore(captureThread, "Mic" ,3);
-        return true;
-    }catch (const std::system_error& e) {
-        std::cerr << "[Fatal] Failed to create mic thread: " << e.what() << std::endl;
-        _running = false;
-        return false;
-    }
+    
+    // try{
+    //     captureThread = std::thread(&UsbMicrophone::captureLoop, this);
+    //     pinThreadToCore(captureThread, "Mic" ,3);
+    //     return true;
+    // }catch (const std::system_error& e) {
+    //     std::cerr << "[Fatal] Failed to create mic thread: " << e.what() << std::endl;
+    //     _running = false;
+    //     return false;
+    // }
+    return true;
 }
+
+void UsbMicrophone::start_thread(int core){
+    _running = true;
+    captureThread = std::thread(&UsbMicrophone::captureLoop, this);
+    pinThreadToCore(captureThread, "Mic" ,core);
+}
+
+// void UsbMicrophone::stop_thread(){
+//     _running = false;
+//     if (captureThread.joinable()) {
+//         captureThread.join();
+//         std::cout << "[UsbMicphone]:captureThread closed" << std::endl; 
+//     }
+// }
 
 void UsbMicrophone::stop() {
     _running = false;
     if (captureThread.joinable()) {
         captureThread.join();
+        std::cout << "[UsbMicphone]:captureThread closed" << std::endl; 
     }
 }
 

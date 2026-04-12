@@ -17,8 +17,10 @@ public:
     using UIEventCallback = std::function<void(std::string, std::string)>;
 
     ScreenUI(UIEventCallback callback);
+    ~ScreenUI();
 
-    // ScreenUI();
+    void _stop();
+
     
     void showHomeScreen();
     void showMotionScreen();
@@ -41,7 +43,8 @@ private:
     // LVGL 相关对象
     lv_obj_t* vision_img_obj = nullptr; // 图像显示组件
     lv_image_dsc_t vision_img_dsc;      // LVGL 图像描述符
-    uint8_t* canvas_buffer = nullptr;   // 图像像素缓冲区
+    // uint8_t* canvas_buffer = nullptr;   // 图像像素缓冲区
+    std::vector<uint8_t> canvas_buffer;
     
     
 

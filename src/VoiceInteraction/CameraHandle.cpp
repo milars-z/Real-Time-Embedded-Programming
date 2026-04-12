@@ -12,7 +12,7 @@ CameraHandle::CameraHandle(const std::string &model_path, const std::string &fea
     _detector(model_path), 
     _feat_mgr(feature_path), 
     state(CamState::IDLE), 
-    running(true), 
+    running(false), 
     is_display_enabled(true) {
     
     // 线程绑定单核
@@ -39,19 +39,31 @@ CameraHandle::CameraHandle(const std::string &model_path, const std::string &fea
             camera_queue.push(img.clone());
         }
     });
-
-    cameraThread = std::thread(&CameraHandle::cameraWorker, this);
-    pinThreadToCore(cameraThread, "CamWorkThread", 2);
-
-    
 };
 
-CameraHandle::~CameraHandle() {
-    stop();
+//解构的时候停止相机硬件
+CameraHandle::~CameraHandle() = default;
+
+void CameraHandle::start_thread(int core){
+    // 优先开启底层线程
+    cam.start_thread(core);
+
+    running = true;
+    cameraThread = std::thread(&CameraHandle::cameraWorker, this);
+    pinThreadToCore(cameraThread, "CamWorkThread", core);
+}
+
+
+void CameraHandle::stop_thread(){
+    
     running = false;
     camera_queue.stop();
     if (cameraThread.joinable()) cameraThread.join();
-};
+
+    //最后关闭底层线程
+    cam.stop_thread();
+    
+}
 
 
 // Cam硬件启动
@@ -67,12 +79,12 @@ bool CameraHandle::open() {
     cv::namedWindow("Demo", cv::WINDOW_AUTOSIZE);
 }
 
-// Cam硬件关闭
-bool CameraHandle::stop() {
-    std::cout << "[CameraEngine] Closing Camera Hardware..." << std::endl;
-    cam.stop();
-    return true;
-}
+// // Cam硬件关闭
+// bool CameraHandle::stop() {
+//     std::cout << "[CameraEngine] Closing Camera Hardware..." << std::endl;
+//     cam.stop();
+//     return true;
+// }
 
     
 // 是否持续推流设置

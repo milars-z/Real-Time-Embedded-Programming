@@ -20,4 +20,10 @@ public:
     void onExecute(const std::string& text) override;
 
     void pinThread(int core);
+
+    void _stop() override;
+
+    void _start(int core) override;
+
+    std::string get_module_name() override;
 };

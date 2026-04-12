@@ -41,7 +41,11 @@ public:
     // PLAY text by synthesizing it with eSpeak
     void play(const std::string& text);
     
-    void stop();
+    // void stop();
+
+    void start_thread(int core);
+
+    void stop_thread();
 
 private:
 

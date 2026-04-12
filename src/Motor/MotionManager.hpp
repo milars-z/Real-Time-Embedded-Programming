@@ -80,13 +80,12 @@ public:
     MotionManager(const std::string& configFile);
     ~MotionManager();
 
+    void stop_thread();
+    void start_thread(int core);
+
     // 将需要执行的motion加入队列，测试用
     BugCode_M enqueue_motion(const MotionTask& cmd);
 
-    // 后续开发
-    // 下版本更新
-    void create_motion(std::string motion_name);
-    void create_motion_set(std::string motion_set_name);
     BugCode_M read_motion_set(const std::string& motion_set_name);
 
     // 给外部一个接口刷新motion
@@ -128,11 +127,11 @@ private:
     // app -> manager
     std::thread _motionworker;
     // manager -> servo
-    std::thread _servoworker;
+    // std::thread _servoworker;
 
     ThreadSafeQueue<MotionTask> MotionQueue; // App -> Manager
 
-    ThreadSafeQueue<ServoTask> ServoQueue; // MotionManager -> PwmBoardController
+    // ThreadSafeQueue<ServoTask> ServoQueue; // MotionManager -> PwmBoardController
 
     std::set<std::string> _available_motions; // 存储文件夹中搜到的动作集名称
 
@@ -144,7 +143,7 @@ private:
     void move_joint_with_val(Joint joint,float angleVal,int motionSpeed);
     void executeMotion(const MotionTask& cmd);
     bool reset();
-    bool stop();
+    bool stop_motion();
 
     // motion工具，刷新动作集列表
     void refresh_motion_list();
@@ -174,7 +173,4 @@ private:
     std::string _last_name;
     bool servoworker_flag = true;
 
-
-    
-    
 };

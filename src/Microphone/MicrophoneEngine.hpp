@@ -26,6 +26,9 @@ public:
     bool start(AudioCallback callback);
     void stop();
 
+    void start_thread(int core);
+    // void stop_thread();
+
 private:
     void captureLoop();
 

@@ -36,27 +36,32 @@ MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
     _isRunning = true;
     _stopRequested = false;
 
-    _motionworker = std::thread(&MotionManager::motionworker, this);
-    // _servoworker  = std::thread(&MotionManager::servoworker, this);
-    pinThreadToCore(_motionworker,"motion", 1);
-    // pinThreadToCore(_servoworker, "servo", 1);
+    // _motionworker = std::thread(&MotionManager::motionworker, this);
+    // // _servoworker  = std::thread(&MotionManager::servoworker, this);
+    // pinThreadToCore(_motionworker,"motion", 1);
+    // // pinThreadToCore(_servoworker, "servo", 1);
 
 };
 
-MotionManager::~MotionManager(){
+MotionManager::~MotionManager() = default;
+
+void MotionManager::start_thread(int core){
+
+     _motionworker = std::thread(&MotionManager::motionworker, this);
+    pinThreadToCore(_motionworker,"motion", core);
     
+
+}
+
+void MotionManager::stop_thread(){
     _isRunning = false;
     _stopRequested = true;
     MotionQueue.stop();
-    // ServoQueue.stop();
 
     if (_motionworker.joinable()) {
         _motionworker.join();
     }
-    // if (_servoworker.joinable()) {
-    //     _servoworker.join();
-    // }
-};
+}
 
 // 线程队列相关，在线程queue中追加指令集
 BugCode_M MotionManager::enqueue_motion(const MotionTask& cmd){
@@ -70,37 +75,7 @@ BugCode_M MotionManager::enqueue_motion(const MotionTask& cmd){
 
 };
 
-// motion指令相关，创建指令
-// 下版本更新
-void MotionManager::create_motion(std::string motion_name){
 
-}
-
-// motion指令相关，创建指令集
-// 下版本更新
-void MotionManager::create_motion_set(std::string motion_set_name){
-
-}
-
-// // motion指令相关，读取指令集并将指令加入队列
-// // 下版本更新
-// bool MotionManager::read_motion_set(const std::string& motion_set_name){
-
-    
-//     auto it = MOTIONSET.find(motion_set_name);
-    
-//     if (it == MOTIONSET.end()){
-//         return false;
-//     }
-
-//     const MotionSet& motion_set = it->second; 
-
-//     for (const auto& task : motion_set.tasks){
-//         enqueue_motion(task);
-//     }
-//     return true;
-    
-// }
 
 BugCode_M MotionManager::read_motion_set(const std::string& motion_set_name) {
 
@@ -275,7 +250,7 @@ void MotionManager::learn_motion_fresh() {
 // };
 
 // motion控制相关，停止一切动作且清空指令集队列
-bool MotionManager::stop(){
+bool MotionManager::stop_motion(){
     return true;
 };
 

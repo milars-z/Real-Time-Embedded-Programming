@@ -13,6 +13,7 @@
 #include <iostream>
 #include <cstdio>
 
+extern std::atomic<bool> _exit_signal; // 退出
 static const std::string _username = "milars";
 static const std::string _robotname = "your robot";
 
@@ -89,6 +90,11 @@ void RobotBrain::handleUISignal(const std::string& type, const std::string& data
     // if(motion->checklearningstate()){
     //     isLearningMode = false;
     // }
+    if (type == "STOP_SYSTEM") {
+        std::cout << "[Brain] 收到系统退出信号" << std::endl;
+        _exit_signal = true;
+        return;
+    }
 
     // std::cout << "[handleUISignal]" << type << std::endl;
     // std::cout << isLearningMode << std::endl;

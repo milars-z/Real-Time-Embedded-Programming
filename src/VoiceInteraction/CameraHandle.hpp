@@ -62,6 +62,10 @@ public:
     // 获取物体位置
     ObjPosition getObjectPosition();    
 
+    void start_thread(int core);
+
+    void stop_thread();
+
 
 private:
 

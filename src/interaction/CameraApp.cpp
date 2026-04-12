@@ -10,22 +10,39 @@ CameraExecutor::CameraExecutor() {
         Config::Camera::CAMERA_MODEL,
         Config::Camera::CAMERA_FEATURE
     );
-    
     if (!cam->open()) {
-        std::cerr << "[CameraExecutor] 硬件打开失败！" << std::endl;
+        std::cerr << "[CameraExecutor] Hardware initialization failed!" << std::endl;
     }
-
 }
 
-CameraExecutor::~CameraExecutor() = default;
+CameraExecutor::~CameraExecutor() {
+    std::cout << "[CameraExecutor] destructor end" << std::endl;
+}
 
 void CameraExecutor::pinThread(int num){
     pinThreadToCore(this->worker, "CameraTask", num);
 }
 
+std::string CameraExecutor::get_module_name(){
+    return "Camera";
+}
+
+// 阻塞退出
+void CameraExecutor::_stop(){
+    if(cam){
+        cam->stop_thread();
+        std::cout << "[CameraApp] Worker thread exited..." << std::endl;
+    }
+}
+
+void CameraExecutor::_start(int core){
+    cam->start_thread(core);
+    std::cout << "[CameraApp] Internal thread started, pinned to core:" << core << std::endl;
+}
+
 void CameraExecutor::onExecute(const std::string& task) {
 
-    std::cout << "[Camera] 正在执行任务: " << task << std::endl;
+    std::cout << "[CameraApp] Executing task: " << task << std::endl;
 
     
     // 任务由brain下发，现在已经确定的任务有以下几种
@@ -40,13 +57,13 @@ void CameraExecutor::onExecute(const std::string& task) {
     if (cmd.command == "FINDOBJ"){
         cam->Find_obj(cmd.obj);
         auto pos_res = cam->getObjectPosition();
-        std::cout << "[Camera] 目标位置: x=" << pos_res.x << " y=" << pos_res.y << std::endl;
+        std::cout << "[CameraApp] Target position: x=" << pos_res.x << " y=" << pos_res.y << std::endl;
     }else if(cmd.command == "LEARNOBJ"){
         cam->Learn_obj(cmd.obj);
-        std::cout << "[Camera] 物体特征已保存: " << cmd.obj << std::endl;
+        std::cout << "[CameraApp] Object features saved: " << cmd.obj << std::endl;
     }else if(cmd.command == "UPDATEBG"){
         cam->Update_bg();
-        std::cout << "[Camera] 背景已更新: " << std::endl;
+        std::cout << "[CameraApp] Background updated " << std::endl;
     }
     
 }
