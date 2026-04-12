@@ -37,9 +37,9 @@ MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
     _stopRequested = false;
 
     _motionworker = std::thread(&MotionManager::motionworker, this);
-    _servoworker  = std::thread(&MotionManager::servoworker, this);
+    // _servoworker  = std::thread(&MotionManager::servoworker, this);
     pinThreadToCore(_motionworker,"motion", 1);
-    pinThreadToCore(_servoworker, "servo", 1);
+    // pinThreadToCore(_servoworker, "servo", 1);
 
 };
 
@@ -48,25 +48,25 @@ MotionManager::~MotionManager(){
     _isRunning = false;
     _stopRequested = true;
     MotionQueue.stop();
-    ServoQueue.stop();
+    // ServoQueue.stop();
 
     if (_motionworker.joinable()) {
         _motionworker.join();
     }
-    if (_servoworker.joinable()) {
-        _servoworker.join();
-    }
+    // if (_servoworker.joinable()) {
+    //     _servoworker.join();
+    // }
 };
 
 // 线程队列相关，在线程queue中追加指令集
-bool MotionManager::enqueue_motion(const MotionTask& cmd){
+BugCode_M MotionManager::enqueue_motion(const MotionTask& cmd){
 
-    if (!_ready ) return false;
-    if (!_isRunning) return false;
+    if (!_ready ) return BugCode_M::MotionQueError;
+    if (!_isRunning) return BugCode_M::MotionQueError;
 
     MotionQueue.push(cmd);
     
-    return true;
+    return BugCode_M::Success;
 
 };
 
@@ -162,7 +162,7 @@ void MotionManager::move_joint_to_angle(Joint joint,float targetAngle,int motion
     angleChange = motionSpeed * 0.02f; 
 
     // if (angleChange <= 0.0f) return state;
-    while(std::abs(targetAngle - nowAngle)>1.0f){
+    while(std::abs(targetAngle - nowAngle)>0.2f){
         // if (_stopRequested) break;
 
         if (nowAngle - targetAngle < -angleChange){
@@ -174,11 +174,12 @@ void MotionManager::move_joint_to_angle(Joint joint,float targetAngle,int motion
         }
 
         // state = _arm.setAngle(name, nowAngle);
+        _arm.setAngle(name, nowAngle);
         // 后续追加小队列来解决sleep问题
-        // std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        cmd.name = name;
-        cmd.nowAngle = nowAngle;
-        ServoQueue.push(cmd);
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        // cmd.name = name;
+        // cmd.nowAngle = nowAngle;
+        // ServoQueue.push(cmd);
     }
 
     // return state;
@@ -203,7 +204,7 @@ void MotionManager::move_joint_with_val(Joint joint,float angleVal,int motionSpe
     targetAngle = nowAngle + angleVal;
 
     // if (angleChange <= 0.0f) return state;
-    while(std::abs(targetAngle - nowAngle)>1.0f){
+    while(std::abs(targetAngle - nowAngle)>0.2f){
         // if (_stopRequested) break;
 
         if (nowAngle - targetAngle < -angleChange){
@@ -215,14 +216,17 @@ void MotionManager::move_joint_with_val(Joint joint,float angleVal,int motionSpe
         }
 
         // state = _arm.setAngle(name, nowAngle);
+
+        _arm.setAngle(name, nowAngle);
         
         // 后续追加小队列来解决sleep问题
-        // std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-        // 追加队列
-        cmd.name = name;
-        cmd.nowAngle = nowAngle;
-        ServoQueue.push(cmd);
+        // // 追加队列
+        // 队列有问题
+        // cmd.name = name;
+        // cmd.nowAngle = nowAngle;
+        // ServoQueue.push(cmd);
     }
     printf("[Motion]now_joint:base,target_:%f\n",nowAngle);
     // return state;
@@ -281,18 +285,57 @@ void MotionManager::motionworker(){
 
     MotionTask cmd;
     while ((_isRunning) && (MotionQueue.pop(cmd))) {
+        // cmd.motionSpeed = 10;
         executeMotion(cmd);
     }
 }
 
 // motion线程，执行详细任务，manager模块与pwm的唯一接口
-void MotionManager::servoworker(){
+// 需要保证上一个任务完成了再进行下一个任务
+// void MotionManager::servoworker(){
 
-    ServoTask cmd;
-    while ((_isRunning) && (ServoQueue.pop(cmd)) && (!_stopRequested)) {
-        _arm.setAngle(cmd.name,cmd.nowAngle);
-    }
-}
+//     ServoTask cmd;
+//     while ((_isRunning) && (ServoQueue.pop(cmd)) && (!_stopRequested)) {
+        
+//         while( (abs(_arm.getAngle(_last_name) - _last_angle)< 0.20f) || servoworker_flag ){
+//             _arm.setAngle(cmd.name,cmd.nowAngle);
+//             _last_name  = cmd.name;
+//             _last_angle = cmd.nowAngle;
+//             servoworker_flag = false;
+//         }
+        
+
+        
+//     }
+// }
+
+// void MotionManager::servoworker() {
+//     ServoTask cmd;
+
+//     while (_isRunning && ! _stopRequested) {
+//         if (!ServoQueue.pop(cmd)) {
+//             continue;
+//         }
+
+//         // 第一次任务直接执行
+//         if (servoworker_flag) {
+//             _arm.setAngle(cmd.name, cmd.nowAngle);
+//             _last_name = cmd.name;
+//             _last_angle = cmd.nowAngle;
+//             servoworker_flag = false;
+//         } else {
+//             // 等上一个完成
+//             while (_isRunning && !_stopRequested &&
+//                    std::abs(_arm.getAngle(_last_name) - _last_angle) >= 0.02f) {
+//                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
+//             }
+
+//             _arm.setAngle(cmd.name, cmd.nowAngle);
+//             _last_name = cmd.name;
+//             _last_angle = cmd.nowAngle;
+//         }
+//     }
+// }
 
 // motion工具，将指令集中的Joint类转换为string
 std::string MotionManager::JointName(Joint joint){
@@ -340,11 +383,14 @@ MotionTask MotionManager::getMotionTask(const std::string& cmd) {
 
 // 执行简单任务
 // APP侧接口
-void MotionManager::excuteTask(const std::string& cmd){
+BugCode_M MotionManager::excuteTask(const std::string& cmd){
     MotionTask task;
     task = getMotionTask(cmd);
+    // task.motionSpeed = 10;
     if(task.joint != Joint::UNKNOWN) 
         executeMotion(task);
+        return BugCode_M::Success;
+    return BugCode_M::UnkonwJoint;
 }
 
 // 执行指令集
@@ -381,3 +427,141 @@ void MotionManager::excuteStop(){
     
 
 }
+
+
+// 写代码就像拆炸弹，别写屎山了迟早重构
+BugCode_M MotionManager::processLearningInput(const std::string& text, const std::string& name){
+
+    BugCode_M state = BugCode_M::Init;
+    _currentLearningName = name;
+
+    
+    std::cout << "[MotionManager]:" << text << std::endl; 
+    // 任务下发 excuteTask
+
+    // 键盘任务
+    if (text == "CONFIRM") {
+        state = saveMotionSet(_currentLearningName, _tempTasks);
+        return state;
+    }
+
+    // key 指令
+    std::string JiontMotion;
+
+    const std::string do_prefix = "DOMOTION:";
+    if (text.rfind(do_prefix, 0) == 0) {
+        MotionTask task;
+        JiontMotion = text.substr(do_prefix.size());
+        // 执行动作
+        
+        task.method = MoveMethod::REL;
+        task.motionSpeed = 50;
+        if      (JiontMotion == "left_r") {task.joint = Joint::Base; task.targetAngle = 5.0f; }
+        else if (JiontMotion == "left_l") {task.joint = Joint::Base; task.targetAngle = -5.0f; }
+        else if (JiontMotion == "left_u") {task.joint = Joint::Shoulder; task.targetAngle = 5.0f; }
+        else if (JiontMotion == "left_d") {task.joint = Joint::Shoulder; task.targetAngle = -5.0f; }
+        else if (JiontMotion == "right_u") {task.joint = Joint::Elbow; task.targetAngle = 5.0f; }
+        else if (JiontMotion == "right_d") {task.joint = Joint::Elbow; task.targetAngle = -5.0f; }
+        // else if (JiontMotion == "right_r") {task.joint = Joint::Hand; task.targetAngle = 5.0f; }
+        // else if (JiontMotion == "right_l") {task.joint = Joint::Hand; task.targetAngle = -5.0f; }
+
+        state = enqueue_motion(task);
+        _tempTasks.push_back(task); 
+        return state;
+    }
+    
+    // text 指令
+    // 检查是否结束
+    if (text.find("done") != std::string::npos || text.find("stop") != std::string::npos || text.find("finish") != std::string::npos) {
+        state = saveMotionSet(_currentLearningName, _tempTasks);
+        return state;
+    }
+
+    // 关节提取
+    if (text.find("base") != std::string::npos ) _currentJoint = Joint::Base;
+    else if (text.find("shoulder") != std::string::npos ) _currentJoint = Joint::Shoulder;
+    else if (text.find("elbow") != std::string::npos ) _currentJoint = Joint::Elbow;
+
+    // 更新
+    float angleStep = 0.0f;
+
+        // 暂时固定5度
+    // 后续可接收多角度，暂时用这个测试
+    if (text.find("right") != std::string::npos ) angleStep = 5.0f;
+    else if (text.find("left") != std::string::npos ) angleStep = -5.0f;
+    else if (text.find("up") != std::string::npos) angleStep = 5.0f;
+    else if (text.find("down") != std::string::npos ) angleStep = -5.0f;
+    else if (text.find("forward") != std::string::npos ) angleStep = 5.0f;
+    else if (text.find("back") != std::string::npos ) angleStep = -5.0f;
+
+        // 任务学习准备
+    if (std::abs(angleStep) > 0.1f) {
+        MotionTask task;
+        task.joint = _currentJoint;
+        task.method = MoveMethod::REL;
+        task.targetAngle = angleStep;
+        task.motionSpeed = 50;
+        // 立即执行动作
+        state = enqueue_motion(task);
+        // 加入缓存等待最后合并
+        _tempTasks.push_back(task); 
+        return state;
+    }
+    
+    return state;
+};
+
+
+BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<MotionTask>& rawTasks){
+
+    BugCode_M state = BugCode_M::Init;
+
+    if (rawTasks.empty()) {
+        state = BugCode_M::WriteInvalidSet;
+        return state;
+    }
+
+    std::vector<MotionTask> mergedTasks;
+    
+    // // 任务合并
+    // for (const auto& task : rawTasks) {
+    //     if (mergedTasks.empty()) {
+    //         mergedTasks.push_back(task);
+    //         continue;
+    //     }
+
+    //     auto& last = mergedTasks.back();
+    //     // 如果关节相同，且移动方向相同（正负号一致），则合并
+    //     if (last.joint == task.joint && (last.targetAngle * task.targetAngle > 0)) {
+    //         last.targetAngle += task.targetAngle;
+    //     } else {
+    //         mergedTasks.push_back(task);
+    //     }
+    // }
+
+    // 转化为 JSON 格式保存 
+    nlohmann::json j;
+    j["name"] = motionName;
+    for (const auto& task : rawTasks) {
+        nlohmann::json t;
+        t["joint"] = JointName(task.joint); 
+        t["method"] = "REL";
+        t["val"] = task.targetAngle;
+        t["speed"] = task.motionSpeed;
+        j["tasks"].push_back(t);
+    }
+
+    std::ofstream file( motionsetPath + "/" + motionName + ".json");
+    if (!file.is_open()){
+        state = BugCode_M::CannotOpenMotionFile;
+        return state;
+    }
+    file << j.dump(4);
+    
+    // 刷新
+    learn_motion_fresh();
+    servo_set_init(); 
+    state = BugCode_M::LearningSuccess;
+    _currentLearningName = "None";
+    return state;
+};

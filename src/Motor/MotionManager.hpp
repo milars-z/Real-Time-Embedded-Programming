@@ -81,7 +81,7 @@ public:
     ~MotionManager();
 
     // 将需要执行的motion加入队列，测试用
-    bool enqueue_motion(const MotionTask& cmd);
+    BugCode_M enqueue_motion(const MotionTask& cmd);
 
     // 后续开发
     // 下版本更新
@@ -99,7 +99,7 @@ public:
     void servo_set_init();
 
     //do easy task
-    void excuteTask(const std::string& task);
+    BugCode_M excuteTask(const std::string& task);
 
     // do motion set
     // 需返回执行结果
@@ -111,6 +111,10 @@ public:
 
     // reset motion
     void excuteReset();
+
+    
+    // APP侧接口，学习模式
+    BugCode_M processLearningInput(const std::string& text, const std::string& name);
 
 
 
@@ -131,6 +135,8 @@ private:
     ThreadSafeQueue<ServoTask> ServoQueue; // MotionManager -> PwmBoardController
 
     std::set<std::string> _available_motions; // 存储文件夹中搜到的动作集名称
+
+    BugCode_M saveMotionSet(std::string motionName, std::vector<MotionTask>& rawTasks);
     
 
     // motion底层链接相关函数
@@ -157,6 +163,17 @@ private:
 
     //string -> MotionTask
     MotionTask getMotionTask(const std::string& cmd);
+
+    std::string _currentLearningName = "";
+    std::vector<MotionTask> _tempTasks ; 
+    Joint _currentJoint = Joint::Base;
+    std::string motionsetPath = Config::Motion::MOTION_SET;
+
+    // 用来解决队列瞬发问题
+    float _last_angle = 0.0;
+    std::string _last_name;
+    bool servoworker_flag = true;
+
 
     
     
