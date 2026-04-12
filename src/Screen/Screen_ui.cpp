@@ -22,10 +22,10 @@ ScreenUI::ScreenUI(ScreenUI::UIEventCallback callback)
 
 void ScreenUI::sendSignal(std::string type, std::string data) {
         
+    printf("[ScreenUI] Triggered callback: %s:%s\n", type.c_str(), data.c_str());
         if (onSignalEvent) {
             onSignalEvent(type, data);
         }
-        printf("[ScreenUI] Triggered callback: %s:%s\n", type.c_str(), data.c_str());
     }
 
 // 初始界面 
@@ -94,17 +94,18 @@ void ScreenUI::showMotionScreen() {
     }, LV_EVENT_CLICKED, this);
 
     lv_obj_t* btn_s = lv_button_create(main_screen);
-    lv_obj_align(btn_s, LV_ALIGN_TOP_RIGHT, -10, 10);
+    lv_obj_align(btn_s, LV_ALIGN_TOP_RIGHT, -10, 70);
     lv_label_set_text(lv_label_create(btn_s), "Do");
     lv_obj_add_event_cb(btn_s, [](lv_event_t* e){
         ((ScreenUI*)lv_event_get_user_data(e))->createKeyboard("MOTION_SET");
     }, LV_EVENT_CLICKED, this);
 
-    lv_obj_t* btn_re = lv_button_create(main_screen);
-    lv_obj_align(btn_re, LV_ALIGN_TOP_RIGHT, -10, 70);
-    lv_label_set_text(lv_label_create(btn_re), "Reset");
-    lv_obj_add_event_cb(btn_re, [](lv_event_t* e){
-        ((ScreenUI*)lv_event_get_user_data(e))->createKeyboard("RESET");
+    lv_obj_t* btn_reset = lv_button_create(main_screen);
+    lv_obj_set_size(btn_reset, 80, 80);
+    lv_obj_align(btn_reset, LV_ALIGN_TOP_RIGHT, -10, 130);
+    lv_label_set_text(lv_label_create(btn_reset), "Reset");
+    lv_obj_add_event_cb(btn_reset, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("RESET");
     }, LV_EVENT_CLICKED, this);
 
     lv_screen_load(main_screen);
