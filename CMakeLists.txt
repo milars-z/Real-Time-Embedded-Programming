@@ -14,29 +14,6 @@ find_package(SDL2 REQUIRED)
 
 # --- Executable ---
 add_executable(main
-    # main.cpp
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Microphone/MicrophoneEngine.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Speaker/SpeakerEngine.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Tools/VisonTools.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/NluHandle.cpp" 
-    # # "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/voiceInteraction.cpp" 
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/MotionHandle.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction/CameraHandle.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/MotionManager.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Motor/PwmBoardController.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/CameraEngine.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/AttentionDetector.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Camera/FeatureManager.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Screen/Screen_ui.cpp"
-
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/cogniArm.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/MotionApp.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/CameraApp.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/SpeakerApp.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/ScreenApp.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/RobotBrain.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction/MicrophoneApp.cpp"
-
     "main.cpp"
 
     # brain
@@ -69,7 +46,7 @@ add_executable(main
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/Screen_ui.cpp"
 
     # utils 
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utils/VisonTools.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utils/Tools.cpp"
 
 )
 
@@ -112,19 +89,8 @@ target_include_directories(main PRIVATE
     ${ALSA_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${OpenCV_INCLUDE_DIRS} 
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../main"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../VoiceInteraction"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Tools"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Microphone"
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/microphone/model/vosk"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Speaker"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Motor"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Camera"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../Screen"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/../interaction"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/lvgl"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/brain"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/common"
@@ -142,7 +108,6 @@ target_include_directories(main PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/producers/ui"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/ui"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/utils"
-    
     "${SHERPA_HOME}/include"
     "${ORT_ROOT}/include" 
 )
