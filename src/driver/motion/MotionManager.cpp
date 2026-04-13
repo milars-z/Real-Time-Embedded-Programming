@@ -498,21 +498,21 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
 
     std::vector<MotionTask> mergedTasks;
     
-    // // 任务合并
-    // for (const auto& task : rawTasks) {
-    //     if (mergedTasks.empty()) {
-    //         mergedTasks.push_back(task);
-    //         continue;
-    //     }
+    // 任务合并
+    for (const auto& task : rawTasks) {
+        if (mergedTasks.empty()) {
+            mergedTasks.push_back(task);
+            continue;
+        }
 
-    //     auto& last = mergedTasks.back();
-    //     // 如果关节相同，且移动方向相同（正负号一致），则合并
-    //     if (last.joint == task.joint && (last.targetAngle * task.targetAngle > 0)) {
-    //         last.targetAngle += task.targetAngle;
-    //     } else {
-    //         mergedTasks.push_back(task);
-    //     }
-    // }
+        auto& last = mergedTasks.back();
+        // 如果关节相同，且移动方向相同（正负号一致），则合并
+        if (last.joint == task.joint && (last.targetAngle * task.targetAngle > 0)) {
+            last.targetAngle += task.targetAngle;
+        } else {
+            mergedTasks.push_back(task);
+        }
+    }
 
     // 转化为 JSON 格式保存 
     nlohmann::json j;
@@ -538,5 +538,6 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
     servo_set_init(); 
     state = BugCode_M::LearningSuccess;
     _currentLearningName = "None";
+    _tempTasks.clear();
     return state;
 };

@@ -113,6 +113,8 @@ void MotionExecutor::onExecute(const std::string& task) {
 // 学习阶段的时候用，进来一个格式化text，经过小分词器直接执行任务
 void MotionExecutor::doDirectTask(const MotionTask& t) {
     if (!manager) return;
+
+
 }
 
 MotionCommand MotionExecutor::analyzecommand(const std::string& text){
@@ -178,34 +180,24 @@ void MotionExecutor::HandleState(BugCode_M code){
             break;
         case BugCode_M::CannotOpenMotionFile:
             std::cout << "[CannotOpenMotionFile][MotionApp] Failed to open motion file\n";
-            _islearningfinish = true;
-            armMode = ARMMODE::IDLE;
             break;
         case BugCode_M::ReadInvalidSet:
             std::cout << "[ReadInvalidSet][MotionApp] Invalid motion set when reading\n";
             break;
         case BugCode_M::MotionSaveWrong:
             std::cout << "[MotionSaveWrong][MotionApp] Motion save failed\n";
-            _islearningfinish = true;
-            armMode = ARMMODE::IDLE;
             break;
         case BugCode_M::WriteInvalidSet:
             std::cout << "[WriteInvalidSet][MotionApp] Invalid motion set when writing\n";
-            _islearningfinish = true;
-            armMode = ARMMODE::IDLE;
             break;
         case BugCode_M::UnkonwJoint:
             std::cout << "[UnkonwJoint][MotionApp] Unknown joint type\n";
-            _islearningfinish = true;
-            armMode = ARMMODE::IDLE;
             break;
         case BugCode_M::MotionQueError:
             std::cout << "[MotionQueError][MotionApp] Motion queue error\n";
             break;
         case BugCode_M::Init:
             std::cout << "[Init][MotionApp] ?\n";
-            _islearningfinish = true;
-            armMode = ARMMODE::IDLE;
             break;
         default:
             std::cout << "[Unknown][MotionApp] Unknown BugCode_M\n";
