@@ -2,7 +2,7 @@
 
 #include "Executor.hpp"
 #include "BugCode.hpp"
-#include "config_voice.hpp"
+#include "Config.hpp"
 
 #include <string>
 #include <memory>

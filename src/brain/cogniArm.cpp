@@ -6,8 +6,8 @@
 #include "RobotBrain.hpp"
 #include "ScreenApp.hpp"
 #include "MicrophoneApp.hpp" 
-#include "config_voice.hpp" 
-#include "VisonTools.hpp"     
+#include "Config.hpp" 
+#include "Tools.hpp"     
 
 #include <iostream>
 #include <unistd.h> 

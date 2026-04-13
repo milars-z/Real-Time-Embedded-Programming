@@ -2,9 +2,9 @@
 
 #include "PwmBoardController.hpp"
 #include "ThreadSafeQueue.hpp" 
-#include "VisonTools.hpp"
+#include "Tools.hpp"
 #include "BugCode.hpp"
-#include "config_voice.hpp"
+#include "Config.hpp"
 
 #include <thread>
 #include <atomic>

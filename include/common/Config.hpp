@@ -16,7 +16,7 @@ namespace Config {
         inline const std::string SRC_ROOT = PROJECT_ROOT_DIR;
 
         // NLU 
-        const std::string NLU_MODEL_DIR = SRC_ROOT + "/third_party/model_nlu"; 
+        const std::string NLU_MODEL_DIR = SRC_ROOT + "/third_party/model_nlu_2"; 
 
         // Vosk 
         const std::string VOSK_MODEL_DIR = SRC_ROOT + "/third_party/microphone/model/model"; 

@@ -204,32 +204,3 @@ nlu_output NLUEngine::predict(const string& text) {
         return nlu_outp;
     }
 }
-
-// int main() {
-
-//     string nlu_model_p = "../model";
-
-//     nlu_output nlu_outp;
-
-//     //Init
-//     NLUEngine nlu(nlu_model_p); 
-//     if (!nlu.init()) return -1;
-
-//     vector<string> test_cases = {
-//         "this is an apple",
-//         "help me find my phone",
-//         "say my name",
-//         "what is your name",
-//         "i can teach you dance",
-//         "do a dance"
-//     };
-
-//     for (const auto& text : test_cases) {
-//         nlu_outp = nlu.predict(text);
-//         cout << "user_command:" << text << endl;
-//         cout << "intent:" << nlu_outp.intent << endl;
-//         //cout << "MotionName:" << nlu_outp.currentType << endl;
-//         cout << "MotionVal:" << nlu_outp.currentValue << endl;
-//     }
-//     return 0;
-// }

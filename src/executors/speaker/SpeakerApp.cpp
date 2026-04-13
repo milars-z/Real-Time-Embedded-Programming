@@ -1,7 +1,7 @@
 #include "SpeakerApp.hpp"
 
 #include "SpeakerEngine.hpp"
-#include "config_voice.hpp" 
+#include "Config.hpp" 
 #include <iostream>
 
 SpeakerExecutor::SpeakerExecutor(const std::string& path) {

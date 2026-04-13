@@ -1,8 +1,8 @@
 #include "MicrophoneApp.hpp"
 
 #include "MicrophoneEngine.hpp"
-#include "config_voice.hpp"
-#include "VisonTools.hpp"  
+#include "Config.hpp"
+#include "Tools.hpp"  
 #include <vosk_api.h>      
 #include <iostream>
 

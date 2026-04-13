@@ -9,7 +9,7 @@
 #include "MotionApp.hpp"
 #include "CameraApp.hpp"
 #include "NluHandle.hpp"
-#include "config_voice.hpp" 
+#include "Config.hpp" 
 #include <iostream>
 #include <cstdio>
 
@@ -19,13 +19,13 @@ static const std::string _robotname = "your robot";
 
 // nlu返回的intent，处理成枚举类型，方便后续逻辑判断
 IntentType RobotBrain::parseIntent(const std::string& intent) {
-    if (intent == "other" || intent.empty()) return IntentType::OTHER;
+    if (intent == "unknown" || intent.empty()) return IntentType::OTHER;
     if (intent == "do_motion") return IntentType::DO_MOTION;
-    if (intent == "find_obj") return IntentType::FIND_OBJ;
+    if (intent == "find_object") return IntentType::FIND_OBJ;
     if (intent == "learn_motion") return IntentType::LEARN_MOTION;
-    if (intent == "learn_obj") return IntentType::LEARN_OBJ;
-    if (intent == "check_host_name") return IntentType::CHECK_HOST_NAME;
-    if (intent == "check_rot_name") return IntentType::CHECK_ROT_NAME;
+    if (intent == "learn_object") return IntentType::LEARN_OBJ;
+    if (intent == "ask_user_name") return IntentType::CHECK_HOST_NAME;
+    if (intent == "ask_robot_name") return IntentType::CHECK_ROT_NAME;
     if (intent == "greet") return IntentType::GREET;
     if (intent == "bye") return IntentType::BYE;
     return IntentType::UNKNOWN;
@@ -177,7 +177,8 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
             speaker->pushTask("hello good morning " + _username);
             return true;
         case IntentType::DO_MOTION: {
-            std::string motion_cmd = "DOMOTION:" + res.currentValue;
+            std::string motion_cmd = "MOTIONSET:" + res.currentValue;
+            std::cout << motion_cmd << std::endl;
             motion->pushTask(motion_cmd);
             speaker->pushTask("do motion " + res.currentValue);
             return true;

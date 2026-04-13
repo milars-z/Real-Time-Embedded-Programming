@@ -13,8 +13,8 @@
 #include <queue>
 
 #include "c-api.h"
-#include "VisonTools.hpp"
-#include "config_voice.hpp"
+#include "Tools.hpp"
+#include "Config.hpp"
 
 
 // struct ModelPaths {

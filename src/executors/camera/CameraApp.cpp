@@ -1,6 +1,6 @@
 #include "CameraApp.hpp"
 #include "CameraHandle.hpp"
-#include "config_voice.hpp"
+#include "Config.hpp"
 #include <iostream>
 
 
