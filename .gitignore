@@ -94,8 +94,21 @@ model/
 
 vosk*
 
-VoiceInteraction/model_nlu/nlu_model.onnx
+past_file/VoiceInteraction/model_nlu/nlu_model.onnx
 
-src/VoiceInteraction/model_nlu/nlu_model.onnx
+past_file/src/VoiceInteraction/model_nlu/nlu_model.onnx
 
 lvgl/
+
+third_party/
+
+past_file/VoiceInteraction/onnxruntime/
+past_file/VoiceInteraction/model_nlu/
+past_file/VoiceInteraction/Test_pic/
+past_file/Screen/lvgl_lib/
+past_file/Motor/motion_set/
+past_file/Camera/feature/
+
+
+
+

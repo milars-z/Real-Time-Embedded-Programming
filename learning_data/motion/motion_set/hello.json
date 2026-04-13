@@ -1,0 +1,29 @@
+{
+    "name": "hello",
+    "tasks": [
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -10.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 10.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 10.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": -10.0
+        }
+    ]
+}

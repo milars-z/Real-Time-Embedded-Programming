@@ -1,0 +1,17 @@
+{
+    "name": "",
+    "tasks": [
+        {
+            "joint": "None",
+            "method": "REL",
+            "speed": 50,
+            "val": -35.0
+        },
+        {
+            "joint": "None",
+            "method": "REL",
+            "speed": 50,
+            "val": 25.0
+        }
+    ]
+}

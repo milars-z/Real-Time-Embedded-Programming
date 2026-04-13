@@ -1,0 +1,101 @@
+{
+    "name": "cat",
+    "tasks": [
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        }
+    ]
+}
