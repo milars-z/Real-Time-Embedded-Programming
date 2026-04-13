@@ -30,7 +30,7 @@ namespace Config {
     namespace Camera {
         inline const std::string SRC_ROOT = PROJECT_ROOT_DIR;
 
-        const std::string CAMERA_MODEL = SRC_ROOT + "/third_party/model/mobilenet_v2_slice.onnx";
+        const std::string CAMERA_MODEL = SRC_ROOT + "/third_party/camera/model/mobilenet_v2_slice.onnx";
         const std::string CAMERA_FEATURE = SRC_ROOT + "/learning_data/camera/feature/my_features.yml";
     }
 
