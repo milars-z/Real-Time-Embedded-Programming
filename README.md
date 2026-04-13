@@ -20,7 +20,7 @@ For a detailed overview, see [Project Overview](#cogniarm-a-learnable-robotic-ar
 ## 🚀 Features
 
 - 🎤 Speech recognition and command parsing (Microphone + NLU)
-- 👁️ Visual detection and object tracking (OpenCV + DNN)
+- 👁️ Visual detection (OpenCV + DNN)
 - 🤖 Motion learning and execution system
 - 🧠 Producer–Decision–Executor architecture
 - 🖥️ Embedded UI based on LVGL
@@ -158,7 +158,7 @@ GPL License
 ## 功能特性
 
 - 🎤 语音识别与指令解析（Microphone + NLU）
-- 👁️ 视觉检测与目标跟踪（OpenCV + DNN）
+- 👁️ 视觉检测（OpenCV + DNN）
 - 🤖 Motion 动作学习与执行系统
 - 🧠 Producer-Decision-Executor 架构设计
 - 🖥️ 基于 LVGL 的嵌入式 UI
