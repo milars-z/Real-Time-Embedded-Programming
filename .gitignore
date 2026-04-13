@@ -1,41 +1,61 @@
-# Prerequisites
-*.d
+# # Prerequisites
+# *.d
 
-# Compiled Object files
-*.slo
-*.lo
+# # Compiled Object files
+# *.slo
+# *.lo
+# *.o
+# *.obj
+
+# # Precompiled Headers
+# *.gch
+# *.pch
+
+# # Linker files
+# *.ilk
+
+# # Debugger Files
+# *.pdb
+
+# # Compiled Dynamic libraries
+# *.so
+# *.dylib
+# *.dll
+
+# # Fortran module files
+# *.mod
+# *.smod
+
+# # Compiled Static libraries
+# *.lai
+# *.la
+# *.a
+# *.lib
+
+# # Executables
+# *.exe
+# *.out
+# *.app
+
+# # debug information files
+# *.dwo
+
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
+*.out
+*.exe
 *.a
 *.lib
+*.so
+*.dll
+*.dylib
 
-# Executables
-*.exe
-*.out
-*.app
+build/
+bin/
+obj/
+out/
+cmake-build-debug/
+cmake-build-release/
 
 # debug information files
 *.dwo
@@ -74,4 +94,21 @@ model/
 
 vosk*
 
-VoiceInteraction/model_nlu/nlu_model.onnx
+past_file/VoiceInteraction/model_nlu/nlu_model.onnx
+
+past_file/src/VoiceInteraction/model_nlu/nlu_model.onnx
+
+lvgl/
+
+third_party/
+
+past_file/VoiceInteraction/onnxruntime/
+past_file/VoiceInteraction/model_nlu/
+past_file/VoiceInteraction/Test_pic/
+past_file/Screen/lvgl_lib/
+past_file/Motor/motion_set/
+past_file/Camera/feature/
+
+
+
+

@@ -1,0 +1,311 @@
+{
+    "name": "bird",
+    "tasks": [
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "None",
+            "method": "REL",
+            "speed": 50,
+            "val": 0.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        },
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -5.0
+        }
+    ]
+}
