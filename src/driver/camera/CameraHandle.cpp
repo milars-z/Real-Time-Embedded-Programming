@@ -124,7 +124,16 @@ cv::Mat CameraHandle::getDisplayFrame() {
 };
 
 void CameraHandle::startTask(CamState next_state) {
-    camera_queue.reset(); // 清空旧数据
+    state = CamState::IDLE;  
+    camera_queue.reset();
+
+    {
+        std::lock_guard<std::mutex> lock(_result_mtx);
+        _latest_objects.clear();
+        last_found_index = -1;
+    }
+
+    Camera_worker_buffer.clear();
     state = next_state;
     std::cout << "Task Started: Sampling images..." << std::endl;
 };
@@ -141,8 +150,8 @@ void CameraHandle::cameraWorker() {
             // 保证稳定性，取5张只用最后一张进行处理
             if (Camera_worker_buffer.size() >= 5) {
 
-                cv::Mat task_img = Camera_worker_buffer.back();
-
+                cv::Mat task_img = Camera_worker_buffer.back(); 
+                          
                 // camera内部使用，根据当前状态进行逻辑处理，并绘制框图
                 processTask(task_img); 
 
@@ -184,6 +193,10 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     } 
     else if (current_job == CamState::LEARNING) {
         objs = _detector.detect(target_img);
+        if(objs.size() == 0){
+            std::cout << "[Error][CameraHandle] No Background! " << std::endl;
+            return;
+        }
         if (!objs.empty()) {
             int max_idx = 0; float max_area = 0;
             for(int i=0; i<objs.size(); i++) {
@@ -195,6 +208,10 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     } 
     else if (current_job == CamState::FINDING) {
         objs = _detector.detect(target_img);
+        if(objs.size() == 0){
+            std::cout << "[Error][CameraHandle] No Background! " << std::endl;
+            return;
+        }
         match_idx = _feat_mgr.match_object(target_name, objs, 0.2f);
 
 
