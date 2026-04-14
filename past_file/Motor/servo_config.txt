@@ -1,4 +1,0 @@
-# Name     Channel  Init  Min   Max
-Base       15       90    45    135
-Shoulder   11       0     0     70
-Elbow      7        45    0     45
