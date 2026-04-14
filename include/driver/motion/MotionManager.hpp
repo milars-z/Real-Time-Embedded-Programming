@@ -115,6 +115,8 @@ public:
     // APP侧接口，学习模式
     BugCode_M processLearningInput(const std::string& text, const std::string& name);
 
+    bool check_error_code();
+
 
 
 
@@ -172,5 +174,8 @@ private:
     float _last_angle = 0.0;
     std::string _last_name;
     bool servoworker_flag = true;
+
+    // 用来解决学习过程中收到过多无关信息或者学习退出功能
+    int learning_error_code = 0;
 
 };

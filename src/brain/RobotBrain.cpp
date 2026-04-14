@@ -61,13 +61,12 @@ void RobotBrain::handleIncomingText(const std::string& text) {
     // 处理来自麦克风的文本信号
     if (text.empty()) return;
     
-    // if(motion->checklearningstate()){
-    //     isLearningMode = false;
-    // }
 
     if (isLearningMode) {
         processLearning(text);
-
+        if(motion->check_acclearning_stop()){
+                isLearningMode = false;
+        }
         return;
     }
 
@@ -87,9 +86,8 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 void RobotBrain::handleUISignal(const std::string& type, const std::string& data) {
     // 处理来自 ScreenApp 的 UI 交互信号
     
-    // if(motion->checklearningstate()){
-    //     isLearningMode = false;
-    // }
+
+
     if (type == "STOP_SYSTEM") {
         std::cout << "[Brain] 收到系统退出信号" << std::endl;
         _exit_signal = true;
@@ -104,11 +102,16 @@ void RobotBrain::handleUISignal(const std::string& type, const std::string& data
         if( (type == "MOTION_CONFIRM") || (type == "DO_MOTION") ){
             std::cout << "[onLearningMode]" << type << std::endl;
             btn_detected(type, data);
+            if(motion->check_acclearning_stop()){
+                isLearningMode = false;
+            }
             return;
         }else{
             std::cout << "信号错误" << std::endl;
             return;
         }
+
+        
 
     }else if (!btn_detected(type, data)) {
         std::cout << "[Brain] 未能识别有效 UI 信号: " << type << std::endl;
@@ -178,7 +181,6 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
             return true;
         case IntentType::DO_MOTION: {
             std::string motion_cmd = "MOTIONSET:" + res.currentValue;
-            std::cout << motion_cmd << std::endl;
             motion->pushTask(motion_cmd);
             speaker->pushTask("do motion " + res.currentValue);
             return true;

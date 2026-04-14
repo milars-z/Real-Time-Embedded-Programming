@@ -1,23 +1,5 @@
 #include "MotionManager.hpp"
 
-// const std::unordered_map<std::string, MotionSet> MOTIONSET = {
-    
-//     {
-//         "hello",
-//         {
-//             "hello",
-//             {
-//                 {Joint::Base, MoveMethod::REL,  20.0f, 50},
-//                 {Joint::Base, MoveMethod::REL, -20.0f, 50},
-//                 {Joint::Base, MoveMethod::REL,  20.0f, 50},
-//                 {Joint::Base, MoveMethod::REL, -20.0f, 50}
-//             }
-//         }
-//     },
-// };
-
-
-
 MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
 
     if (_arm.lastStatus != SUCCESS) {
@@ -35,11 +17,6 @@ MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
     _ready = true;
     _isRunning = true;
     _stopRequested = false;
-
-    // _motionworker = std::thread(&MotionManager::motionworker, this);
-    // // _servoworker  = std::thread(&MotionManager::servoworker, this);
-    // pinThreadToCore(_motionworker,"motion", 1);
-    // // pinThreadToCore(_servoworker, "servo", 1);
 
 };
 
@@ -78,12 +55,6 @@ BugCode_M MotionManager::enqueue_motion(const MotionTask& cmd){
 
 
 BugCode_M MotionManager::read_motion_set(const std::string& motion_set_name) {
-
-    // // 找name
-    // if (_available_motions.find(motion_set_name) == _available_motions.end()) {
-    //     std::cerr << "[Motion] Motion set '" << motion_set_name << "' not found in folder." << std::endl;
-    //     return false;
-    // }
 
     // 找motion
     BugCode_M state = BugCode_M::Init;
@@ -265,53 +236,6 @@ void MotionManager::motionworker(){
     }
 }
 
-// motion线程，执行详细任务，manager模块与pwm的唯一接口
-// 需要保证上一个任务完成了再进行下一个任务
-// void MotionManager::servoworker(){
-
-//     ServoTask cmd;
-//     while ((_isRunning) && (ServoQueue.pop(cmd)) && (!_stopRequested)) {
-        
-//         while( (abs(_arm.getAngle(_last_name) - _last_angle)< 0.20f) || servoworker_flag ){
-//             _arm.setAngle(cmd.name,cmd.nowAngle);
-//             _last_name  = cmd.name;
-//             _last_angle = cmd.nowAngle;
-//             servoworker_flag = false;
-//         }
-        
-
-        
-//     }
-// }
-
-// void MotionManager::servoworker() {
-//     ServoTask cmd;
-
-//     while (_isRunning && ! _stopRequested) {
-//         if (!ServoQueue.pop(cmd)) {
-//             continue;
-//         }
-
-//         // 第一次任务直接执行
-//         if (servoworker_flag) {
-//             _arm.setAngle(cmd.name, cmd.nowAngle);
-//             _last_name = cmd.name;
-//             _last_angle = cmd.nowAngle;
-//             servoworker_flag = false;
-//         } else {
-//             // 等上一个完成
-//             while (_isRunning && !_stopRequested &&
-//                    std::abs(_arm.getAngle(_last_name) - _last_angle) >= 0.02f) {
-//                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
-//             }
-
-//             _arm.setAngle(cmd.name, cmd.nowAngle);
-//             _last_name = cmd.name;
-//             _last_angle = cmd.nowAngle;
-//         }
-//     }
-// }
-
 // motion工具，将指令集中的Joint类转换为string
 std::string MotionManager::JointName(Joint joint){
     
@@ -417,6 +341,7 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
     // 键盘任务
     if (text == "CONFIRM") {
         state = saveMotionSet(_currentLearningName, _tempTasks);
+        learning_error_code = 0;
         return state;
     }
 
@@ -442,6 +367,11 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
 
         state = enqueue_motion(task);
         _tempTasks.push_back(task); 
+        learning_error_code = 0;
+        if (state == BugCode_M::MotionQueError){
+            _currentLearningName = "None";
+            _tempTasks.clear();
+        }
         return state;
     }
     
@@ -449,6 +379,7 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
     // 检查是否结束
     if (text.find("done") != std::string::npos || text.find("stop") != std::string::npos || text.find("finish") != std::string::npos) {
         state = saveMotionSet(_currentLearningName, _tempTasks);
+        learning_error_code = 0;
         return state;
     }
 
@@ -480,19 +411,26 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
         state = enqueue_motion(task);
         // 加入缓存等待最后合并
         _tempTasks.push_back(task); 
+        learning_error_code = 0;
+        if (state == BugCode_M::MotionQueError){
+            _currentLearningName = "None";
+            _tempTasks.clear();
+        }
         return state;
     }
-    
+    learning_error_code++;
     return state;
 };
 
-
+// 新增，意外保存错误时清空task并清空学习的名字
 BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<MotionTask>& rawTasks){
 
     BugCode_M state = BugCode_M::Init;
 
     if (rawTasks.empty()) {
         state = BugCode_M::WriteInvalidSet;
+        _currentLearningName = "None";
+        _tempTasks.clear();
         return state;
     }
 
@@ -528,6 +466,8 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
 
     std::ofstream file( motionsetPath + "/" + motionName + ".json");
     if (!file.is_open()){
+        _currentLearningName = "None";
+        _tempTasks.clear();
         state = BugCode_M::CannotOpenMotionFile;
         return state;
     }
@@ -541,3 +481,13 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
     _tempTasks.clear();
     return state;
 };
+
+// 外部调用，检查错误计数
+// 超出限制数量则退出学习模式
+bool MotionManager::check_error_code(){
+
+    if(learning_error_code > 3){
+        return true;
+    }
+    return false;
+}

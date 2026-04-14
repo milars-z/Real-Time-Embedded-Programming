@@ -77,7 +77,6 @@ void MotionExecutor::onExecute(const std::string& task) {
         // 开启学习模式
         else if(cmd.command == "LEARNMOTION"){
             armMode = ARMMODE::LEARNING;
-            _islearningfinish = false;
             motion_name = cmd.obj;
         }
         // 确定，一般不会走到这里
@@ -95,19 +94,59 @@ void MotionExecutor::onExecute(const std::string& task) {
         // 好的在brain侧处理下信息
         // brain不负责处理信息，直接全部送过来
         BugCode_M state;
+        bool is_error;
         _islearningfinish = false;
         state = manager->processLearningInput(task,motion_name);
         if (state == BugCode_M::LearningSuccess){
+            std::cout << "[finish][MotionApp]:LearningSuccess" << std::endl;
+            learning_state = LearningCode::Success;
+            motion_name = "None";
+            armMode = ARMMODE::IDLE;
+            _islearningfinish = true;
+        }
+        
+        // 输入的内容未被检索
+        // 输入可能为杂音
+        // 检查出错的次数
+        else if(state == BugCode_M::Init){
+            is_error = manager->check_error_code();
+            std::cout << "[MotionApp]error_num:" << is_error << std::endl;
+            if (is_error) {
+                std::cout << "[error][MotionApp]:LearningError" << std::endl;
+                learning_state = LearningCode::LearninginputError;
+                motion_name = "None";
+                armMode = ARMMODE::IDLE;
+                _islearningfinish = true;
+            }
+        }
+
+        // motion 保存过程中出错，此时退出
+        else if((state == BugCode_M::CannotOpenMotionFile) ||
+                 (state == BugCode_M::WriteInvalidSet)){
+            std::cout << "[error][MotionApp]:LearningSaveError" << std::endl;
+            learning_state = LearningCode::LearningSaveError;
             _islearningfinish = true;
             armMode = ARMMODE::IDLE;
             motion_name = "None";
-        }else if(state != BugCode_M::Success ){
-            HandleState(state);
+        }
+        
+        // 底层队列执行错误
+        // 直接退出
+        else if(state == BugCode_M::MotionQueError){
+            std::cout << "[error][MotionApp]:MotionQueError" << std::endl;
+            learning_state = LearningCode::LearningQueueError;
+            _islearningfinish = true;
+            armMode = ARMMODE::IDLE;
+            motion_name = "None";
+        }
+
+        // 正常退出
+        else if(state == BugCode_M::Success ){
+            std::cout << "[process][MotionApp]:learning" << std::endl;
+            _islearningfinish = false;
+            learning_state = LearningCode::LearningProcess;
         }
     }
-    
-
-
 }
 
 // 学习阶段的时候用，进来一个格式化text，经过小分词器直接执行任务
@@ -165,6 +204,18 @@ MotionCommand MotionExecutor::analyzecommand(const std::string& text){
 
 bool MotionExecutor::checklearningstate(){
     return _islearningfinish;
+}
+
+// 当学习模式意外退出返回true
+bool MotionExecutor::check_acclearning_stop(){
+    if(learning_state == LearningCode::LearningQueueError ||
+        learning_state == LearningCode::LearningSaveError ||
+        learning_state == LearningCode::LearninginputError 
+    ){
+        return true;
+    }
+    return false;
+
 }
 
 void MotionExecutor::HandleState(BugCode_M code){

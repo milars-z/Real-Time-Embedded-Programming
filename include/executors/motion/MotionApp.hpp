@@ -25,6 +25,16 @@ enum class ARMMODE {
     EXPLORE,
 };
 
+enum class LearningCode{
+    Success = 0,
+    LearningInit = 1,  // 初始化状态（等待学习指令
+    LearningProcess = 2,  //学习进行中
+    LearninginputError = 3, // 噪声太多退出
+    LearningQuit = 4, // 后续追加
+    LearningSaveError = 5, // motionset文档存储错误
+    LearningQueueError = 6,
+};
+
 class MotionExecutor : public BaseExecutor<std::string> {
 private:
     std::unique_ptr<MotionManager> manager;
@@ -52,6 +62,9 @@ public:
     // 学习状态
     bool checklearningstate();
 
+    // 意外退出检查
+    bool check_acclearning_stop();
+
 
 
 private:    
@@ -61,5 +74,7 @@ private:
     std::atomic<bool> _islearningfinish = true;
 
     std::string motion_name = "None";
+
+    LearningCode learning_state = LearningCode::LearningInit;
 
 };
