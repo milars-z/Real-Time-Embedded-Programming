@@ -15,6 +15,7 @@
 #include "FeatureManager.hpp"
 #include "CameraEngine.hpp"
 #include "Tools.hpp"
+#include "TaskMonitor.hpp"
 
 
 enum class CamState {
@@ -33,7 +34,7 @@ class CameraHandle {
 public:
 
     // 构造
-    CameraHandle(const std::string& model_path, const std::string& feature_path);
+    CameraHandle(const std::string& model_path, const std::string& feature_path,std::shared_ptr<TaskMonitor> taskMonitor);
     
     // 解构
     ~CameraHandle();
@@ -91,6 +92,9 @@ private:
     AttentionDetector _detector;
     FeatureManager    _feat_mgr;
 
+    // 任务检测
+    std::shared_ptr<TaskMonitor> _taskMonitor;
+
     // Cam硬件驱动
     CameraEngine      cam;
 
@@ -136,6 +140,15 @@ private:
     cv::Mat _ui_ready_frame;       
     std::mutex _ui_frame_mtx;      
     const cv::Size _ui_size = cv::Size(640, 480); 
+
+    // 任务Task
+    std::atomic<int> task_id = 1000;
+
+    TaskDescribe _taskdescribe;
+    
+    EmptyResult bg;
+    
+
 };
 
 #endif // CAMERA_HANDLE_HPP

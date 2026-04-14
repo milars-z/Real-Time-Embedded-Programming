@@ -4,7 +4,8 @@
 #include <memory>
 #include <mutex>
 #include <opencv2/opencv.hpp> 
-#include "Executor.hpp"       
+#include "Executor.hpp"   
+#include "TaskMonitor.hpp"    
 
 struct CameraCommand{
     std::string command;
@@ -16,10 +17,11 @@ class CameraHandle;
 class CameraExecutor : public BaseExecutor<std::string> {
 private:
     std::unique_ptr<CameraHandle> cam;
+    std::shared_ptr<TaskMonitor> _taskMonitor;
     std::mutex frameMtx;
 
 public:
-    CameraExecutor();
+    CameraExecutor(std::shared_ptr<TaskMonitor> taskMonitor);
     ~CameraExecutor(); 
 
     void pinThread(int num);

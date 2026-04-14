@@ -12,7 +12,9 @@
 // 任务层是不是需要负责任务的学习比较好？
 // brain只负责改变状态，如果是学习状态则直接把所有信息传给motion，motion来负责学习？
 
-MotionExecutor::MotionExecutor() {
+MotionExecutor::MotionExecutor(std::shared_ptr<TaskMonitor> taskMonitor) 
+:_taskMonitor(taskMonitor)
+{
 
     manager = std::make_unique<MotionManager>(Config::Motion::MOTION_CONFIG);
     std::cout << "[MotionApp] MotionManager initialized" << std::endl;

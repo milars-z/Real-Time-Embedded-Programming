@@ -4,7 +4,9 @@
 #include "Config.hpp" 
 #include <iostream>
 
-SpeakerExecutor::SpeakerExecutor(const std::string& path) {
+SpeakerExecutor::SpeakerExecutor(const std::string& path,std::shared_ptr<TaskMonitor> taskMonitor) 
+:_taskMonitor(taskMonitor)
+{
     // 初始化底层播放引擎
     speaker = std::make_unique<UsbSpeaker>(
         path, // device path

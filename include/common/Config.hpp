@@ -41,4 +41,11 @@ namespace Config {
         const std::string MOTION_SET = SRC_ROOT + "/learning_data/motion/motion_set";
     }
 
+    namespace Test {
+        inline const std::string SRC_ROOT = PROJECT_ROOT_DIR;
+
+        const std::string TEST_FILE = SRC_ROOT + "/test/log.csv";
+
+    }
+
 }

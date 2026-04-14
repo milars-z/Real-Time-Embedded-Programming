@@ -4,11 +4,14 @@
 #include <iostream>
 
 
-CameraExecutor::CameraExecutor() {
+CameraExecutor::CameraExecutor(std::shared_ptr<TaskMonitor> taskMonitor)
+:_taskMonitor(taskMonitor)
+{
 
     cam = std::make_unique<CameraHandle>(
         Config::Camera::CAMERA_MODEL,
-        Config::Camera::CAMERA_FEATURE
+        Config::Camera::CAMERA_FEATURE,
+        _taskMonitor
     );
     if (!cam->open()) {
         std::cerr << "[CameraExecutor] Hardware initialization failed!" << std::endl;

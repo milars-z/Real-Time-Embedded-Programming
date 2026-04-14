@@ -10,6 +10,8 @@ class CameraExecutor;
 class ScreenProducer;
 class VoiceProducer;
 class RobotBrain;
+class TaskMonitor;
+class TaskSupervisor;
 
 class RobotSystem {
 private:
@@ -22,6 +24,9 @@ private:
     std::unique_ptr<VoiceProducer> voiceIn;
 
     std::unique_ptr<RobotBrain> brain;
+    std::unique_ptr<TaskSupervisor> supervisor;
+
+    std::shared_ptr<TaskMonitor> globalMonitor;
 
     std::atomic<bool> isRunning{false};
 

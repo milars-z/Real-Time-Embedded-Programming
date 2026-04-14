@@ -8,15 +8,20 @@
 
 #include "CameraHandle.hpp"
 
-CameraHandle::CameraHandle(const std::string &model_path, const std::string &feature_path): 
+CameraHandle::CameraHandle(const std::string &model_path, const std::string &feature_path,std::shared_ptr<TaskMonitor> taskMonitor): 
     _detector(model_path), 
     _feat_mgr(feature_path), 
     state(CamState::IDLE), 
     running(false), 
-    is_display_enabled(true) {
+    is_display_enabled(true),
+    _taskMonitor(std::move(taskMonitor))    
+{
     
     // 线程绑定单核
     cv::setNumThreads(1);
+
+    
+    
     
     // 设置相机回调
     cam.onFrame([this](const cv::Mat& img) {
@@ -184,44 +189,156 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     last_found_index = -1;
     }
 
+    TaskEvent _taskevent;
+    _taskevent.moduleName = "Camera";
+
+    CameraResult detect_ans;
+    detect_ans.isdetecte = false;
+    detect_ans.objectName = "None";
+    detect_ans.position_x = -1;
+    detect_ans.position_y = -1;
+
+    CameraResult learn_ans;
+    learn_ans.isdetecte = false;
+    learn_ans.objectName = "None";
+    learn_ans.position_x = -1;
+    learn_ans.position_y = -1;
+
+
     // 延迟计算，记录处理时间
     auto start = std::chrono::high_resolution_clock::now();
     
+    
     if (current_job == CamState::UPDATING_BG) {
+
+        // send message start
+        _taskdescribe.Name = "None";
+        _taskdescribe.TaskType = "Update";
+        _taskevent.taskId = task_id++;
+        _taskevent.status = TaskStatus::STARTED;
+        _taskevent.result = bg;
+        _taskevent.timestamp = std::chrono::steady_clock::now();
+        _taskevent.taskType = _taskdescribe;
+        
+        _taskMonitor->postEvent(_taskevent);
+
+        // task
         _detector.update_background(target_img);
-        std::cout << "[Core 2] Background Updated." << std::endl;
+
+        // send message finish
+        _taskevent.status = TaskStatus::FINISHED;
+        _taskevent.timestamp = std::chrono::steady_clock::now();
+        _taskMonitor->postEvent(std::move(_taskevent));
+        
     } 
     else if (current_job == CamState::LEARNING) {
+
+        // send message start
+        _taskdescribe.Name = target_name;
+        _taskdescribe.TaskType = "Learn";
+        _taskevent.taskId = task_id++;
+        _taskevent.status = TaskStatus::STARTED;
+        _taskevent.result = bg;
+        _taskevent.timestamp = std::chrono::steady_clock::now();
+        _taskevent.taskType = _taskdescribe;
+        _taskMonitor->postEvent(_taskevent);
+
+
+        // task
         objs = _detector.detect(target_img);
         if(objs.size() == 0){
-            std::cout << "[Error][CameraHandle] No Background! " << std::endl;
+
+            _taskdescribe.Name = "NoBackground"; // 通过name来判断是否学习失败
+            _taskevent.taskType = _taskdescribe;
+            _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(std::move(_taskevent));
+            // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
             return;
         }
+
+
         if (!objs.empty()) {
             int max_idx = 0; float max_area = 0;
             for(int i=0; i<objs.size(); i++) {
                 if(objs[i].score > max_area) { max_area = objs[i].score; max_idx = i; }
             }
             _feat_mgr.save_feature(objs[max_idx], target_name);
-            std::cout << "[Core 2] Learned: " << target_name << std::endl;
+            
+            // send message end
+            learn_ans.isdetecte = true;
+            learn_ans.objectName = target_name;
+            _taskevent.result = learn_ans;
+            _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(std::move(_taskevent));
+            // std::cout << "[Core 2] Learned: " << target_name << std::endl;
+        }else{
+            // send message end
+            learn_ans.isdetecte = false;
+            learn_ans.objectName = target_name;
+            _taskevent.result = learn_ans;
+            _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(std::move(_taskevent));
         }
     } 
     else if (current_job == CamState::FINDING) {
+
+        //send message start
+        _taskdescribe.Name = target_name;
+        _taskdescribe.TaskType = "Detecte";
+        _taskevent.taskId = task_id++;
+        _taskevent.status = TaskStatus::STARTED;
+        _taskevent.result = bg;
+        _taskevent.timestamp = std::chrono::steady_clock::now();
+        _taskevent.taskType = _taskdescribe;
+        _taskMonitor->postEvent(_taskevent);
+
+        // task
         objs = _detector.detect(target_img);
         if(objs.size() == 0){
-            std::cout << "[Error][CameraHandle] No Background! " << std::endl;
+            _taskdescribe.Name = "NoBackground";
+            _taskevent.taskType = _taskdescribe;
+            _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(std::move(_taskevent));
+            // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
             return;
         }
+        
         match_idx = _feat_mgr.match_object(target_name, objs, 0.2f);
 
 
         if (match_idx != -1) {
-            std::cout << "[Core 2] Found " << target_name << " at index " << match_idx << std::endl;
+            // std::cout << "[Core 2] Found " << target_name << " at index " << match_idx << std::endl;
             cv::Rect _box = objs[match_idx].box ;
-            std::cout << "Bounding Box: x=" << _box.x + _box.width/2 << ", y=" << _box.y + _box.height/2 << std::endl;
+
+            // send message
+            detect_ans.isdetecte = true;
+            detect_ans.objectName = target_name;
+            detect_ans.position_x = _box.x + _box.width/2;
+            detect_ans.position_y = _box.y + _box.height/2;
+            _taskevent.result = detect_ans;
+            _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(std::move(_taskevent));
+            // end
+
+            // std::cout << "Bounding Box: x=" << _box.x + _box.width/2 << ", y=" << _box.y + _box.height/2 << std::endl;
 
         } else {
-            std::cout << "[Core 2] " << target_name << " not found." << std::endl;
+            // send message
+            detect_ans.isdetecte = false;
+            detect_ans.objectName = target_name;
+            detect_ans.position_x = -1;
+            detect_ans.position_y = -1;
+            _taskevent.result = detect_ans;
+            _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(std::move(_taskevent));
+            // end
+            // std::cout << "[Core 2] " << target_name << " not found." << std::endl;
         }
     }
 

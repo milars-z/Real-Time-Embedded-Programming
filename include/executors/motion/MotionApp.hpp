@@ -3,6 +3,7 @@
 #include "Executor.hpp"
 #include "BugCode.hpp"
 #include "Config.hpp"
+#include "TaskMonitor.hpp"
 
 #include <string>
 #include <memory>
@@ -38,11 +39,12 @@ enum class LearningCode{
 class MotionExecutor : public BaseExecutor<std::string> {
 private:
     std::unique_ptr<MotionManager> manager;
+    std::shared_ptr<TaskMonitor> _taskMonitor;
 
     std::atomic<ARMMODE> armMode = ARMMODE::IDLE;
 
 public:
-    MotionExecutor();
+    MotionExecutor(std::shared_ptr<TaskMonitor> taskMonitor);
     ~MotionExecutor(); 
     
     void pinThread(int num);
