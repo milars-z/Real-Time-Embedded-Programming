@@ -189,19 +189,19 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
             std::string motion_cmd = "LEARNMOTION:" + res.currentValue;
             isLearningMode = true;
             motion->pushTask(motion_cmd);
-            speaker->pushTask("learn motion " + res.currentValue);
+            // speaker->pushTask("learn motion " + res.currentValue);
             return true;
         }
         case IntentType::LEARN_OBJ: {
             std::string obj_cmd = "LEARNOBJ:" + res.currentValue;
             camera->pushTask(obj_cmd);
-            speaker->pushTask("learn object " + res.currentValue);
+            // speaker->pushTask("learn object " + res.currentValue);
             return true;
         }
         case IntentType::FIND_OBJ: {
             std::string obj_cmd = "FINDOBJ:" + res.currentValue;
             camera->pushTask(obj_cmd);
-            speaker->pushTask("find object " + res.currentValue);
+            // speaker->pushTask("find object " + res.currentValue);
             return true;
         }
         case IntentType::BYE:
@@ -235,7 +235,7 @@ bool RobotBrain::extractIntent(const std::string& text) {
         // find apple
         if (tokens[i] == "find" && i + 1 < tokens.size()) {
             camera->pushTask("FINDOBJ:" + tokens[i + 1]);
-            speaker->pushTask("find " + tokens[i + 1]);
+            // speaker->pushTask("find " + tokens[i + 1]);
             return true;
         }
 
@@ -252,7 +252,7 @@ bool RobotBrain::extractIntent(const std::string& text) {
         if (tokens[i] == "learn" && i + 2 < tokens.size() && tokens[i + 1] == "motion") {
             isLearningMode = true;
             motion->pushTask("LEARNMOTION:" + tokens[i + 2]);
-            speaker->pushTask("learn motion " + tokens[i + 2]);
+            // speaker->pushTask("learn motion " + tokens[i + 2]);
             return true;
         }
 
@@ -260,7 +260,7 @@ bool RobotBrain::extractIntent(const std::string& text) {
         // this is apple
         if (tokens[i] == "this" && i + 2 < tokens.size() && tokens[i + 1] == "is") {
             camera->pushTask("LEARNOBJ:" + tokens[i + 2]);
-            speaker->pushTask("learn object " + tokens[i + 2]);
+            // speaker->pushTask("learn object " + tokens[i + 2]);
             return true;
         }
 
@@ -293,15 +293,15 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         return true;
     }else if (type == "VISION_LEARN") {
         camera->pushTask("LEARNOBJ:" + data);
-        speaker->pushTask("learn object " + data);
+        // speaker->pushTask("learn object " + data);
         return true;
     }else if (type == "VISION_DETECT") {
         camera->pushTask("FINDOBJ:" + data);
-        speaker->pushTask("find object " + data);
+        // speaker->pushTask("find object " + data);
         return true;
     }else if (type == "VISION_UPDATE") {
         camera->pushTask("UPDATEBG");
-        speaker->pushTask("update vision");
+        // speaker->pushTask("update vision");
         return true;
     }else if (type == "DO_MOTION") {
         motion->pushTask("DOMOTION:" + data);
