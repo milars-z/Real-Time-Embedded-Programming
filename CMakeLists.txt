@@ -42,6 +42,9 @@ add_executable(main
     "${CMAKE_CURRENT_SOURCE_DIR}/src/producers/microphone/MicrophoneApp.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/producers/ui/ScreenApp.cpp"
 
+    #supervisor
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/supervisor/TaskSupervisor.cpp"
+
     # ui 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/Screen_ui.cpp"
 
@@ -108,6 +111,7 @@ target_include_directories(main PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/producers/ui"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/ui"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/utils"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/supervisor"
     "${SHERPA_HOME}/include"
     "${ORT_ROOT}/include" 
 )
