@@ -133,6 +133,13 @@ void ScreenUI::showMotionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("RESET");
     }, LV_EVENT_CLICKED, this);
 
+    lv_obj_t* btn_stop = lv_button_create(main_screen);
+    lv_obj_align(btn_stop, LV_ALIGN_TOP_RIGHT, -10, 190);
+    lv_label_set_text(lv_label_create(btn_stop), "Stop");
+    lv_obj_add_event_cb(btn_stop, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("STOP");
+    }, LV_EVENT_CLICKED, this);
+
     lv_screen_load(main_screen);
 
     
@@ -261,7 +268,7 @@ void ScreenUI::createKeyboard(std::string signal_type) {
     // 创建容器
     lv_obj_t* cont = lv_obj_create(mask);
     lv_obj_set_size(cont, 600, 80);
-    lv_obj_align(cont, LV_ALIGN_TOP_MID, 0, 100);  // 修改了位置
+    lv_obj_align(cont, LV_ALIGN_TOP_MID, 0, 50);  // 修改了位置
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW); 
     lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
@@ -282,6 +289,7 @@ void ScreenUI::createKeyboard(std::string signal_type) {
     // 创建键盘
     kb_obj = lv_keyboard_create(mask);
     lv_obj_set_size(kb_obj, 800, 240); // 占据下半屏
+    lv_obj_align(kb_obj, LV_ALIGN_BOTTOM_MID, 0, -30);
     lv_keyboard_set_textarea(kb_obj, ta_obj);
 
 
