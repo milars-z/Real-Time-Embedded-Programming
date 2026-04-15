@@ -52,7 +52,7 @@ bool RobotSystem::init() {
     // 语音输入
     voiceIn = std::make_unique<VoiceProducer>(mic_path, [this](std::string text) {
         if(brain) brain->handleIncomingText(text);
-    });
+    }, globalMonitor);
 
     // 屏幕输入
     screenIn = std::make_unique<ScreenProducer>(camera, [this](std::string t, std::string d){

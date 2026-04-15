@@ -4,6 +4,9 @@
 #include <memory>
 #include <functional>
 #include <vector>
+#include <atomic>
+
+#include "TaskMonitor.hpp"
 
 struct VoskModel;
 struct VoskRecognizer;
@@ -15,14 +18,20 @@ using TextCallback = std::function<void(std::string)>;
 class VoiceProducer {
 private:
     std::unique_ptr<UsbMicrophone> mic;
+
+    std::shared_ptr<TaskMonitor> _taskMonitor;
     
     VoskModel* model = nullptr;          
     VoskRecognizer* recognizer = nullptr; 
 
     TextCallback onTextReady;
 
+    std::atomic<int> task_id = 4000;
+    
+    EmptyResult bg;
+
 public:
-    VoiceProducer(const std::string& path, TextCallback callback);
+    VoiceProducer(const std::string& path, TextCallback callback, std::shared_ptr<TaskMonitor> taskMonitor);
     ~VoiceProducer();
 
     void start();
