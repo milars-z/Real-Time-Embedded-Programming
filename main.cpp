@@ -12,6 +12,8 @@
 #include <csignal>
 #include <atomic>
 
+#define TESTMODE
+
 std::atomic<bool> _exit_signal = false;
 
 void handleSigint(int) {

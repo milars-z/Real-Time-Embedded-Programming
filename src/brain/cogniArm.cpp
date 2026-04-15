@@ -46,7 +46,7 @@ bool RobotSystem::init() {
     camera  = std::make_shared<CameraExecutor>(globalMonitor);
 
     // 初始化brain逻辑层
-    brain = std::make_unique<RobotBrain>(speaker, motion, camera);
+    brain = std::make_unique<RobotBrain>(speaker, motion, camera, globalMonitor);
 
     // 初始化输入层，绑定输入回调到 brain
     // 语音输入

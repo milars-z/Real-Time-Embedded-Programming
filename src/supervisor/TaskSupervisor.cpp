@@ -57,7 +57,7 @@ void TaskSupervisor::Initfile(){
 
         _logFile.seekp(0, std::ios::end);
         if (_logFile.tellp() == 0) {
-            _logFile << "TaskID,Module,Type,TargetName,Duration(ms)\n";
+            _logFile << "TaskID,Module,Type,TargetName,Duration(ms),issuccessful\n";
         }
 
         std::cout << "[Supervisor] Logging initialized at: " << Fp << std::endl;
@@ -89,7 +89,8 @@ void TaskSupervisor::processLoop(){
                          << event.moduleName << ","
                          << describe.TaskType << ","
                          << describe.Name << ","
-                         << std::fixed << std::setprecision(3) << duration << ",";
+                         << std::fixed << std::setprecision(3) << duration << ","
+                         << event.issuccessful << ",";
 
                 handleTaskResult(event);
                 

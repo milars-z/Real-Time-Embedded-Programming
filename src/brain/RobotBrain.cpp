@@ -13,6 +13,8 @@
 #include <iostream>
 #include <cstdio>
 
+#define TESTMODE
+
 extern std::atomic<bool> _exit_signal; // 退出
 static const std::string _username = "milars";
 static const std::string _robotname = "your robot";
@@ -33,8 +35,9 @@ IntentType RobotBrain::parseIntent(const std::string& intent) {
 
 RobotBrain::RobotBrain(std::shared_ptr<SpeakerExecutor> s, 
                        std::shared_ptr<MotionExecutor> m, 
-                       std::shared_ptr<CameraExecutor> c)
-    : speaker(s), motion(m), camera(c) {
+                       std::shared_ptr<CameraExecutor> c,
+                       std::shared_ptr<TaskMonitor> taskMonitor)
+    : speaker(s), motion(m), camera(c), _taskMonitor(taskMonitor) {
     
     // 初始化 NLU 引擎
     nlu = std::make_unique<NLUEngine>(Config::Path::NLU_MODEL_DIR); 
@@ -58,8 +61,11 @@ RobotBrain::~RobotBrain() = default;
     // DO_MOTION
 
 void RobotBrain::handleIncomingText(const std::string& text) {
-    // 处理来自麦克风的文本信号
+
     if (text.empty()) return;
+
+    TaskEvent _taskevent;
+    _taskevent.moduleName = "Nlu";
     
 
     if (isLearningMode) {
@@ -70,16 +76,50 @@ void RobotBrain::handleIncomingText(const std::string& text) {
         return;
     }
 
-    // 调用 NLU 解析意图
-    // NLU会不会卡住？后面NLU大了之后得单独开个线程，先这样用再说
+#ifdef TESTMODE
+
+    _taskdescribe.Name = text;
+    _taskdescribe.TaskType = "nlu_analyez";
+    _taskevent.status = TaskStatus::STARTED;
+    _taskevent.taskId = task_id++;
+    _taskevent.timestamp = std::chrono::steady_clock::now(); 
+    _taskevent.taskType = _taskdescribe;
+    _taskMonitor->postEvent(_taskevent);
+
+    NluResult nluresult;
+
+#endif 
+
     auto res = nlu->predict(text);
-    // std::cout << "[Brain] 意图识别: " << res.intent << " 参数: " << res.currentValue << std::endl;
+
     if(!nlu_detected(res)){
-        // 意图没有正常处理就用分词去处理整体的text
+
+#ifdef TESTMODE
+        _taskevent.status = TaskStatus::FINISHED;
+        nluresult.isdetecte = false;
+        _taskevent.result = nluresult;
+        _taskevent.issuccessful = false;
+        _taskevent.timestamp = std::chrono::steady_clock::now();
+        _taskMonitor->postEvent(_taskevent);
+#endif
         if(!extractIntent(text)){
             std::cout << "[Brain] 未能识别有效意图:" << text << std::endl;
             speaker->pushTask("sorry, i didn't understand that");
         }
+
+    }else{
+        // 成功检测出正确的值
+#ifdef TESTMODE
+        _taskevent.status = TaskStatus::FINISHED;
+        nluresult.intent = res.intent;
+        nluresult.name = res.currentValue;
+        nluresult.isdetecte = true;
+        _taskevent.result = nluresult;
+        _taskevent.issuccessful = true;
+        _taskevent.timestamp = std::chrono::steady_clock::now();
+        _taskMonitor->postEvent(_taskevent);
+#endif 
+
     }
 }
 

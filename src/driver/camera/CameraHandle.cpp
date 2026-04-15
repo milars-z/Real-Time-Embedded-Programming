@@ -227,6 +227,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 
         // send message finish
         _taskevent.status = TaskStatus::FINISHED;
+        _taskevent.issuccessful = true;
         _taskevent.timestamp = std::chrono::steady_clock::now();
         _taskMonitor->postEvent(std::move(_taskevent));
         
@@ -251,6 +252,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskdescribe.Name = "NoBackground"; // 通过name来判断是否学习失败
             _taskevent.taskType = _taskdescribe;
             _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.issuccessful = false;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
             // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
@@ -270,6 +272,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             learn_ans.objectName = target_name;
             _taskevent.result = learn_ans;
             _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.issuccessful = true;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
             // std::cout << "[Core 2] Learned: " << target_name << std::endl;
@@ -279,6 +282,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             learn_ans.objectName = target_name;
             _taskevent.result = learn_ans;
             _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.issuccessful = false;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
         }
@@ -302,6 +306,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.taskType = _taskdescribe;
             _taskevent.status = TaskStatus::FINISHED;
             _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskevent.issuccessful = false;
             _taskMonitor->postEvent(std::move(_taskevent));
             // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
             return;
@@ -321,6 +326,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             detect_ans.position_y = _box.y + _box.height/2;
             _taskevent.result = detect_ans;
             _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.issuccessful = true;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
             // end
@@ -335,6 +341,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             detect_ans.position_y = -1;
             _taskevent.result = detect_ans;
             _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.issuccessful = false;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
             // end

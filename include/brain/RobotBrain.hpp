@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "NluHandle.hpp"
-
+#include "TaskMonitor.hpp" 
 
 class SpeakerExecutor;
 class MotionExecutor;
@@ -32,6 +32,7 @@ private:
     std::shared_ptr<SpeakerExecutor> speaker;
     std::shared_ptr<MotionExecutor> motion;
     std::shared_ptr<CameraExecutor> camera;
+    std::shared_ptr<TaskMonitor> _taskMonitor;
     std::unique_ptr<NLUEngine> nlu;
     
     std::atomic<bool> isLearningMode = false;
@@ -40,7 +41,8 @@ public:
     
     RobotBrain(std::shared_ptr<SpeakerExecutor> s, 
                std::shared_ptr<MotionExecutor> m, 
-               std::shared_ptr<CameraExecutor> c);
+               std::shared_ptr<CameraExecutor> c,
+               std::shared_ptr<TaskMonitor> taskMonitor);
     
 
     ~RobotBrain();
@@ -69,4 +71,10 @@ private:
     std::string _currentJoint = "left_";
 
     std::string _currentWay = "l";
+
+    std::atomic<int> task_id = 3000;
+
+    TaskDescribe _taskdescribe;
+    
+    EmptyResult bg;
 };
