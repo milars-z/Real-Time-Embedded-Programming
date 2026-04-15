@@ -6,18 +6,14 @@
 #include <sched.h>
 #include <pthread.h>
 
-//espeak need a global pointer to the instance for callback access
-UsbSpeaker* UsbSpeaker::_instance = nullptr;
-
-
-
 //set the callback function for espeak
 //_instance is a pointer to the class
 UsbSpeaker::UsbSpeaker(const std::string& deviceName, 
                        int channels,
-                       int language)
-    : _deviceName(deviceName), _channels(channels) {
-    _instance = this;
+                       int language,
+                       std::shared_ptr<TaskMonitor> taskMonitor)
+: _deviceName(deviceName), _channels(channels), _taskMonitor(std::move(taskMonitor))
+{
 
     // reset the config file
     memset(&_config, 0, sizeof(_config));
@@ -73,6 +69,10 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
     }
 
     _running = false;
+
+    _taskdescribe.Name = "None";
+    _taskdescribe.TaskType = "TTS";
+
 
 }
 
@@ -155,6 +155,21 @@ void UsbSpeaker::playInternal(const std::vector<short>& data) {
 
 //use by main.cpp to play text
 void UsbSpeaker::play(const std::string& text) {
+
+    // 从函数调用开始计算时间
+#ifdef TESTMODE
+    TaskEvent _taskevent;
+    Taskdata testdata;
+    _taskevent.moduleName = "Speaker";
+    _taskevent.taskId = task_id++;
+    _taskevent.status = TaskStatus::STARTED;
+    _taskevent.taskType = _taskdescribe;
+    _taskevent.timestamp = std::chrono::steady_clock::now();
+    _taskMonitor->postEvent(_taskevent);
+    testdata.id = _taskevent.taskId;
+    testdata.speaktext = text;
+    _testdata.push(testdata);
+#endif
     {
     std::lock_guard<std::mutex> lock(_textMutex);
      _textQueue.push(text);
@@ -218,6 +233,20 @@ void UsbSpeaker::playbackLoop() {
             snd_pcm_uframes_t framesWritten = 0;
             short* pData = buffer.data();
 
+#ifdef TESTMODE
+            Taskdata testdata;
+            TaskEvent _taskevent;
+            _testdata.pop(testdata);
+            _taskdescribe.Name = testdata.speaktext;
+            _taskevent.moduleName = "Speaker";
+            _taskevent.taskId = testdata.id;
+            _taskevent.status = TaskStatus::FINISHED;
+            _taskevent.taskType = _taskdescribe;
+            _taskevent.issuccessful = true;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(_taskevent);
+#endif
+
             while (framesWritten < totalFrames && _running) {
                 int rc = snd_pcm_writei(_handle, pData + (framesWritten * _channels), totalFrames - framesWritten);
 
@@ -229,6 +258,8 @@ void UsbSpeaker::playbackLoop() {
                     framesWritten += rc;
                 }
             }
+
+
         }
     }
 }

@@ -211,10 +211,10 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
     // 主逻辑处理,用case好像也没多简单，后续更新想尝试一下映射，后面还能改键位
     switch (type) {
         case IntentType::CHECK_HOST_NAME:
-            speaker->pushTask("hello , you are " + _username);
+            speaker->pushTask("hello you are " + _username);
             return true;
         case IntentType::CHECK_ROT_NAME:
-            speaker->pushTask("hello, i am " + _robotname);
+            speaker->pushTask("hello i am " + _robotname);
             return true;
         case IntentType::GREET:
             speaker->pushTask("hello good morning " + _username);

@@ -12,6 +12,8 @@ find_package(nlohmann_json 3 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(SDL2 REQUIRED)
 
+add_definitions(-DTESTMODE)
+
 # --- Executable ---
 add_executable(main
     "main.cpp"

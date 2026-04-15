@@ -11,7 +11,8 @@ SpeakerExecutor::SpeakerExecutor(const std::string& path,std::shared_ptr<TaskMon
     speaker = std::make_unique<UsbSpeaker>(
         path, // device path
         2,  // hardware settings
-        0   // language setting: 0 for English, 1 for Chinese
+        0,   // language setting: 0 for English, 1 for Chinese
+        _taskMonitor
     );
 
     if (speaker->open()) {

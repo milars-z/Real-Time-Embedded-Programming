@@ -15,12 +15,12 @@
 #include "c-api.h"
 #include "Tools.hpp"
 #include "Config.hpp"
+#include "TaskMonitor.hpp"
 
-
-// struct ModelPaths {
-//     std::string en; 
-//     std::string zh; 
-// };
+struct Taskdata {
+    int id;
+    std::string speaktext;
+};
 
 class UsbSpeaker {
 public:
@@ -28,8 +28,9 @@ public:
     // 'language = 0 for En'
     // 'language = 1 for Zh'
     UsbSpeaker(const std::string& deviceName, 
-               int channels = 1,
-               int language = 0);
+               int channels,
+               int language,
+               std::shared_ptr<TaskMonitor> taskMonitor);
     ~UsbSpeaker();
 
     bool open();
@@ -74,11 +75,21 @@ private:
 
     std::mutex _queueMutex;
     std::mutex _textMutex;
-    // STATIC INSTANCE for callback access
-    static UsbSpeaker* _instance;
 
     std::condition_variable _textCV;
     std::condition_variable _audioCV;
+
+    std::shared_ptr<TaskMonitor> _taskMonitor;
+
+    // 任务Task
+    std::atomic<int> task_id = 2000;
+
+    TaskDescribe _taskdescribe;
+
+    EmptyResult bg;
+
+    // 多一个队列来维护id和文本用来处理跨函数记录
+    ThreadSafeQueue<Taskdata> _testdata;             
 };
 
 #endif

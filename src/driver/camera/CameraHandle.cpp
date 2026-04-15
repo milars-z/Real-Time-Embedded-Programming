@@ -189,6 +189,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     last_found_index = -1;
     }
 
+#ifndef TESTMODE
     TaskEvent _taskevent;
     _taskevent.moduleName = "Camera";
 
@@ -204,13 +205,14 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     learn_ans.position_x = -1;
     learn_ans.position_y = -1;
 
-
+#endif
     // 延迟计算，记录处理时间
     auto start = std::chrono::high_resolution_clock::now();
     
     
     if (current_job == CamState::UPDATING_BG) {
 
+#ifndef TESTMODE
         // send message start
         _taskdescribe.Name = "None";
         _taskdescribe.TaskType = "Update";
@@ -221,19 +223,22 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         _taskevent.taskType = _taskdescribe;
         
         _taskMonitor->postEvent(_taskevent);
-
+#endif
         // task
         _detector.update_background(target_img);
 
+#ifndef TESTMODE
         // send message finish
         _taskevent.status = TaskStatus::FINISHED;
         _taskevent.issuccessful = true;
         _taskevent.timestamp = std::chrono::steady_clock::now();
         _taskMonitor->postEvent(std::move(_taskevent));
+#endif
         
     } 
     else if (current_job == CamState::LEARNING) {
 
+#ifndef TESTMODE
         // send message start
         _taskdescribe.Name = target_name;
         _taskdescribe.TaskType = "Learn";
@@ -244,17 +249,18 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         _taskevent.taskType = _taskdescribe;
         _taskMonitor->postEvent(_taskevent);
 
-
+#endif
         // task
         objs = _detector.detect(target_img);
         if(objs.size() == 0){
-
+#ifndef TESTMODE
             _taskdescribe.Name = "NoBackground"; // 通过name来判断是否学习失败
             _taskevent.taskType = _taskdescribe;
             _taskevent.status = TaskStatus::FINISHED;
             _taskevent.issuccessful = false;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
+#endif
             // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
             return;
         }
@@ -266,7 +272,8 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
                 if(objs[i].score > max_area) { max_area = objs[i].score; max_idx = i; }
             }
             _feat_mgr.save_feature(objs[max_idx], target_name);
-            
+
+#ifndef TESTMODE
             // send message end
             learn_ans.isdetecte = true;
             learn_ans.objectName = target_name;
@@ -275,8 +282,10 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.issuccessful = true;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
+#endif
             // std::cout << "[Core 2] Learned: " << target_name << std::endl;
         }else{
+#ifndef TESTMODE
             // send message end
             learn_ans.isdetecte = false;
             learn_ans.objectName = target_name;
@@ -285,10 +294,11 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.issuccessful = false;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
+#endif
         }
     } 
     else if (current_job == CamState::FINDING) {
-
+#ifndef TESTMODE        
         //send message start
         _taskdescribe.Name = target_name;
         _taskdescribe.TaskType = "Detecte";
@@ -298,16 +308,18 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         _taskevent.timestamp = std::chrono::steady_clock::now();
         _taskevent.taskType = _taskdescribe;
         _taskMonitor->postEvent(_taskevent);
-
+#endif
         // task
         objs = _detector.detect(target_img);
         if(objs.size() == 0){
+#ifndef TESTMODE
             _taskdescribe.Name = "NoBackground";
             _taskevent.taskType = _taskdescribe;
             _taskevent.status = TaskStatus::FINISHED;
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskevent.issuccessful = false;
             _taskMonitor->postEvent(std::move(_taskevent));
+#endif
             // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
             return;
         }
@@ -318,7 +330,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         if (match_idx != -1) {
             // std::cout << "[Core 2] Found " << target_name << " at index " << match_idx << std::endl;
             cv::Rect _box = objs[match_idx].box ;
-
+#ifndef TESTMODE
             // send message
             detect_ans.isdetecte = true;
             detect_ans.objectName = target_name;
@@ -330,10 +342,10 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
             // end
-
-            // std::cout << "Bounding Box: x=" << _box.x + _box.width/2 << ", y=" << _box.y + _box.height/2 << std::endl;
+#endif
 
         } else {
+#ifndef TESTMODE
             // send message
             detect_ans.isdetecte = false;
             detect_ans.objectName = target_name;
@@ -345,7 +357,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
             // end
-            // std::cout << "[Core 2] " << target_name << " not found." << std::endl;
+#endif
         }
     }
 
