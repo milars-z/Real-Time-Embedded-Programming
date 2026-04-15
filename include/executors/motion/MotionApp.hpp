@@ -79,4 +79,8 @@ private:
 
     LearningCode learning_state = LearningCode::LearningInit;
 
+    std::atomic<int> task_id = 0;
+    
+    EmptyResult bg;
+
 };

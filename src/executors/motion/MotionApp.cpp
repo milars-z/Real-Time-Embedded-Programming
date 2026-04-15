@@ -62,6 +62,21 @@ void MotionExecutor::onExecute(const std::string& task) {
         // 简易动作
         if (cmd.command == "DO_MOTION"){
             manager->excuteTask(cmd.obj);
+
+#ifdef TESTMODE
+                TaskEvent _taskevent;
+                TaskDescribe _taskdescribe;
+                _taskevent.moduleName = "Screen-Motion";
+                _taskevent.taskId = task_id++;
+                _taskdescribe.Name = cmd.obj;
+                _taskdescribe.TaskType = cmd.command;
+                _taskevent.taskType = _taskdescribe;
+                _taskevent.status = TaskStatus::FINISHED;
+                _taskevent.result = bg;
+                _taskevent.timestamp = std::chrono::steady_clock::now();
+                _taskMonitor->postEvent(_taskevent);
+#endif
+
         }
         // motion set
         else if(cmd.command == "MOTIONSET"){

@@ -57,7 +57,7 @@ bool RobotSystem::init() {
     // 屏幕输入
     screenIn = std::make_unique<ScreenProducer>(camera, [this](std::string t, std::string d){
         if(brain) brain->handleUISignal(t, d);
-    });
+    }, globalMonitor);
 
     // supervisor
     supervisor = std::make_unique<TaskSupervisor>(globalMonitor,motion,speaker);

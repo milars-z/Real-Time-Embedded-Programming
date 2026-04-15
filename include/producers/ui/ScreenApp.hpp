@@ -4,6 +4,9 @@
 #include <string>
 #include <functional>
 #include <cstdint>
+#include <atomic>
+
+#include "TaskMonitor.hpp"
 
 // 前置声明
 class ScreenUI;
@@ -16,13 +19,21 @@ class ScreenProducer {
 private:
     std::unique_ptr<ScreenUI> ui;
     std::shared_ptr<CameraExecutor> camera;
+    std::shared_ptr<TaskMonitor> _taskMonitor;
     
     UISignalCallback onSignalReady;
+
+    // 任务Task
+
+    std::atomic<int> task_id = 5000;
+    
+    EmptyResult bg;
 
 public:
 
     ScreenProducer(std::shared_ptr<CameraExecutor> cam, 
-                   UISignalCallback callback);
+                   UISignalCallback callback,
+                   std::shared_ptr<TaskMonitor> taskMonitor);
     
     ~ScreenProducer();
 
@@ -31,4 +42,7 @@ public:
     
     // 心跳函数：由主循环调用，返回下次唤醒间隔（毫秒）
     uint32_t update();
+
+    
+
 };

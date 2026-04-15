@@ -5,8 +5,9 @@
 #include <iostream>
 
 ScreenProducer::ScreenProducer(std::shared_ptr<CameraExecutor> cam, 
-                               UISignalCallback callback) 
-    : camera(cam), onSignalReady(callback) {
+                               UISignalCallback callback,
+                               std::shared_ptr<TaskMonitor> taskMonitor) 
+    : camera(cam), onSignalReady(callback), _taskMonitor(taskMonitor) {
 }
 
 ScreenProducer::~ScreenProducer() {
@@ -25,6 +26,22 @@ void ScreenProducer::start() {
     // 回调函数设计，当检测到按键触发时将信息发送到Brain处理
     ui = std::make_unique<ScreenUI>([this](std::string type, std::string data) {
         if (onSignalReady) {
+#ifdef TESTMODE
+            // 只记录单个motion动作的响应时间
+            if (type == "DO_MOTION"){
+                TaskEvent _taskevent;
+                TaskDescribe _taskdescribe;
+                _taskevent.moduleName = "Screen-Motion";
+                _taskevent.taskId = task_id++;
+                _taskdescribe.Name = data;
+                _taskdescribe.TaskType = type;
+                _taskevent.taskType = _taskdescribe;
+                _taskevent.status = TaskStatus::STARTED;
+                _taskevent.result = bg;
+                _taskevent.timestamp = std::chrono::steady_clock::now();
+                _taskMonitor->postEvent(_taskevent);
+            }
+#endif
             onSignalReady(type, data);
         }
     });

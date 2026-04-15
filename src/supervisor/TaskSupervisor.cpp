@@ -75,35 +75,65 @@ void TaskSupervisor::processLoop(){
     while (_monitor->waitEvent(event)) {
         if (!_running) break;
 
-        if (event.status == TaskStatus::STARTED) {
-            _pendingTasks[event.taskId] = event.timestamp;
-        }else if (event.status == TaskStatus::FINISHED) {
-            auto it = _pendingTasks.find(event.taskId);
-            const auto& describe = std::get<TaskDescribe>(event.taskType);
-            if (it != _pendingTasks.end()) {
-                // 计算耗时
-                auto duration = std::chrono::duration<double, std::milli>(event.timestamp - it->second).count();
-                
-                // 写入基本信息
-                _logFile << event.taskId << "," 
-                         << event.moduleName << ","
-                         << describe.TaskType << ","
-                         << describe.Name << ","
-                         << std::fixed << std::setprecision(3) << duration << ","
-                         << event.issuccessful << ",";
+        if (event.moduleName != "Screen-Motion"){
 
-                handleTaskResult(event);
-                
-                _logFile << std::endl;
-                _logFile.flush(); 
+            if (event.status == TaskStatus::STARTED) {
+                _pendingTasks[event.taskId] = event.timestamp;
+            }else if (event.status == TaskStatus::FINISHED) {
+                auto it = _pendingTasks.find(event.taskId);
+                const auto& describe = std::get<TaskDescribe>(event.taskType);
+                if (it != _pendingTasks.end()) {
+                    // 计算耗时
+                    auto duration = std::chrono::duration<double, std::milli>(event.timestamp - it->second).count();
+                    
+                    // 写入基本信息
+                    _logFile << event.taskId << "," 
+                            << event.moduleName << ","
+                            << describe.TaskType << ","
+                            << describe.Name << ","
+                            << std::fixed << std::setprecision(3) << duration << ","
+                            << event.issuccessful << ",";
 
-                _pendingTasks.erase(it);
-            }else{
-                // 来到这里说明出现了异常，即有结束但是没有开始
-                std::cerr << "[TaskSupervisor]file system error,ID : " << event.taskId << "Module : " << event.moduleName << std::endl;
+                    handleTaskResult(event);
+                    
+                    _logFile << std::endl;
+                    _logFile.flush(); 
+
+                    _pendingTasks.erase(it);
+                }else{
+                    // 来到这里说明出现了异常，即有结束但是没有开始
+                    std::cerr << "[TaskSupervisor]file system error,ID : " << event.taskId << "Module : " << event.moduleName << std::endl;
+                }
+
             }
 
-        }
+
+            // 前期没规划好，无法给异步的任务注入TASKID，只能依赖异步任务存在先进先出匹配
+            }else if(event.moduleName == "Screen-Motion"){
+                if (event.status == TaskStatus::STARTED) {
+                    _pendingTasks[event.taskId] = event.timestamp;
+                }else if (event.status == TaskStatus::FINISHED) {
+                    auto it = _pendingTasks.find(event.taskId + 5000);
+                    const auto& describe = std::get<TaskDescribe>(event.taskType);
+                    if (it != _pendingTasks.end()) {
+                        auto duration = std::chrono::duration<double, std::milli>(event.timestamp - it->second).count();
+                        // 写入基本信息
+                        _logFile << event.taskId << "," 
+                                << event.moduleName << ","
+                                << describe.TaskType << ","
+                                << describe.Name << ","
+                                << std::fixed << std::setprecision(3) << duration << ","
+                                << event.issuccessful << ",";
+                        handleTaskResult(event);
+                        _logFile << std::endl;
+                        _logFile.flush(); 
+
+                        _pendingTasks.erase(it);
+                    }else{
+                        std::cerr << "[TaskSupervisor]存在异步消息 : " << event.taskId << "Module : " << event.moduleName << std::endl;
+                    }
+                }
+            }   
     }
 }
 
@@ -172,25 +202,3 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
         // noway do nothing
     }
 }
-
-
-
-// class TaskSupervisor {
-// public:
-
-//     TaskSupervisor( std::shared_ptr<TaskMonitor> monitor,
-//                     std::shared_ptr<MotionExecutor> motion,
-//                     std::shared_ptr<SpeakerExecutor> speaker); 
-//     ~TaskSupervisor(); 
-
-// private:
-//     void processLoop();
-
-//     void handleTaskResult(const TaskEvent& e, std::ofstream& log);
-
-//     void MotionT(int x, int y);
-
-//     void SpeakerT(std::string Command);
-
-
-// };
