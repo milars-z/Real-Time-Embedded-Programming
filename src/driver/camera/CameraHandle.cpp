@@ -189,7 +189,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     last_found_index = -1;
     }
 
-#ifndef TESTMODE
+#ifdef TESTMODE
     TaskEvent _taskevent;
     _taskevent.moduleName = "Camera";
 
@@ -212,7 +212,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     
     if (current_job == CamState::UPDATING_BG) {
 
-#ifndef TESTMODE
+#ifdef TESTMODE
         // send message start
         _taskdescribe.Name = "None";
         _taskdescribe.TaskType = "Update";
@@ -227,7 +227,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         // task
         _detector.update_background(target_img);
 
-#ifndef TESTMODE
+#ifdef TESTMODE
         // send message finish
         _taskevent.status = TaskStatus::FINISHED;
         _taskevent.issuccessful = true;
@@ -238,7 +238,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     } 
     else if (current_job == CamState::LEARNING) {
 
-#ifndef TESTMODE
+#ifdef TESTMODE
         // send message start
         _taskdescribe.Name = target_name;
         _taskdescribe.TaskType = "Learn";
@@ -253,7 +253,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         // task
         objs = _detector.detect(target_img);
         if(objs.size() == 0){
-#ifndef TESTMODE
+#ifdef TESTMODE
             _taskdescribe.Name = "NoBackground"; // 通过name来判断是否学习失败
             _taskevent.taskType = _taskdescribe;
             _taskevent.status = TaskStatus::FINISHED;
@@ -273,7 +273,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             }
             _feat_mgr.save_feature(objs[max_idx], target_name);
 
-#ifndef TESTMODE
+#ifdef TESTMODE
             // send message end
             learn_ans.isdetecte = true;
             learn_ans.objectName = target_name;
@@ -285,7 +285,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 #endif
             // std::cout << "[Core 2] Learned: " << target_name << std::endl;
         }else{
-#ifndef TESTMODE
+#ifdef TESTMODE
             // send message end
             learn_ans.isdetecte = false;
             learn_ans.objectName = target_name;
@@ -298,7 +298,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         }
     } 
     else if (current_job == CamState::FINDING) {
-#ifndef TESTMODE        
+#ifdef TESTMODE        
         //send message start
         _taskdescribe.Name = target_name;
         _taskdescribe.TaskType = "Detecte";
@@ -312,7 +312,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         // task
         objs = _detector.detect(target_img);
         if(objs.size() == 0){
-#ifndef TESTMODE
+#ifdef TESTMODE
             _taskdescribe.Name = "NoBackground";
             _taskevent.taskType = _taskdescribe;
             _taskevent.status = TaskStatus::FINISHED;
@@ -330,7 +330,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         if (match_idx != -1) {
             // std::cout << "[Core 2] Found " << target_name << " at index " << match_idx << std::endl;
             cv::Rect _box = objs[match_idx].box ;
-#ifndef TESTMODE
+#ifdef TESTMODE
             // send message
             detect_ans.isdetecte = true;
             detect_ans.objectName = target_name;
@@ -345,7 +345,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 #endif
 
         } else {
-#ifndef TESTMODE
+#ifdef TESTMODE
             // send message
             detect_ans.isdetecte = false;
             detect_ans.objectName = target_name;
