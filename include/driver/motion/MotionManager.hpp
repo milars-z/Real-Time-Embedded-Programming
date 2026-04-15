@@ -157,7 +157,7 @@ private:
 
     std::atomic<bool> _isRunning;
     // 紧急停止
-    std::atomic<bool> _stopRequested;
+    std::atomic<bool> _stopRequested = false;
 
     Joint stringToJoint(const std::string& name);
     MoveMethod stringToMethod(const std::string& method);

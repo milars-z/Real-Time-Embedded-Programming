@@ -24,14 +24,7 @@ RobotArmController::RobotArmController(const std::string& configFile)
 
     std::cout << "wait for init complete" << std::endl;
 
-    for (auto& pair : servos) {
-        if(!setAngle(pair.first, pair.second.initAngle)) {
-            std::cerr << "failed to set initial angle for servo: " << pair.first << std::endl;
-            lastStatus = SET_FAIL;
-            return;
-        }
-        usleep(100000);
-    }
+    IninServo();
 
     std::cout << "[Init] RobotArmController init successfully" << std::endl;
 }
@@ -144,55 +137,14 @@ bool RobotArmController::loadConfig(const string& path) {
         return true;
     }
 
+void RobotArmController::IninServo(){
 
-RobotArmController* arm = nullptr;
-bool running = true;
-
-void onKeyPress(int key) {
-    if (!arm) return;
-
-    switch(key) {
-        case 'a': case 'A': arm->setAngle("Base", arm->getAngle("Base") - 2.0f); break;
-        case 'd': case 'D': arm->setAngle("Base", arm->getAngle("Base") + 2.0f); break;
-        
-        case 'w': case 'W': arm->setAngle("Shoulder", arm->getAngle("Shoulder") + 2.0f); break;
-        case 's': case 'S': arm->setAngle("Shoulder", arm->getAngle("Shoulder") - 2.0f); break;
-        
-        case 'z': case 'Z': arm->setAngle("Elbow", arm->getAngle("Elbow") - 2.0f); break;
-        case 'x': case 'X': arm->setAngle("Elbow", arm->getAngle("Elbow") + 2.0f); break;
-        
-        case 'r': case 'R': arm->detachAll(); cout << "depatch all servos" << endl; break;
-        case 'q': case 'Q': running = false; break;
+        for (auto& pair : servos) {
+        if(!setAngle(pair.first, pair.second.initAngle)) {
+            std::cerr << "failed to set initial angle for servo: " << pair.first << std::endl;
+            lastStatus = SET_FAIL;
+            return;
+        }
+        usleep(100000);
     }
-
-    
-    printf("\r[now] base:%.1f | Shoulder:%.1f | Elbow:%.1f    ", 
-           arm->getAngle("Base"), arm->getAngle("Shoulder"), arm->getAngle("Elbow"));
-    fflush(stdout);
 }
-
-// int main() {
-
-//     cout << "\nuse ws;ad;zx to control the robot arm" << endl;
-//     cout << "\nuse r to detach all servos, q to quit" << endl;
-
-//     arm = new RobotArmController("../servo_config.txt");
-//     if (arm->lastStatus != SUCCESS) {
-//         cerr << "failed to initialize robot arm controller, error code: " << arm->lastStatus << endl;
-//         return -1;
-//     }
-
-//     KeypressPublisherStdFunc publisher;
-//     publisher.registerEventCallback(onKeyPress);
-//     publisher.start();
-
-//     while (running) {
-//         this_thread::sleep_for(chrono::milliseconds(100));
-//     }
-
-//     arm->detachAll();
-//     publisher.stop();
-//     delete arm;
-//     cout << "\nsystem shutdown complete." << endl;
-//     return 0;
-// }

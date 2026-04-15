@@ -13,8 +13,6 @@
 #include <iostream>
 #include <cstdio>
 
-#define TESTMODE
-
 extern std::atomic<bool> _exit_signal; // 退出
 static const std::string _username = "milars";
 static const std::string _robotname = "your robot";

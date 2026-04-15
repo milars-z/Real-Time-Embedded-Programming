@@ -47,6 +47,9 @@ public:
     void detachAll();
     float getAngle(const std::string& name);
 
+    // 外部调用，根据config重置角度
+    void IninServo();
+
 private:
 
     int _fd;

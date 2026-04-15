@@ -204,10 +204,6 @@ MotionCommand MotionExecutor::analyzecommand(const std::string& text){
     return cmd;
 }
 
-bool MotionExecutor::checklearningstate(){
-    return _islearningfinish;
-}
-
 // 当学习模式意外退出返回true
 bool MotionExecutor::check_acclearning_stop(){
     if(learning_state == LearningCode::LearningQueueError ||

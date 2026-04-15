@@ -73,7 +73,7 @@ private:
     MotionCommand analyzecommand(const std::string& task);
     void HandleState(BugCode_M msg);
 
-    std::atomic<bool> _islearningfinish = true;
+    std::atomic<bool> _islearningfinish = false;
 
     std::string motion_name = "None";
 

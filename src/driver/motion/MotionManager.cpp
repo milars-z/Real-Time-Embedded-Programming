@@ -16,7 +16,7 @@ MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
     std::cerr << "[Init] MotionManager init successfully"<< std::endl;
     _ready = true;
     _isRunning = true;
-    _stopRequested = false;
+    _stopRequested = true;
 
 };
 
@@ -24,6 +24,7 @@ MotionManager::~MotionManager() = default;
 
 void MotionManager::start_thread(int core){
 
+    _stopRequested = false;
      _motionworker = std::thread(&MotionManager::motionworker, this);
     pinThreadToCore(_motionworker,"motion", core);
     
@@ -109,7 +110,6 @@ void MotionManager::move_joint_to_angle(Joint joint,float targetAngle,int motion
 
     // if (angleChange <= 0.0f) return state;
     while(std::abs(targetAngle - nowAngle)>0.2f){
-        // if (_stopRequested) break;
 
         if (nowAngle - targetAngle < -angleChange){
             nowAngle = nowAngle + angleChange;
@@ -151,7 +151,6 @@ void MotionManager::move_joint_with_val(Joint joint,float angleVal,int motionSpe
 
     // if (angleChange <= 0.0f) return state;
     while(std::abs(targetAngle - nowAngle)>0.2f){
-        // if (_stopRequested) break;
 
         if (nowAngle - targetAngle < -angleChange){
             nowAngle = nowAngle + angleChange;
@@ -225,14 +224,11 @@ bool MotionManager::stop_motion(){
     return true;
 };
 
-// motion线程，执行队列中的指令，与Pwm类接轨
-// 其实是大任务分小任务，现已优化
 void MotionManager::motionworker(){
 
     MotionTask cmd;
     while ((_isRunning) && (MotionQueue.pop(cmd))) {
-        // cmd.motionSpeed = 10;
-        executeMotion(cmd);
+            executeMotion(cmd);
     }
 }
 
@@ -264,9 +260,7 @@ MoveMethod MotionManager::stringToMethod(const std::string& method) {
 // 初始化
 void MotionManager::servo_set_init()
 {
-    move_joint_to_angle(Joint::Base, 90.0f, 100);
-    move_joint_to_angle(Joint::Shoulder, 0.0f, 100);
-    move_joint_to_angle(Joint::Elbow, 45.0f, 100);
+    _arm.IninServo();
 }
 
 // string -> MotionTask
