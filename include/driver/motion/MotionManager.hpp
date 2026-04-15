@@ -18,6 +18,7 @@ enum class Joint {
     Base,
     Shoulder,
     Elbow,
+    Hand,
     UNKNOWN,
 };
 
@@ -47,6 +48,12 @@ struct MotionSet {
     std::vector<MotionTask> tasks;
 };
 
+// 设置外部motionset和内置，默认外置
+enum class MotionSetType {
+    Inner,
+    External
+};
+
 // 这个没用了，上版本set集测试用
 // extern const std::unordered_map<std::string, MotionSet> MOTIONSET;
 
@@ -61,8 +68,8 @@ static const std::unordered_map<std::string, MotionTask> motion_map = {
 
     // RIGHT
     // 还没拉电线，正好验证下无效映射会不会出bug
-    // {"right_l", {Joint::Hand,     MoveMethod::REL, -5.0f, 100}},
-    // {"right_r", {Joint::Hand,     MoveMethod::REL,  5.0f, 100}},
+    {"right_l", {Joint::Hand,     MoveMethod::REL, -5.0f, 100}},
+    {"right_r", {Joint::Hand,     MoveMethod::REL,  5.0f, 100}},
     {"right_u", {Joint::Elbow,    MoveMethod::REL,  5.0f, 100}},
     {"right_d", {Joint::Elbow,    MoveMethod::REL, -5.0f, 100}},
 };
@@ -86,7 +93,7 @@ public:
     // 将需要执行的motion加入队列，测试用
     BugCode_M enqueue_motion(const MotionTask& cmd);
 
-    BugCode_M read_motion_set(const std::string& motion_set_name);
+    BugCode_M read_motion_set(const std::string& motion_set_name,MotionSetType type = MotionSetType::External);
 
     // 给外部一个接口刷新motion
     void learn_motion_fresh();
@@ -94,6 +101,7 @@ public:
     // 改成外部函数算了
     std::string JointName(Joint joint);
     const std::string _motion_folder = Config::Motion::MOTION_SET; // 配置文件目录
+    const std::string _inner_motion  = Config::Motion::INNER_MOTION_SET;
 
     void servo_set_init();
 
@@ -116,6 +124,10 @@ public:
     BugCode_M processLearningInput(const std::string& text, const std::string& name);
 
     bool check_error_code();
+
+
+    // 外部调用，抓取物体
+    void get_obj_MANA(int position_x, int position_y);
 
 
 

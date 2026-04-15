@@ -185,7 +185,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             }else if(learn_ans.isdetecte == true){
                 int position_x = learn_ans.position_x;
                 int position_y = learn_ans.position_y;
-                std::cout << "find obj at x : " << position_x << "y : " << position_y << std::endl;
+                _motion->get_obj_APP(position_x,position_y);
             }
         }
 

@@ -67,6 +67,8 @@ public:
     // 意外退出检查
     bool check_acclearning_stop();
 
+    void get_obj_APP(int position_x,int position_y);
+
 
 
 private:    

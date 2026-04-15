@@ -39,6 +39,7 @@ namespace Config {
 
         const std::string MOTION_CONFIG = SRC_ROOT + "/include/common/servo_config.txt";
         const std::string MOTION_SET = SRC_ROOT + "/learning_data/motion/motion_set";
+        const std::string INNER_MOTION_SET = SRC_ROOT + "/learning_data/motion/inner_motion_set";
     }
 
     namespace Test {

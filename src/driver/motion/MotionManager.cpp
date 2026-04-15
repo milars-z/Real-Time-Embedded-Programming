@@ -55,11 +55,17 @@ BugCode_M MotionManager::enqueue_motion(const MotionTask& cmd){
 
 
 
-BugCode_M MotionManager::read_motion_set(const std::string& motion_set_name) {
+BugCode_M MotionManager::read_motion_set(const std::string& motion_set_name, MotionSetType type) {
 
     // 找motion
     BugCode_M state = BugCode_M::Init;
-    std::string filePath = _motion_folder + "/" + motion_set_name + ".json";
+    std::string filePath;
+    if (type == MotionSetType::External){
+        filePath = _motion_folder + "/" + motion_set_name + ".json";
+    }else{
+        filePath = _inner_motion + "/" + motion_set_name + ".json";
+    }
+    
     std::ifstream file(filePath);
     if (!file.is_open()) {
         state = BugCode_M::CannotOpenMotionFile;
@@ -239,6 +245,7 @@ std::string MotionManager::JointName(Joint joint){
     if (joint == Joint::Base) name = "Base";
     else if (joint == Joint::Elbow) name = "Elbow";
     else if (joint == Joint::Shoulder) name = "Shoulder";
+    else if (joint == Joint::Hand) name = "Hand";
 
     return name;
 
@@ -248,6 +255,7 @@ Joint MotionManager::stringToJoint(const std::string& name) {
     if (name == "Base") return Joint::Base;
     if (name == "Elbow") return Joint::Elbow;
     if (name == "Shoulder") return Joint::Shoulder;
+    if (name == "Hand") return Joint::Hand;
     return Joint::Base; // 默认值
 }
 
@@ -322,6 +330,17 @@ void MotionManager::excuteStop(){
 }
 
 
+void MotionManager::get_obj_MANA(int position_x, int position_y){
+
+    if(position_x < 320){
+        read_motion_set("left",MotionSetType::Inner);
+    }else{
+        read_motion_set("right",MotionSetType::Inner);
+    }
+
+}
+
+
 // 写代码就像拆炸弹，别写屎山了迟早重构
 BugCode_M MotionManager::processLearningInput(const std::string& text, const std::string& name){
 
@@ -356,8 +375,8 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
         else if (JiontMotion == "left_d") {task.joint = Joint::Shoulder; task.targetAngle = -5.0f; }
         else if (JiontMotion == "right_u") {task.joint = Joint::Elbow; task.targetAngle = 5.0f; }
         else if (JiontMotion == "right_d") {task.joint = Joint::Elbow; task.targetAngle = -5.0f; }
-        // else if (JiontMotion == "right_r") {task.joint = Joint::Hand; task.targetAngle = 5.0f; }
-        // else if (JiontMotion == "right_l") {task.joint = Joint::Hand; task.targetAngle = -5.0f; }
+        else if (JiontMotion == "right_r") {task.joint = Joint::Hand; task.targetAngle = 5.0f; }
+        else if (JiontMotion == "right_l") {task.joint = Joint::Hand; task.targetAngle = -5.0f; }
 
         state = enqueue_motion(task);
         _tempTasks.push_back(task); 
@@ -381,6 +400,7 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
     if (text.find("base") != std::string::npos ) _currentJoint = Joint::Base;
     else if (text.find("shoulder") != std::string::npos ) _currentJoint = Joint::Shoulder;
     else if (text.find("elbow") != std::string::npos ) _currentJoint = Joint::Elbow;
+    else if (text.find("hand") != std::string::npos ) _currentJoint = Joint::Hand;
 
     // 更新
     float angleStep = 0.0f;
@@ -449,7 +469,7 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
     // 转化为 JSON 格式保存 
     nlohmann::json j;
     j["name"] = motionName;
-    for (const auto& task : rawTasks) {
+    for (const auto& task : mergedTasks) {
         nlohmann::json t;
         t["joint"] = JointName(task.joint); 
         t["method"] = "REL";

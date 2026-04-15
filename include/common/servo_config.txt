@@ -2,3 +2,4 @@
 Base       15       90    45    135
 Shoulder   11       0     0     70
 Elbow      7        45    0     45
+Hand       3        30    30    120     
