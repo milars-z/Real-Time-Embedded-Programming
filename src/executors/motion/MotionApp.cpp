@@ -212,7 +212,8 @@ bool MotionExecutor::checklearningstate(){
 bool MotionExecutor::check_acclearning_stop(){
     if(learning_state == LearningCode::LearningQueueError ||
         learning_state == LearningCode::LearningSaveError ||
-        learning_state == LearningCode::LearninginputError 
+        learning_state == LearningCode::LearninginputError ||
+        _islearningfinish
     ){
         return true;
     }
