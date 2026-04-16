@@ -16,7 +16,7 @@ MotionExecutor::MotionExecutor(std::atomic<int>& system_stete, std::shared_ptr<T
 :_taskMonitor(taskMonitor)
 {
 
-    manager = std::make_unique<MotionManager>(system_stete, Config::Motion::MOTION_CONFIG);
+    manager = std::make_unique<MotionManager>(system_stete, Config::Motion::MOTION_CONFIG, Config::Camera::CAMERA_CONFIG);
     std::cout << "[MotionApp] MotionManager initialized" << std::endl;
 
 }
@@ -224,6 +224,8 @@ MotionCommand MotionExecutor::analyzecommand(const std::string& text){
 }
 
 void MotionExecutor::get_obj_APP(int position_x,int position_y){
+
+    std::cout << position_x  << "......" << position_y << std::endl;
 
     manager->excuteReset();
 

@@ -1,18 +1,18 @@
 # Camera Intrinsic Parameters
-fx=600.0
-fy=600.0
-cx=320.0
-cy=240.0
+fx=500;
+fy=500;
+cx=320;
+cy=240;
 
 # Extrinsic Parameters: Translation (mm)
-tx=100.0
-ty=0.0
-tz=150.0
+tx=10;
+ty=0;
+tz=150;
 
 # Extrinsic Parameters: Rotation (degrees, Roll-Pitch-Yaw)
-roll=0.0
-pitch=15.0
-yaw=0.0
+roll=0;
+pitch=0;
+yaw=0;
 
 # Safety Boundaries (mm)
 max_reach=450.0

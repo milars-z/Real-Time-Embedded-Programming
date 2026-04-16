@@ -1,4 +1,4 @@
-#include "CoordinateTransformer.h"
+#include "CoordinateTransformer.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -51,6 +51,10 @@ bool CoordinateTransformer::loadConfig(const std::string& filepath) {
 }
 
 Point3D CoordinateTransformer::pixelToBase(int u, int v, double depth) const {
+
+    std::cout << "DEBUG: fx=" << fx << ", fy=" << fy << ", depth=" << depth << std::endl;
+
+    
     // Step 1: Pixel to Camera 3D Frame
     Point3D cameraPoint;
     cameraPoint.x = (u - cx) * depth / fx;

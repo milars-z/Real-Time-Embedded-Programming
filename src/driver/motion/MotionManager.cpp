@@ -1,7 +1,10 @@
 #include "MotionManager.hpp"
 #include "SystemCode.hpp"
 
-MotionManager::MotionManager(std::atomic<int>& system_state, const std::string& configFile):_arm(configFile){
+
+MotionManager::MotionManager(std::atomic<int>& system_state, const std::string& configFile, const std::string& camera_config):
+_arm(configFile), _arm_calculator(camera_config)
+{
 
     if (_arm.lastStatus != SUCCESS) {
             std::cerr << "failed to initialize robot arm controller, error code: "
@@ -19,6 +22,8 @@ MotionManager::MotionManager(std::atomic<int>& system_state, const std::string& 
     _ready = true;
     _isRunning = true;
     _stopRequested = true;
+
+
 
 };
 
@@ -334,14 +339,46 @@ void MotionManager::excuteStop(){
 
 void MotionManager::get_obj_MANA(int position_x, int position_y){
 
-    if(position_x < 320){
-        read_motion_set("left",MotionSetType::Inner);
-    }else{
-        read_motion_set("right",MotionSetType::Inner);
-    }
+    Point3D res;
+
+    res = _arm_calculator.pixelToBase(position_x,position_y,325);
+
+    std::cout << res.x << "--" << res.y << "--" << res.z << std::endl;
+
+    generate_motion(res);
 
 }
 
+void MotionManager::generate_motion(Point3D res){
+
+    int x = res.x;
+    int y = res.y;
+
+    // right_one: cat
+    // right_two: dog
+    // right_three: fish
+    // left_one: monkey
+    // left_two: horse
+    // left_three: beef
+
+    if ( x > 0 ){
+        if ( x <50 ){
+            read_motion_set("cat",MotionSetType::Inner);
+        }else if (x < 100 ){
+            read_motion_set("dog",MotionSetType::Inner);
+        }else{
+            read_motion_set("fish",MotionSetType::Inner);
+        }
+    }else{
+        if ( x > -50 ){
+            read_motion_set("monkey",MotionSetType::Inner);
+        }else if( x > -100 ){
+            read_motion_set("horse",MotionSetType::Inner);
+        }else{
+            read_motion_set("beef",MotionSetType::Inner);
+        }
+    }    
+}
 
 // 写代码就像拆炸弹，别写屎山了迟早重构
 BugCode_M MotionManager::processLearningInput(const std::string& text, const std::string& name){

@@ -1,0 +1,11 @@
+{
+    "name": "left",
+    "tasks": [
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -40.0
+        }
+    ]
+}

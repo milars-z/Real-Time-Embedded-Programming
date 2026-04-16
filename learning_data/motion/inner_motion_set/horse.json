@@ -1,0 +1,47 @@
+{
+    "name": "horse",
+    "tasks": [
+        {
+            "joint": "Base",
+            "method": "REL",
+            "speed": 50,
+            "val": -30.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 15.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -15.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 20.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -15.0
+        },
+        {
+            "joint": "Shoulder",
+            "method": "REL",
+            "speed": 50,
+            "val": 25.0
+        },
+        {
+            "joint": "Elbow",
+            "method": "REL",
+            "speed": 50,
+            "val": -15.0
+        }
+    ]
+}

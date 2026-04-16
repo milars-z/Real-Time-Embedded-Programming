@@ -6,6 +6,8 @@
 #include "BugCode.hpp"
 #include "Config.hpp"
 
+#include "CoordinateTransformer.hpp"
+
 #include <thread>
 #include <atomic>
 #include <set>
@@ -84,7 +86,7 @@ struct ServoTask{
 class MotionManager{
 public:
 
-    MotionManager(std::atomic<int>& system_state, const std::string& configFile);
+    MotionManager(std::atomic<int>& system_state, const std::string& configFile, const std::string& camera_config);
     ~MotionManager();
 
     void stop_thread();
@@ -136,6 +138,7 @@ private:
 
 
     RobotArmController _arm;
+    CoordinateTransformer _arm_calculator;
     bool _ready = false;
     
     // app -> manager
@@ -176,6 +179,9 @@ private:
 
     //string -> MotionTask
     MotionTask getMotionTask(const std::string& cmd);
+
+    // 3D_point -> motion_set
+    void generate_motion(Point3D res);
 
     std::string _currentLearningName = "";
     std::vector<MotionTask> _tempTasks ; 
