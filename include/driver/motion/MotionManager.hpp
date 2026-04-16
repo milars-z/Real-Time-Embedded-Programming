@@ -84,7 +84,7 @@ struct ServoTask{
 class MotionManager{
 public:
 
-    MotionManager(const std::string& configFile);
+    MotionManager(std::atomic<int>& system_state, const std::string& configFile);
     ~MotionManager();
 
     void stop_thread();

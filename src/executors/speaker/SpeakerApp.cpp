@@ -2,9 +2,10 @@
 
 #include "SpeakerEngine.hpp"
 #include "Config.hpp" 
+#include "SystemCode.hpp"
 #include <iostream>
 
-SpeakerExecutor::SpeakerExecutor(const std::string& path,std::shared_ptr<TaskMonitor> taskMonitor) 
+SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::string& path,std::shared_ptr<TaskMonitor> taskMonitor) 
 :_taskMonitor(taskMonitor)
 {
     // 初始化底层播放引擎
@@ -19,6 +20,7 @@ SpeakerExecutor::SpeakerExecutor(const std::string& path,std::shared_ptr<TaskMon
         std::cout << "[Speaker] 音频硬件已就绪" << std::endl;
     } else {
         std::cerr << "[Speaker] 无法打开音频设备: " << path << std::endl;
+        system_state |= ERR_SPEAKER_INIT;
     }
 
     
@@ -43,6 +45,7 @@ void SpeakerExecutor::_stop(){
 }
 
 void SpeakerExecutor::_start(int core){
+    if(!speaker) return;
     speaker->start_thread(core);
     std::cout << "[Speaker] 内部线程已开启,绑定在core:" << core << std::endl;
 }

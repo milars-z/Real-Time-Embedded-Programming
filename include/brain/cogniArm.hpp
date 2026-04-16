@@ -31,6 +31,7 @@ private:
     std::atomic<bool> isRunning{false};
 
 public:
+    std::atomic<int> state = 0;
     RobotSystem();
     ~RobotSystem(); 
 
@@ -38,4 +39,5 @@ public:
     void start();
     void stop();
 
+    bool check_state(std::atomic<int>& state);
 };

@@ -3,17 +3,19 @@
 #include "MicrophoneEngine.hpp"
 #include "Config.hpp"
 #include "Tools.hpp"  
+#include "SystemCode.hpp"
 #include <vosk_api.h>      
 #include <iostream>
 
 
-VoiceProducer::VoiceProducer(const std::string& path, TextCallback callback, std::shared_ptr<TaskMonitor> taskMonitor) 
+VoiceProducer::VoiceProducer(std::atomic<int>& system_state, const std::string& path, TextCallback callback, std::shared_ptr<TaskMonitor> taskMonitor) 
     : onTextReady(callback),_taskMonitor(taskMonitor) {
     
     // ASR 模型加载
     model = vosk_model_new(Config::Path::VOSK_MODEL_DIR.c_str());
     if (!model) {
         std::cerr << "[Error][MicrophoneApp] Failed to load Vosk model." << std::endl;
+        system_state |= ERR_MICMODE_INIT;
         return;
     }
     recognizer = vosk_recognizer_new(model, 16000.0);
@@ -21,6 +23,8 @@ VoiceProducer::VoiceProducer(const std::string& path, TextCallback callback, std
     // 初始化麦克风模块
     mic = std::make_unique<UsbMicrophone>(path, 16000, 1);
     if (!mic->open()) {
+        system_state |= ERR_MIC_INIT;
+        mic = nullptr;
         std::cerr << "[Error][MicrophoneApp] Failed to open microphone device." << std::endl;
     }
 }
@@ -103,6 +107,7 @@ void VoiceProducer::start() {
 }
 
 void VoiceProducer::_start(int core){
+    if(!mic) return;
     mic->start_thread(core);
     std::cout << "[MicrophoneApp] Internal thread started, pinned to core:" << core << std::endl;
 }

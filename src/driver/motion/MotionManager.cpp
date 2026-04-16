@@ -1,6 +1,7 @@
 #include "MotionManager.hpp"
+#include "SystemCode.hpp"
 
-MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
+MotionManager::MotionManager(std::atomic<int>& system_state, const std::string& configFile):_arm(configFile){
 
     if (_arm.lastStatus != SUCCESS) {
             std::cerr << "failed to initialize robot arm controller, error code: "
@@ -8,6 +9,7 @@ MotionManager::MotionManager(const std::string& configFile):_arm(configFile){
             _ready = false;
             _isRunning = false;
             _stopRequested = true;
+            system_state |= ERR_MOTION_INIT;
             return;
         }
 

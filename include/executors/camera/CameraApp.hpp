@@ -21,7 +21,7 @@ private:
     std::mutex frameMtx;
 
 public:
-    CameraExecutor(std::shared_ptr<TaskMonitor> taskMonitor);
+    CameraExecutor(std::atomic<int>& ststem_state, std::shared_ptr<TaskMonitor> taskMonitor);
     ~CameraExecutor(); 
 
     void pinThread(int num);

@@ -37,7 +37,7 @@ public:
     
     ~ScreenProducer();
 
-    void start();   
+    void start(std::atomic<int>& system_state);   
     void stop();    
     
     // 心跳函数：由主循环调用，返回下次唤醒间隔（毫秒）

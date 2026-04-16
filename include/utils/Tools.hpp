@@ -9,5 +9,6 @@ std::string find_alsa_device(const std::string& keyword);
 // tool for multithread
 void pinThreadToCore(std::thread &th, std::string thread_name,int core_id);
 
+void print_startup_banner();
 
 #endif

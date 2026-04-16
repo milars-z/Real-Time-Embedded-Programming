@@ -2,7 +2,9 @@
 
 #include "Screen_ui.hpp"
 #include "CameraApp.hpp"
+#include "SystemCode.hpp"
 #include <iostream>
+#include <atomic>
 
 ScreenProducer::ScreenProducer(std::shared_ptr<CameraExecutor> cam, 
                                UISignalCallback callback,
@@ -15,11 +17,16 @@ ScreenProducer::~ScreenProducer() {
 }
 
 
-void ScreenProducer::start() {
+void ScreenProducer::start(std::atomic<int>& system_state) {
     std::cout << "[Screen] 正在初始化 LVGL 环境..." << std::endl;
     
     lv_init();
-    lv_sdl_window_create(800, 480);
+    auto* disp = lv_sdl_window_create(800, 480);
+
+    if(disp == nullptr){
+        system_state |= ERR_SCREEN_INIT;
+        return;
+    }
     lv_sdl_mouse_create();
     lv_sdl_keyboard_create();
 

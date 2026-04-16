@@ -1,10 +1,11 @@
 #include "CameraApp.hpp"
 #include "CameraHandle.hpp"
 #include "Config.hpp"
+#include "SystemCode.hpp"
 #include <iostream>
 
 
-CameraExecutor::CameraExecutor(std::shared_ptr<TaskMonitor> taskMonitor)
+CameraExecutor::CameraExecutor(std::atomic<int>& system_state, std::shared_ptr<TaskMonitor> taskMonitor)
 :_taskMonitor(taskMonitor)
 {
 
@@ -15,6 +16,7 @@ CameraExecutor::CameraExecutor(std::shared_ptr<TaskMonitor> taskMonitor)
     );
     if (!cam->open()) {
         std::cerr << "[CameraExecutor] Hardware initialization failed!" << std::endl;
+        system_state |= ERR_CAMERA_INIT;
     }
 }
 
@@ -39,6 +41,7 @@ void CameraExecutor::_stop(){
 }
 
 void CameraExecutor::_start(int core){
+    if (!cam) return;
     cam->start_thread(core);
     std::cout << "[CameraApp] Internal thread started, pinned to core:" << core << std::endl;
 }

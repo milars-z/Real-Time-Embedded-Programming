@@ -31,7 +31,7 @@ private:
     EmptyResult bg;
 
 public:
-    VoiceProducer(const std::string& path, TextCallback callback, std::shared_ptr<TaskMonitor> taskMonitor);
+    VoiceProducer(std::atomic<int>& system_state, const std::string& path, TextCallback callback, std::shared_ptr<TaskMonitor> taskMonitor);
     ~VoiceProducer();
 
     void start();

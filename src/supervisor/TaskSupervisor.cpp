@@ -34,7 +34,7 @@ void TaskSupervisor::start_thread(int core){
 
 void TaskSupervisor::stop_thread(){
         _running = false;
-        _monitor->stop(); 
+        if(_monitor) _monitor->stop(); 
         if (_TaskWorker.joinable()) _TaskWorker.join();
 }
 

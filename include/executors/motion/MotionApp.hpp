@@ -44,7 +44,7 @@ private:
     std::atomic<ARMMODE> armMode = ARMMODE::IDLE;
 
 public:
-    MotionExecutor(std::shared_ptr<TaskMonitor> taskMonitor);
+    MotionExecutor(std::atomic<int>& system_stete, std::shared_ptr<TaskMonitor> taskMonitor);
     ~MotionExecutor(); 
     
     void pinThread(int num);
