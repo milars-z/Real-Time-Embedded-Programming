@@ -163,7 +163,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
         const auto& describe = std::get<TaskDescribe>(e.taskType);
         if(describe.TaskType == "Update"){
             // 暂时没有做失败的逻辑，应该不会失败
-            if(_speaker) _speaker->pushTask("background update successfully");
+            if(_speaker) _speaker->pushTask(_speaker->getText("update_bg"));
         }
 
         // 学习模式
@@ -171,15 +171,15 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             
             // 学习模式，可能会出现没更新背景，需要反馈
             if(describe.Name == "NoBackground"){
-                if(_speaker) _speaker->pushTask("please update background first");
+                if(_speaker) _speaker->pushTask(_speaker->getText("need_bg"));
                 return;
             }
             // 学习模式可能学到可能没学到，分别反馈
             const auto& learn_ans = std::get<CameraResult>(e.result);
             if(learn_ans.isdetecte == false){
-                if(_speaker) _speaker->pushTask("can't find object");
+                if(_speaker) _speaker->pushTask(_speaker->getText("learn_obj_false"));
             }else if(learn_ans.isdetecte == true){
-                std::string ans = "learn object" + learn_ans.objectName + "successfully";
+                std::string ans = _speaker->getText("learn_obj") + learn_ans.objectName;
                 if(_speaker) _speaker->pushTask(ans);
             }
             
@@ -190,29 +190,26 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
         else if(describe.TaskType == "Detecte"){
             // 学习模式，可能会出现没更新背景，需要反馈
             if(describe.Name == "NoBackground"){
-                if(_speaker) _speaker->pushTask("please update background first");
+                if(_speaker) _speaker->pushTask(_speaker->getText("need_bg"));
                 return;
             }
             const auto& learn_ans = std::get<CameraResult>(e.result);
             std::string name = learn_ans.objectName;
             if(learn_ans.isdetecte == false){
-                std::string ans = "can not find" + name;
+                std::string ans = _speaker->getText("detect_obj_false") + name;
                 if(_speaker) _speaker->pushTask(ans);
             }else if(learn_ans.isdetecte == true){
                 int position_x = learn_ans.position_x;
                 int position_y = learn_ans.position_y;
                 if(_motion) _motion->get_obj_APP(position_x,position_y);
+                if(_speaker) _speaker->pushTask(_speaker->getText("detect_obj_true") + name);
             }
         }
 
-
-
-
     }else if (e.moduleName == "Motion"){
 
-
-
-
+        // motion_set 统计时间没什么意义
+        // 单纯做反馈也没什么用
 
     }else{
         // noway do nothing

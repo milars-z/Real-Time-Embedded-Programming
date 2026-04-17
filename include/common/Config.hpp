@@ -25,6 +25,9 @@ namespace Config {
 
         const std::string SPEAKER_MODELS_ZH = SRC_ROOT + "/third_party/speaker/model/vits-piper-zh_CN-huayan-medium";
 
+        const std::string SPEAKER_TEXT = SRC_ROOT + "/include/common/speaker_text.json";
+
+
     }
 
     namespace Camera {

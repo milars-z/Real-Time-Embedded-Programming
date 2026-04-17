@@ -27,6 +27,7 @@ bool RobotSystem::init(SystemConfig cfg) {
     std::string speaker_path = "";
     std::string mic_path = "";
     bool hardware_check_passed = true;
+    std::string speaker_text = Config::Path::SPEAKER_TEXT;
 
     sys_cfg = cfg;
 
@@ -60,7 +61,7 @@ bool RobotSystem::init(SystemConfig cfg) {
     
     if( sys_cfg.enableSpeaker ){
         std::cout << "[CogniArm] Initializing Speaker..." << std::endl;
-        speaker = std::make_shared<SpeakerExecutor>(state,speaker_path,globalMonitor);
+        speaker = std::make_shared<SpeakerExecutor>(state,speaker_path,speaker_text,globalMonitor);
     }
     
     if( sys_cfg.enableMotion){

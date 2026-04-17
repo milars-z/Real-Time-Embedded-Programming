@@ -107,7 +107,7 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 #endif
         if(!extractIntent(text)){
             std::cout << "[Brain] 未能识别有效意图:" << text << std::endl;
-            if (speaker) speaker->pushTask("sorry, i didn't understand that");
+            if (speaker) speaker->pushTask(speaker->getText("what_do_you_say"));
         }
 
     }else{
@@ -218,24 +218,25 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
     // 主逻辑处理,用case好像也没多简单，后续更新想尝试一下映射，后面还能改键位
     switch (type) {
         case IntentType::CHECK_HOST_NAME:
-            if(speaker) speaker->pushTask("hello you are " + _username);
+            if(speaker) speaker->pushTask(speaker->getText("check_host_name"));
             return true;
         case IntentType::CHECK_ROT_NAME:
-            if(speaker) speaker->pushTask("hello i am " + _robotname);
+            if(speaker) speaker->pushTask(speaker->getText("check_robot_name"));
             return true;
         case IntentType::GREET:
-            if(speaker) speaker->pushTask("hello good morning " + _username);
+            if(speaker) speaker->pushTask(speaker->getText("welcome"));
             return true;
         case IntentType::DO_MOTION: {
             std::string motion_cmd = "MOTIONSET:" + res.currentValue;
             if(motion) motion->pushTask(motion_cmd);
-            if(speaker) speaker->pushTask("do motion " + res.currentValue);
+            if(speaker) speaker->pushTask(speaker->getText("do_motion") + res.currentValue);
             return true;
         }
         case IntentType::LEARN_MOTION: {
             std::string motion_cmd = "LEARNMOTION:" + res.currentValue;
             isLearningMode = true;
             if(motion) motion->pushTask(motion_cmd);
+            if(speaker) speaker->pushTask(speaker->getText("learn_moion_now") + res.currentValue);
             return true;
         }
         case IntentType::LEARN_OBJ: {
@@ -249,7 +250,7 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
             return true;
         }
         case IntentType::BYE:
-            if(speaker) speaker->pushTask("good bye " + _username);
+            if(speaker) speaker->pushTask(speaker->getText("bye"));
             return true;
 
         default:
@@ -286,7 +287,7 @@ bool RobotBrain::extractIntent(const std::string& text) {
         // please do motio dance
         if (tokens[i] == "do" && i + 2 < tokens.size() && tokens[i + 1] == "motion") {
             if(motion) motion->pushTask("MOTIONSET:" + tokens[i + 2]);
-            if(speaker) speaker->pushTask("do motion " + tokens[i + 2]);
+            if(speaker) speaker->pushTask(speaker->getText("do_motion") + tokens[i + 2]);
             return true;
         }
 
@@ -294,7 +295,9 @@ bool RobotBrain::extractIntent(const std::string& text) {
         // please learn motion dance
         if (tokens[i] == "learn" && i + 2 < tokens.size() && tokens[i + 1] == "motion") {
             isLearningMode = true;
+            _lastlearnmotion = tokens[i + 2];
             if(motion) motion->pushTask("LEARNMOTION:" + tokens[i + 2]);
+            if(speaker) speaker->pushTask(speaker->getText("learn_moion_now") + tokens[i + 2]);
             return true;
         }
 
@@ -307,6 +310,8 @@ bool RobotBrain::extractIntent(const std::string& text) {
 
         if (text.find("done") != std::string::npos || text.find("stop") != std::string::npos || text.find("finish") != std::string::npos) {
             isLearningMode = false;
+            if(speaker) speaker->pushTask(speaker->getText("learn_moion_finish") + _lastlearnmotion);
+            _lastlearnmotion = "None";
             return true;
     }
     }
@@ -323,13 +328,13 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
     if (type == "MOTION_LEARN") {
         isLearningMode = true;
         if(motion) motion->pushTask("LEARNMOTION:" + data);
-        if(speaker) speaker->pushTask("learn motion " + data);
+        if(speaker) speaker->pushTask(speaker->getText("learn_moion_now") + data);
         _lastlearnmotion = data; // 记录正在学习的动作
         return true;
     }else if (type == "MOTION_CONFIRM") {
         isLearningMode = false;
         if(motion) motion->pushTask("CONFIRM");
-        if(speaker) speaker->pushTask("i know how to " + _lastlearnmotion);
+        if(speaker) speaker->pushTask(speaker->getText("learn_moion_finish") + _lastlearnmotion);
         _lastlearnmotion = "None";
         return true;
     }else if (type == "VISION_LEARN") {
@@ -346,15 +351,15 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         return true;
     }else if (type == "MOTION_SET") {
         if(motion) motion->pushTask("MOTIONSET:" + data);
-        if(speaker) speaker->pushTask("do motion" + data);
+        if(speaker) speaker->pushTask(speaker->getText("do_motion") + data);
         return true;
     }else if (type == "RESET") {
         if(motion) motion->pushTask("RESET");
-        if(speaker) speaker->pushTask("reset now");
+        if(speaker) speaker->pushTask(speaker->getText("reset"));
         return true;
     }else if (type == "STOP") {
         if(motion) motion->pushTask("STOP");
-        if(speaker) speaker->pushTask("stop now");
+        if(speaker) speaker->pushTask(speaker->getText("stop"));
         return true;
     }
 

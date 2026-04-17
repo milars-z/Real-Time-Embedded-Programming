@@ -1,0 +1,70 @@
+{
+    "welcome": {
+        "en": "hello nice to meet you",
+        "zh": "你好很高兴见到你"
+    },
+    "check_host_name":{
+        "en": "you are milars",
+        "zh": "你是米拉斯"
+    },
+    "check_robot_name": {
+        "en": "my name is your robot",
+        "zh": "我叫小小机器人"
+    },
+    "learn_moion_now": {
+        "en": "i am learning how to ",
+        "zh": "开始学习如何"
+    },
+    "learn_moion_finish": {
+        "en": "i learned how to ",
+        "zh": "我学会了如何"
+    },
+    "learn_new_motion": {
+        "en": "i can do a new motion ",
+        "zh": "我学到了新动作"
+    },
+    "do_motion": {
+        "en": "i am doing ",
+        "zh": "正在执行动作"
+    },
+    "reset": {
+        "en": "reset now",
+        "zh": "已重置"
+    },
+    "stop": {
+        "en": "stop now",
+        "zh": "停停停"
+    },
+    "learn_obj": {
+        "en": "i know what is ",
+        "zh": "我懂了这就是"
+    },
+    "learn_obj_false": {
+        "en": "i can't find any object",
+        "zh": "你说啥我没找到"
+    },
+    "detect_obj_true": {
+        "en": "i fine the ",
+        "zh": "我找到了"
+    },
+    "detect_obj_false": {
+        "en": "i can't fine the ",
+        "zh": "我没找到"
+    },
+    "update_bg": {
+        "en": "background update sucessfully",
+        "zh": "成功更新背景"
+    },
+    "need_bg": {
+        "en": "please update background",
+        "zh": "请先更新背景"
+    },
+    "bye": {
+        "en": "good bye milars",
+        "zh": "再见米拉斯"
+    },
+    "what_do_you_say": {
+        "en": "sorry i didn't understand that",
+        "zh": "叽里咕噜说些啥呢"
+    }
+}
