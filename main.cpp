@@ -1,11 +1,10 @@
 // #include "voiceInteraction.hpp"
 #include "cogniArm.hpp"
-// #include "MotionManager.hpp"
+#include "system_config.hpp"
 #include <iostream>
 #include <thread>
 #include <chrono>
 
-// #include "Screen_ui.hpp"
 #include <unistd.h>
 #include <iostream>
 
@@ -19,14 +18,27 @@ void handleSigint(int) {
 }
 
 
-int main() {
+int main(int argc, char* argv[]) {
     
     // 退出信号处理
     std::signal(SIGINT, handleSigint);
     {
         RobotSystem robot;
 
-        if (!robot.init()) {
+        std::string mode = "normal";
+
+        SystemConfig cfg;
+
+        for (int i = 1; i < argc; ++i){
+            std::string arg = argv[i]; 
+            if (arg == "--test" && i + 1 < argc){
+                mode = argv[++i]; 
+            }
+        }
+
+        cfg = makecfg(mode);
+                
+        if (!robot.init(cfg)) {
             return -1;
         }
 

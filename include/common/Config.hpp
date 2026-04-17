@@ -48,6 +48,12 @@ namespace Config {
         inline const std::string SRC_ROOT = PROJECT_ROOT_DIR;
 
         const std::string TEST_FILE = SRC_ROOT + "/test/log.csv";
+        const std::string SPEAKER_TEST_FILE = SRC_ROOT + "/test/log_speakertest.csv";
+        const std::string MOTION_TEST_FILE = SRC_ROOT + "/test/log_motiontest.csv";
+        const std::string CAMERA_TEST_FILE = SRC_ROOT + "/test/log_cameratest.csv";
+        const std::string MICROPHONE_TEST_FILE = SRC_ROOT + "/test/log_microphonetest.csv";
+
+        const std::string SPEAKER_TEST = SRC_ROOT + "/test/speaker_test.txt";
 
     }
 

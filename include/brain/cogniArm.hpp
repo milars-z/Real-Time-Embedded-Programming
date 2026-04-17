@@ -3,6 +3,9 @@
 #include <memory>
 #include <atomic>
 #include <string>
+#include <vector>
+
+#include "system_config.hpp"
 
 class SpeakerExecutor;
 class MotionExecutor;
@@ -30,14 +33,25 @@ private:
 
     std::atomic<bool> isRunning{false};
 
+    // 测试用
+    std::vector<std::string> test_scripts;
+    int current_line_idx = 0;
+
+    void Init_speaker_test();
+
 public:
     std::atomic<int> state = 0;
     RobotSystem();
     ~RobotSystem(); 
 
-    bool init();
+    bool init(SystemConfig cfg);
     void start();
     void stop();
 
     bool check_state(std::atomic<int>& state);
+
+    SystemConfig sys_cfg;
+
+    // speaker单模块测试用
+    
 };

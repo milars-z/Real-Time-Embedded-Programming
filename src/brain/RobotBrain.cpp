@@ -4,6 +4,7 @@
 // 后续需要将此逻辑拆分成两个，一个用来接收回调，一个用来处理逻辑
 
 #include "RobotBrain.hpp"
+#include "system_config.hpp"
 
 #include "SpeakerApp.hpp"
 #include "MotionApp.hpp"
@@ -68,6 +69,7 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 
     if (isLearningMode) {
         processLearning(text);
+        if(!motion) return;
         if(motion->check_acclearning_stop()){
                 isLearningMode = false;
         }
@@ -89,6 +91,9 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 #endif 
 
     auto res = nlu->predict(text);
+    if(!speaker){
+        std::cout << "raw_text:" << text << std::endl;
+    }
 
     if(!nlu_detected(res)){
 
@@ -102,11 +107,14 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 #endif
         if(!extractIntent(text)){
             std::cout << "[Brain] 未能识别有效意图:" << text << std::endl;
-            speaker->pushTask("sorry, i didn't understand that");
+            if (speaker) speaker->pushTask("sorry, i didn't understand that");
         }
 
     }else{
         // 成功检测出正确的值
+        if(!speaker){
+        std::cout << "nlu_intent:" << res.intent << "nlu_value:" << res.currentValue << std::endl;
+    }
 #ifdef TESTMODE
         _taskevent.status = TaskStatus::FINISHED;
         nluresult.intent = res.intent;
@@ -140,6 +148,7 @@ void RobotBrain::handleUISignal(const std::string& type, const std::string& data
         if( (type == "MOTION_CONFIRM") || (type == "DO_MOTION") ){
             std::cout << "[onLearningMode]" << type << std::endl;
             btn_detected(type, data);
+            if(!motion) return;
             if(motion->check_acclearning_stop()){
                 isLearningMode = false;
             }
@@ -171,7 +180,7 @@ void RobotBrain::processLearning(const std::string& text) {
     // 双重保险
     if(!isLearningMode) return;
 
-    motion->pushTask(text);
+    if (motion) motion->pushTask(text);
 
 
 }
@@ -209,41 +218,38 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
     // 主逻辑处理,用case好像也没多简单，后续更新想尝试一下映射，后面还能改键位
     switch (type) {
         case IntentType::CHECK_HOST_NAME:
-            speaker->pushTask("hello you are " + _username);
+            if(speaker) speaker->pushTask("hello you are " + _username);
             return true;
         case IntentType::CHECK_ROT_NAME:
-            speaker->pushTask("hello i am " + _robotname);
+            if(speaker) speaker->pushTask("hello i am " + _robotname);
             return true;
         case IntentType::GREET:
-            speaker->pushTask("hello good morning " + _username);
+            if(speaker) speaker->pushTask("hello good morning " + _username);
             return true;
         case IntentType::DO_MOTION: {
             std::string motion_cmd = "MOTIONSET:" + res.currentValue;
-            motion->pushTask(motion_cmd);
-            speaker->pushTask("do motion " + res.currentValue);
+            if(motion) motion->pushTask(motion_cmd);
+            if(speaker) speaker->pushTask("do motion " + res.currentValue);
             return true;
         }
         case IntentType::LEARN_MOTION: {
             std::string motion_cmd = "LEARNMOTION:" + res.currentValue;
             isLearningMode = true;
-            motion->pushTask(motion_cmd);
-            // speaker->pushTask("learn motion " + res.currentValue);
+            if(motion) motion->pushTask(motion_cmd);
             return true;
         }
         case IntentType::LEARN_OBJ: {
             std::string obj_cmd = "LEARNOBJ:" + res.currentValue;
-            camera->pushTask(obj_cmd);
-            // speaker->pushTask("learn object " + res.currentValue);
+            if(camera) camera->pushTask(obj_cmd);
             return true;
         }
         case IntentType::FIND_OBJ: {
             std::string obj_cmd = "FINDOBJ:" + res.currentValue;
-            camera->pushTask(obj_cmd);
-            // speaker->pushTask("find object " + res.currentValue);
+            if(camera) camera->pushTask(obj_cmd);
             return true;
         }
         case IntentType::BYE:
-            speaker->pushTask("good bye " + _username);
+            if(speaker) speaker->pushTask("good bye " + _username);
             return true;
 
         default:
@@ -272,16 +278,15 @@ bool RobotBrain::extractIntent(const std::string& text) {
         // find xxx
         // find apple
         if (tokens[i] == "find" && i + 1 < tokens.size()) {
-            camera->pushTask("FINDOBJ:" + tokens[i + 1]);
-            // speaker->pushTask("find " + tokens[i + 1]);
+            if(camera) camera->pushTask("FINDOBJ:" + tokens[i + 1]);
             return true;
         }
 
         // do motion xxx
         // please do motio dance
         if (tokens[i] == "do" && i + 2 < tokens.size() && tokens[i + 1] == "motion") {
-            motion->pushTask("MOTIONSET:" + tokens[i + 2]);
-            speaker->pushTask("do motion " + tokens[i + 2]);
+            if(motion) motion->pushTask("MOTIONSET:" + tokens[i + 2]);
+            if(speaker) speaker->pushTask("do motion " + tokens[i + 2]);
             return true;
         }
 
@@ -289,16 +294,14 @@ bool RobotBrain::extractIntent(const std::string& text) {
         // please learn motion dance
         if (tokens[i] == "learn" && i + 2 < tokens.size() && tokens[i + 1] == "motion") {
             isLearningMode = true;
-            motion->pushTask("LEARNMOTION:" + tokens[i + 2]);
-            // speaker->pushTask("learn motion " + tokens[i + 2]);
+            if(motion) motion->pushTask("LEARNMOTION:" + tokens[i + 2]);
             return true;
         }
 
         // this is xxx
         // this is apple
         if (tokens[i] == "this" && i + 2 < tokens.size() && tokens[i + 1] == "is") {
-            camera->pushTask("LEARNOBJ:" + tokens[i + 2]);
-            // speaker->pushTask("learn object " + tokens[i + 2]);
+            if(camera) camera->pushTask("LEARNOBJ:" + tokens[i + 2]);
             return true;
         }
 
@@ -319,42 +322,39 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
     // 就写if了屏幕的后续扩展应该不多
     if (type == "MOTION_LEARN") {
         isLearningMode = true;
-        motion->pushTask("LEARNMOTION:" + data);
-        speaker->pushTask("learn motion " + data);
+        if(motion) motion->pushTask("LEARNMOTION:" + data);
+        if(speaker) speaker->pushTask("learn motion " + data);
         _lastlearnmotion = data; // 记录正在学习的动作
         return true;
     }else if (type == "MOTION_CONFIRM") {
         isLearningMode = false;
-        motion->pushTask("CONFIRM");
-        speaker->pushTask("i know how to " + _lastlearnmotion);
+        if(motion) motion->pushTask("CONFIRM");
+        if(speaker) speaker->pushTask("i know how to " + _lastlearnmotion);
         _lastlearnmotion = "None";
         return true;
     }else if (type == "VISION_LEARN") {
-        camera->pushTask("LEARNOBJ:" + data);
-        // speaker->pushTask("learn object " + data);
+        if(camera) camera->pushTask("LEARNOBJ:" + data);
         return true;
     }else if (type == "VISION_DETECT") {
-        camera->pushTask("FINDOBJ:" + data);
-        // speaker->pushTask("find object " + data);
+        if(camera) camera->pushTask("FINDOBJ:" + data);
         return true;
     }else if (type == "VISION_UPDATE") {
-        camera->pushTask("UPDATEBG");
-        // speaker->pushTask("update vision");
+        if(camera) camera->pushTask("UPDATEBG");
         return true;
     }else if (type == "DO_MOTION") {
-        motion->pushTask("DOMOTION:" + data);
+        if(motion) motion->pushTask("DOMOTION:" + data);
         return true;
     }else if (type == "MOTION_SET") {
-        motion->pushTask("MOTIONSET:" + data);
-        speaker->pushTask("do motion" + data);
+        if(motion) motion->pushTask("MOTIONSET:" + data);
+        if(speaker) speaker->pushTask("do motion" + data);
         return true;
     }else if (type == "RESET") {
-        motion->pushTask("RESET");
-        speaker->pushTask("reset now");
+        if(motion) motion->pushTask("RESET");
+        if(speaker) speaker->pushTask("reset now");
         return true;
     }else if (type == "STOP") {
-        motion->pushTask("STOP");
-        speaker->pushTask("stop now");
+        if(motion) motion->pushTask("STOP");
+        if(speaker) speaker->pushTask("stop now");
         return true;
     }
 

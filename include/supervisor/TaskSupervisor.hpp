@@ -19,12 +19,15 @@
 class SpeakerExecutor;
 class MotionExecutor;
 
+struct SystemConfig;
+
 class TaskSupervisor {
 public:
 
     TaskSupervisor( std::shared_ptr<TaskMonitor> monitor,
                     std::shared_ptr<MotionExecutor> motion,
-                    std::shared_ptr<SpeakerExecutor> speaker); 
+                    std::shared_ptr<SpeakerExecutor> speaker,
+                    SystemConfig sys_cfg); 
     ~TaskSupervisor(); 
 
     void start_thread(int core);
@@ -55,4 +58,6 @@ private:
     std::unordered_map<int, std::chrono::steady_clock::time_point> _pendingTasks;
 
     std::ofstream _logFile;
+
+    SystemConfig _sys_cfg;
 };

@@ -10,6 +10,8 @@
 #include "SpeakerApp.hpp"
 #include "MotionApp.hpp"
 
+#include "system_config.hpp"
+
 class SpeakerExecutor;
 class MotionExecutor;
 
@@ -17,9 +19,11 @@ namespace fs = std::filesystem;
 
 TaskSupervisor::TaskSupervisor( std::shared_ptr<TaskMonitor> monitor,
                                 std::shared_ptr<MotionExecutor> motion,
-                                std::shared_ptr<SpeakerExecutor> speaker)
+                                std::shared_ptr<SpeakerExecutor> speaker,
+                                SystemConfig sys_cfg)
 :_speaker(speaker),_motion(motion),_monitor(monitor)
 {
+    _sys_cfg = sys_cfg;
     Initfile();
 }
 
@@ -40,7 +44,19 @@ void TaskSupervisor::stop_thread(){
 
 // writen with AI
 void TaskSupervisor::Initfile(){
-    std::string Fp = Config::Test::TEST_FILE;
+    std::string Fp;
+    if(_sys_cfg.testmode == TestMode::CAMERATEST){
+        Fp = Config::Test::CAMERA_TEST_FILE;
+    }else if(_sys_cfg.testmode == TestMode::SPEAKERTEST){
+        Fp = Config::Test::SPEAKER_TEST_FILE;
+    }else if(_sys_cfg.testmode == TestMode::MOTIONTEST){
+        Fp = Config::Test::MOTION_TEST_FILE;
+    }else if(_sys_cfg.testmode == TestMode::MICROPHONETEST){
+        Fp = Config::Test::MICROPHONE_TEST_FILE;
+    }else{
+        Fp = Config::Test::TEST_FILE;
+    }
+     
     fs::path p(Fp);
     try {
         // 检查并创建文件夹
@@ -147,7 +163,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
         const auto& describe = std::get<TaskDescribe>(e.taskType);
         if(describe.TaskType == "Update"){
             // 暂时没有做失败的逻辑，应该不会失败
-            _speaker->pushTask("background update successfully");
+            if(_speaker) _speaker->pushTask("background update successfully");
         }
 
         // 学习模式
@@ -155,16 +171,16 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             
             // 学习模式，可能会出现没更新背景，需要反馈
             if(describe.Name == "NoBackground"){
-                _speaker->pushTask("please update background first");
+                if(_speaker) _speaker->pushTask("please update background first");
                 return;
             }
             // 学习模式可能学到可能没学到，分别反馈
             const auto& learn_ans = std::get<CameraResult>(e.result);
             if(learn_ans.isdetecte == false){
-                _speaker->pushTask("can't find object");
+                if(_speaker) _speaker->pushTask("can't find object");
             }else if(learn_ans.isdetecte == true){
                 std::string ans = "learn object" + learn_ans.objectName + "successfully";
-                _speaker->pushTask(ans);
+                if(_speaker) _speaker->pushTask(ans);
             }
             
 
@@ -174,18 +190,18 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
         else if(describe.TaskType == "Detecte"){
             // 学习模式，可能会出现没更新背景，需要反馈
             if(describe.Name == "NoBackground"){
-                _speaker->pushTask("please update background first");
+                if(_speaker) _speaker->pushTask("please update background first");
                 return;
             }
             const auto& learn_ans = std::get<CameraResult>(e.result);
             std::string name = learn_ans.objectName;
             if(learn_ans.isdetecte == false){
                 std::string ans = "can not find" + name;
-                _speaker->pushTask(ans);
+                if(_speaker) _speaker->pushTask(ans);
             }else if(learn_ans.isdetecte == true){
                 int position_x = learn_ans.position_x;
                 int position_y = learn_ans.position_y;
-                _motion->get_obj_APP(position_x,position_y);
+                if(_motion) _motion->get_obj_APP(position_x,position_y);
             }
         }
 

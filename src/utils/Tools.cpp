@@ -8,6 +8,8 @@
 
 #include <alsa/asoundlib.h>
 
+#include "system_config.hpp"
+
 std::string extractText(const std::string& json) {
     size_t start = json.find("\"text\" : \"");
     if (start == std::string::npos) return "";
@@ -60,7 +62,7 @@ void pinThreadToCore(std::thread &th, std::string thread_name, int core_id) {
 
 // wrote by AI
 // 后续有时间追加不同状态的banner
-void print_startup_banner() {
+void print_startup_banner(SystemConfig cfg) {
 
     const int WIDTH = 64; 
 
@@ -91,15 +93,20 @@ void print_startup_banner() {
     };
 
 
-    auto status = [INNER_WIDTH](std::string mod, std::string stat) {
+    auto status = [INNER_WIDTH](std::string mod, std::string stat, bool iserror = false) {
         std::string prefix = "> " + mod + " ";
         std::string suffix = " [ " + stat + " ]";
         // 计算中间需要填充多少个点
         int dot_count = INNER_WIDTH - prefix.length() - suffix.length();
         if (dot_count < 0) dot_count = 0;
 
-        std::cout << "║ " << prefix << std::string(dot_count, '.') 
+        if (iserror){
+            std::cout << "║ " << prefix << std::string(dot_count, '.') << "\033[31m" << suffix << "\033[1;36m" << " ║" << std::endl;
+        }else{
+            std::cout << "║ " << prefix << std::string(dot_count, '.') 
                   << suffix << " ║" << std::endl;
+        }
+        
     };
 
 
@@ -110,13 +117,37 @@ void print_startup_banner() {
     hr("╠", "═", "╣");
 
     line("> [SYSTEM] Initializing Modular Components...");
-    status("MOUTH  Speaker Device ", "OK");
-    status("EAR  Microphone     ", "OK");
-    status("EYE Camera Sensor  ", "OK");
-    status("BODY Servo Controller", "OK");
-    status("BRAIN nlu model", "OK");
-    status("CONSOLE LVGL Screen Env", "OK");
-
+    if (cfg.enableSpeaker){
+        status("MOUTH  Speaker Device ", "OK");
+    }else{
+        status("MOUTH  Speaker Device ", "DISABLE" , true);
+    }
+    if (cfg.enableMicrophone){
+        status("EAR  Microphone     ", "OK");
+    }else{
+        status("EAR  Microphone     ", "DISABLE" , true);
+    }
+    if (cfg.enableCamera){
+        status("EYE Camera Sensor  ", "OK");
+    }else{
+        status("EYE Camera Sensor  ", "DISABLE" , true);
+    }
+    if (cfg.enableMotion){
+        status("BODY Servo Controller", "OK");
+    }else{
+        status("BODY Servo Controller", "DISABLE" , true);
+    }
+    if (cfg.enableNlu){
+        status("BRAIN nlu model", "OK");
+    }else{
+        status("BRAIN nlu model", "DISABLE" , true);
+    }
+    if (cfg.enableScreen){
+        status("CONSOLE LVGL Screen Env", "OK");
+    }else{
+        status("CONSOLE LVGL Screen Env", "DISABLE" , true);
+    }
+    
     hr("╠", "═", "╣");
     line("[STATUS]  ALL SYSTEMS ARE NOMINAL. STARTING...", false);
     hr("╚", "═", "╝");

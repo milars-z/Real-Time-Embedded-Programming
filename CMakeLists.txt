@@ -50,6 +50,9 @@ add_executable(main
     #Kinematics
     "${CMAKE_CURRENT_SOURCE_DIR}/src/kinematics/CoordinateTransformer.cpp"
 
+    #system
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/system/system_config.cpp"
+
     # ui 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ui/Screen_ui.cpp"
 
@@ -118,6 +121,7 @@ target_include_directories(main PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/utils"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/supervisor"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/kinematics/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/system/"
     "${SHERPA_HOME}/include"
     "${ORT_ROOT}/include" 
 )
