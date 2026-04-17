@@ -46,6 +46,8 @@ add_executable(main
 
     #supervisor
     "${CMAKE_CURRENT_SOURCE_DIR}/src/supervisor/TaskSupervisor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/supervisor/TaskMonitor.cpp"
+    
 
     #Kinematics
     "${CMAKE_CURRENT_SOURCE_DIR}/src/kinematics/CoordinateTransformer.cpp"

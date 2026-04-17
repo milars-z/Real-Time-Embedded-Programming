@@ -14,27 +14,25 @@
 class TaskMonitor{
 public:
 
-// move处理稍微快点
-void postEvent(TaskEvent event){
-        TaskQueue.push(std::move(event));
-}
+    void postEvent(TaskEvent event);
 
-bool waitEvent(TaskEvent& event){
-        return TaskQueue.pop(event);
-}
+    bool waitEvent(TaskEvent& event);
 
-// 不一定需要，先把模板整体抽象化了
-void stop(){
-    TaskQueue.stop();
-}
 
-void reset(){
-    TaskQueue.reset();
-}
+    void stop();
+
+    void reset();
+
+    TaskEvent generate_Event(const std::string& moduleName,
+                             const int& taskId, 
+                             const TaskType& taskType,
+                             const TaskStatus& status,
+                             const ResultData& result,
+                             bool issuccessful);
 
 private:
 
-ThreadSafeQueue<TaskEvent> TaskQueue;
+    ThreadSafeQueue<TaskEvent> TaskQueue;
 
 };
 
