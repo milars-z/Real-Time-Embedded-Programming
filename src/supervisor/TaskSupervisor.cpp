@@ -91,7 +91,17 @@ void TaskSupervisor::processLoop(){
     while (_monitor->waitEvent(event)) {
         if (!_running) break;
 
-        if (event.moduleName != "Screen-Motion"){
+        // only reply
+        if(event.moduleName == "MotionSet"){
+            handleTaskResult(event);
+        }
+
+        // normal
+        else if ((event.moduleName == "Microphone") ||
+                 (event.moduleName == "Nlu") ||
+                 (event.moduleName == "Speaker") ||
+                 (event.moduleName == "Camera") ||
+                 (event.moduleName == "Speaker")){
 
             if (event.status == TaskStatus::STARTED) {
                 _pendingTasks[event.taskId] = event.timestamp;
@@ -110,7 +120,9 @@ void TaskSupervisor::processLoop(){
                             << std::fixed << std::setprecision(3) << duration << ","
                             << event.issuccessful << ",";
 
-                    handleTaskResult(event);
+                    if(event.moduleName == "Camera"){
+                        handleTaskResult(event);
+                    }
                     
                     _logFile << std::endl;
                     _logFile.flush(); 
@@ -149,7 +161,10 @@ void TaskSupervisor::processLoop(){
                         std::cerr << "[TaskSupervisor]存在异步消息 : " << event.taskId << "Module : " << event.moduleName << std::endl;
                     }
                 }
-            }   
+
+            }else{
+                std::cout<< "[fatal][supervisor] error handle supervisor: " << event.moduleName << std::endl;
+            }
     }
 }
 
@@ -206,12 +221,51 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             }
         }
 
-    }else if (e.moduleName == "Motion"){
+    }else if (e.moduleName == "MotionSet"){
+        const auto& learn_ans = std::get<MotionResult>(e.result);
+        // DO NOTION (NORMAL)
+        if(learn_ans.result == BugCode_M::Success){
+            // donotion
+        }
 
-        // motion_set 统计时间没什么意义
-        // 单纯做反馈也没什么用
+        if(learn_ans.result == BugCode_M::DoingSuccess){
+            // doing motion
+            if(_speaker) _speaker->pushTask(_speaker->getText("do_motion") + learn_ans.name);
+        }
 
+        // can't understand
+        else if(learn_ans.result == BugCode_M::Init){
+            if(_speaker) _speaker->pushTask(_speaker->getText("noise"));
+        }
+
+        // can't understand break
+        else if(learn_ans.result == BugCode_M::TooMuchNoise){
+            if(_speaker) _speaker->pushTask(_speaker->getText("noise_break"));
+        }
+
+        // file_system
+        else if((learn_ans.result == BugCode_M::CannotOpenMotionFile) ||
+                 (learn_ans.result == BugCode_M::WriteInvalidSet)){
+                    if(_speaker) _speaker->pushTask(_speaker->getText("save_error"));
+                }
+
+        // do_motion error
+        else if(learn_ans.result == BugCode_M::MotionQueError){
+            if(_speaker) _speaker->pushTask(_speaker->getText("do_motion_error"));
+        }
+
+        // done
+        else if(learn_ans.result == BugCode_M::NoMotion){
+            if(_speaker) _speaker->pushTask(_speaker->getText("no_motion") + learn_ans.name);
+        }
+        
+        else if(learn_ans.result == BugCode_M::LearningSuccess){
+            if(_speaker) _speaker->pushTask(_speaker->getText("learn_moion_finish") + learn_ans.name);
+        }else{
+            std::cout<< "[fatal][supervisor] error handle supervisor message _ motion" << std::endl;
+        }
+        //仅查看学习状态
     }else{
-        // noway do nothing
+        std::cout<< "[fatal][supervisor] error handle supervisor message, name:" << e.moduleName << std::endl;
     }
 }

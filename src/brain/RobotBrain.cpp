@@ -229,7 +229,6 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
         case IntentType::DO_MOTION: {
             std::string motion_cmd = "MOTIONSET:" + res.currentValue;
             if(motion) motion->pushTask(motion_cmd);
-            if(speaker) speaker->pushTask(speaker->getText("do_motion") + res.currentValue);
             return true;
         }
         case IntentType::LEARN_MOTION: {
@@ -287,7 +286,6 @@ bool RobotBrain::extractIntent(const std::string& text) {
         // please do motio dance
         if (tokens[i] == "do" && i + 2 < tokens.size() && tokens[i + 1] == "motion") {
             if(motion) motion->pushTask("MOTIONSET:" + tokens[i + 2]);
-            if(speaker) speaker->pushTask(speaker->getText("do_motion") + tokens[i + 2]);
             return true;
         }
 
@@ -334,7 +332,6 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
     }else if (type == "MOTION_CONFIRM") {
         isLearningMode = false;
         if(motion) motion->pushTask("CONFIRM");
-        if(speaker) speaker->pushTask(speaker->getText("learn_moion_finish") + _lastlearnmotion);
         _lastlearnmotion = "None";
         return true;
     }else if (type == "VISION_LEARN") {
@@ -351,7 +348,6 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         return true;
     }else if (type == "MOTION_SET") {
         if(motion) motion->pushTask("MOTIONSET:" + data);
-        if(speaker) speaker->pushTask(speaker->getText("do_motion") + data);
         return true;
     }else if (type == "RESET") {
         if(motion) motion->pushTask("RESET");
@@ -359,7 +355,6 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         return true;
     }else if (type == "STOP") {
         if(motion) motion->pushTask("STOP");
-        if(speaker) speaker->pushTask(speaker->getText("stop"));
         return true;
     }
 

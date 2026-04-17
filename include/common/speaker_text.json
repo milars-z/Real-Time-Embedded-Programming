@@ -24,7 +24,7 @@
         "zh": "我学到了新动作"
     },
     "do_motion": {
-        "en": "i am doing ",
+        "en": "i am doing motion ",
         "zh": "正在执行动作"
     },
     "reset": {
@@ -66,5 +66,29 @@
     "what_do_you_say": {
         "en": "sorry i didn't understand that",
         "zh": "叽里咕噜说些啥呢"
+    },
+
+
+
+    "no_motion":{
+        "en": "i don't know how to ",
+        "zh": "我不知道怎么做"
+    },
+    "noise": {
+        "en": "what do you mean",
+        "zh": "没听懂"
+    },
+    "noise_break": {
+        "en": "i can't understand you can use screen to control",
+        "zh": "算了我们来做点别的吧"
+    },
+    "save_error": {
+        "en": "sorry i can't remember file system wrong",
+        "zh": "记不住了文件系统出现故障"
+    },
+    "do_motion_error": {
+        "en": "sorry i can't do hardware wrong",
+        "zh": "不好意思机械臂故障请检查"
     }
+
 }

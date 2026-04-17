@@ -16,7 +16,7 @@ MotionExecutor::MotionExecutor(std::atomic<int>& system_stete, std::shared_ptr<T
 :_taskMonitor(taskMonitor)
 {
 
-    manager = std::make_unique<MotionManager>(system_stete, Config::Motion::MOTION_CONFIG, Config::Camera::CAMERA_CONFIG);
+    manager = std::make_unique<MotionManager>(system_stete, Config::Motion::MOTION_CONFIG, Config::Camera::CAMERA_CONFIG, _taskMonitor);
     std::cout << "[MotionApp] MotionManager initialized" << std::endl;
 
 }

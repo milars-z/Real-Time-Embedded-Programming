@@ -2,8 +2,11 @@
 #include "SystemCode.hpp"
 
 
-MotionManager::MotionManager(std::atomic<int>& system_state, const std::string& configFile, const std::string& camera_config):
-_arm(configFile), _arm_calculator(camera_config)
+MotionManager::MotionManager(std::atomic<int>& system_state, 
+                             const std::string& configFile, 
+                             const std::string& camera_config, 
+                             std::shared_ptr<TaskMonitor> taskMonitor):
+_arm(configFile), _arm_calculator(camera_config), _taskMonitor(taskMonitor)
 {
 
     if (_arm.lastStatus != SUCCESS) {
@@ -93,6 +96,16 @@ BugCode_M MotionManager::read_motion_set(const std::string& motion_set_name, Mot
             enqueue_motion(task);
         }
         std::cout << "[Motion] Loaded and enqueued: " << motion_set_name << std::endl;
+        state = BugCode_M::DoingSuccess;
+#ifdef TESTMODE
+        TaskEvent _taskevent;
+        _taskevent.moduleName = "MotionSet";
+        MotionResult _res;
+        _res.name = motion_set_name;
+        _res.result = state;
+        _taskevent.result = _res;
+        _taskMonitor->postEvent(_taskevent);
+#endif
         state = BugCode_M::Success;
         return state;
 
@@ -311,6 +324,15 @@ BugCode_M MotionManager::excuteMotionSet(const std::string& name){
     if (_available_motions.find(name) == _available_motions.end()) {
         std::cerr << "[Motion] Motion set '" << name << "' not found in folder." << std::endl;
         state = BugCode_M::NoMotion;
+#ifdef TESTMODE
+        TaskEvent _taskevent;
+        _taskevent.moduleName = "MotionSet";
+        MotionResult _res;
+        _res.name = name;
+        _res.result = state;
+        _taskevent.result = _res;
+        _taskMonitor->postEvent(_taskevent);
+#endif
         return state;
     }
 
@@ -384,7 +406,18 @@ void MotionManager::generate_motion(Point3D res){
 BugCode_M MotionManager::processLearningInput(const std::string& text, const std::string& name){
 
     BugCode_M state = BugCode_M::Init;
-    _currentLearningName = name;
+
+    if(is_first_learning){
+        _currentLearningName = name;
+        is_first_learning = false;
+    }
+    
+
+#ifdef TESTMODE
+    TaskEvent _taskevent;
+    _taskevent.moduleName = "MotionSet";
+    MotionResult _res;
+#endif
 
     
     std::cout << "[MotionManager]:" << text << std::endl; 
@@ -394,6 +427,14 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
     if (text == "CONFIRM") {
         state = saveMotionSet(_currentLearningName, _tempTasks);
         learning_error_code = 0;
+#ifdef TESTMODE
+        _res.name = _currentLearningName;
+        _res.result = state;
+        _taskevent.result = _res;
+        _taskMonitor->postEvent(_taskevent);
+        
+#endif
+        is_first_learning = true;
         return state;
     }
 
@@ -423,7 +464,14 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
         if (state == BugCode_M::MotionQueError){
             _currentLearningName = "None";
             _tempTasks.clear();
+            is_first_learning = true;
         }
+#ifdef TESTMODE
+        _res.name = _currentLearningName;
+        _res.result = state;
+        _taskevent.result = _res;
+        _taskMonitor->postEvent(_taskevent);
+#endif
         return state;
     }
     
@@ -432,6 +480,13 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
     if (text.find("done") != std::string::npos || text.find("stop") != std::string::npos || text.find("finish") != std::string::npos) {
         state = saveMotionSet(_currentLearningName, _tempTasks);
         learning_error_code = 0;
+#ifdef TESTMODE
+        _res.name = _currentLearningName;
+        _res.result = state;
+        _taskevent.result = _res;
+        _taskMonitor->postEvent(_taskevent);
+#endif
+        is_first_learning = true;
         return state;
     }
 
@@ -468,9 +523,23 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
         if (state == BugCode_M::MotionQueError){
             _currentLearningName = "None";
             _tempTasks.clear();
+            is_first_learning = true;
         }
+#ifdef TESTMODE
+        _res.name = _currentLearningName;
+        _res.result = state;
+        _taskevent.result = _res;
+        _taskMonitor->postEvent(_taskevent);
+#endif
         return state;
     }
+    
+#ifdef TESTMODE
+    _res.name = _currentLearningName;
+    _res.result = state;
+    _taskevent.result = _res;
+    _taskMonitor->postEvent(_taskevent);
+#endif
     learning_error_code++;
     return state;
 };
@@ -519,9 +588,10 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
 
     std::ofstream file( motionsetPath + "/" + motionName + ".json");
     if (!file.is_open()){
-        _currentLearningName = "None";
+        // _currentLearningName = "None";
         _tempTasks.clear();
         state = BugCode_M::CannotOpenMotionFile;
+        is_first_learning = true;
         return state;
     }
     file << j.dump(4);
@@ -530,7 +600,7 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
     learn_motion_fresh();
     servo_set_init(); 
     state = BugCode_M::LearningSuccess;
-    _currentLearningName = "None";
+    // _currentLearningName = "";
     _tempTasks.clear();
     return state;
 };
@@ -540,6 +610,17 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
 bool MotionManager::check_error_code(){
 
     if(learning_error_code > 3){
+#ifdef TESTMODE
+        TaskEvent _taskevent;
+        MotionResult _res;
+        _taskevent.moduleName = "MotionSet";
+        _res.name = "";
+        _res.result = BugCode_M::TooMuchNoise;
+        _taskevent.result = _res;
+        _taskMonitor->postEvent(_taskevent);
+#endif
+        learning_error_code = 0;
+        is_first_learning = true;
         return true;
     }
     return false;

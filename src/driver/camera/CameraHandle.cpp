@@ -261,7 +261,6 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
 #endif
-            // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
             return;
         }
 

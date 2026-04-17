@@ -6,6 +6,7 @@
 enum class BugCode_M {
     Success = 0,
     LearningSuccess = 1,
+    DoingSuccess = 2,
     NoMotion = -1,
     CannotOpenMotionFile = -2,
     ReadInvalidSet = -3,
@@ -13,6 +14,7 @@ enum class BugCode_M {
     WriteInvalidSet = -5,
     UnkonwJoint = -6,
     MotionQueError = -7,
-    Init = -8
+    TooMuchNoise = -8,
+    Init = -9
 };
 

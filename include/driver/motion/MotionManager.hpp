@@ -8,6 +8,8 @@
 
 #include "CoordinateTransformer.hpp"
 
+#include "TaskMonitor.hpp"
+
 #include <thread>
 #include <atomic>
 #include <set>
@@ -86,7 +88,11 @@ struct ServoTask{
 class MotionManager{
 public:
 
-    MotionManager(std::atomic<int>& system_state, const std::string& configFile, const std::string& camera_config);
+    MotionManager(std::atomic<int>& system_state, 
+                    const std::string& configFile, 
+                    const std::string& camera_config, 
+                    std::shared_ptr<TaskMonitor> taskMonitor);
+
     ~MotionManager();
 
     void stop_thread();
@@ -139,6 +145,8 @@ private:
 
     RobotArmController _arm;
     CoordinateTransformer _arm_calculator;
+    std::shared_ptr<TaskMonitor> _taskMonitor;
+
     bool _ready = false;
     
     // app -> manager
@@ -195,5 +203,8 @@ private:
 
     // 用来解决学习过程中收到过多无关信息或者学习退出功能
     int learning_error_code = 0;
+
+    // 是否是刚开始学习
+    bool is_first_learning = true;
 
 };

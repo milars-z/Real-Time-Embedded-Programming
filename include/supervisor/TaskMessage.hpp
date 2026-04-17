@@ -16,7 +16,7 @@ struct CameraResult {
 
 struct MotionResult {
     BugCode_M result;
-    // --- 
+    std::string name;
 };
 
 struct EmptyResult {
