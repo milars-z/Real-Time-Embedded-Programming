@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iomanip>
+#include <fstream>
 
 #include <alsa/asoundlib.h>
 
@@ -153,5 +154,70 @@ void print_startup_banner(SystemConfig cfg) {
     hr("╚", "═", "╝");
 
     std::cout << "\033[0m" << std::endl; 
+}
+
+config_var screen_get_var(){
+
+    std::ifstream file(Config::Path::VARIABLE_NAME);
+
+    config_var _var;
+    _var.lang = "en";
+    _var.host = "Error_value";
+    _var.robot = "Error_value";
+
+    if (!file.is_open()) {
+        std::cerr << "cant load speaker_text" << std::endl;
+        return _var;
+    }else{
+        
+        std::string language;
+        std::string line;
+        std::string currentSection = "";
+
+        std::getline(file, language);
+        if(_var.lang != "en" && _var.lang != "zh"){
+            _var.lang = "en";
+        }
+
+        while (std::getline(file, line)){
+            if (line.empty()) continue; 
+            if(_var.lang == "en"){
+                if (line == "en"){
+                    std::getline(file, _var.host);
+                    std::getline(file, _var.robot);
+                }
+            }else if(_var.lang == "zh"){
+                if (line == "zh"){
+                    std::getline(file, _var.host);
+                    std::getline(file, _var.robot);
+                }
+            
+            }
+        }
+        
+    }
+    return _var;
+}
+
+void saveVariablesToFile(const std::string& lang, const std::string& host, const std::string& robot ) {
+
+    std::ofstream file(Config::Path::VARIABLE_NAME);
+    
+    if (file.is_open()) {
+
+        file << lang << std::endl;
+
+        file << "en" << std::endl;
+        file << host << std::endl;   
+        file << robot << std::endl;  
+        
+        file << "zh" << std::endl;
+        file << host << std::endl;   
+        file << robot << std::endl;  
+        
+        file.close();
+    } else {
+        std::cout << "[SpeakerAPP] fail to open file for writing" << std::endl;
+    }
 }
 

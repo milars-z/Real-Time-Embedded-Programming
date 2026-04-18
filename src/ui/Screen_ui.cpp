@@ -64,7 +64,7 @@ void ScreenUI::showHomeScreen() {
     
     // Motion 按钮
     lv_obj_t* btn_m = lv_button_create(main_screen);
-    lv_obj_set_size(btn_m, 200, 100);
+    lv_obj_set_size(btn_m, 100, 100);
     lv_obj_align(btn_m, LV_ALIGN_CENTER, -150, 0);
     lv_label_set_text(lv_label_create(btn_m), "Motion");
     lv_obj_add_event_cb(btn_m, [](lv_event_t* e){
@@ -73,13 +73,22 @@ void ScreenUI::showHomeScreen() {
 
     // Vision 按钮
     lv_obj_t* btn_v = lv_button_create(main_screen);
-    lv_obj_set_size(btn_v, 200, 100);
-    lv_obj_align(btn_v, LV_ALIGN_CENTER, 150, 0);
+    lv_obj_set_size(btn_v, 100, 100);
+    lv_obj_align(btn_v, LV_ALIGN_CENTER, 0, 0);
     lv_label_set_text(lv_label_create(btn_v), "Vision");
     lv_obj_add_event_cb(btn_v, [](lv_event_t* e){
         auto ui = (ScreenUI*)lv_event_get_user_data(e);
-        // ui->sendSignal("VISION_STREAM_START");
         ui->showVisionScreen();
+    }, LV_EVENT_CLICKED, this);
+
+    // Setting 按钮
+    lv_obj_t* btn_s = lv_button_create(main_screen);
+    lv_obj_set_size(btn_s, 100, 100);
+    lv_obj_align(btn_s, LV_ALIGN_CENTER, 150, 0);
+    lv_label_set_text(lv_label_create(btn_s), "Setting");
+    lv_obj_add_event_cb(btn_s, [](lv_event_t* e){
+        auto ui = (ScreenUI*)lv_event_get_user_data(e);
+        ui->showSettingScreen();
     }, LV_EVENT_CLICKED, this);
 
     lv_screen_load(main_screen);
@@ -202,6 +211,14 @@ void ScreenUI::showVisionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("VISION_UPDATE");
     }, LV_EVENT_CLICKED, this);
 
+    // Update 
+    lv_obj_t* btn_reset = lv_button_create(main_screen);
+    lv_obj_align(btn_reset, LV_ALIGN_TOP_RIGHT, -10, 190);
+    lv_label_set_text(lv_label_create(btn_reset), "Reset");
+    lv_obj_add_event_cb(btn_reset, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("RESET");
+    }, LV_EVENT_CLICKED, this);
+
     // 返回
     lv_obj_t* btn_back = lv_button_create(main_screen);
     lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 10, 10);
@@ -211,6 +228,60 @@ void ScreenUI::showVisionScreen() {
     }, LV_EVENT_CLICKED, this);
 
     lv_screen_load(main_screen);
+}
+
+void ScreenUI::showSettingScreen(){
+
+    is_in_vision_screen = false;
+
+    config_var _var = screen_get_var();
+
+    prepareMainScreen();
+
+    // 返回
+    lv_obj_t* btn_back = lv_button_create(main_screen);
+    lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 10, 10);
+    lv_label_set_text(lv_label_create(btn_back), "Back");
+    lv_obj_add_event_cb(btn_back, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->showHomeScreen();
+    }, LV_EVENT_CLICKED, this);
+
+    // LABEL
+    lv_obj_t* label_host = lv_label_create(main_screen);
+    std::string host_str = "Host Name: " + _var.host; 
+    lv_label_set_text(label_host, host_str.c_str());
+    lv_obj_align(label_host, LV_ALIGN_TOP_LEFT, 50, 100);
+
+    // EDIT
+    lv_obj_t* btn_edit_host = lv_button_create(main_screen);
+    lv_obj_set_size(btn_edit_host, 80, 40);
+    lv_obj_align(btn_edit_host, LV_ALIGN_TOP_LEFT, 350, 90);
+    lv_label_set_text(lv_label_create(btn_edit_host), "Edit");
+    
+    //SEND
+    lv_obj_add_event_cb(btn_edit_host, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->createKeyboard("SET_HOST_NAME");
+    }, LV_EVENT_CLICKED, this);
+
+    // LABEL
+    lv_obj_t* label_robot = lv_label_create(main_screen);
+    std::string robot_str = "Robot Name: " + _var.robot; 
+    lv_label_set_text(label_robot, robot_str.c_str());
+    lv_obj_align(label_robot, LV_ALIGN_TOP_LEFT, 50, 170);
+
+    // EDIT
+    lv_obj_t* btn_edit_robot = lv_button_create(main_screen);
+    lv_obj_set_size(btn_edit_robot, 80, 40);
+    lv_obj_align(btn_edit_robot, LV_ALIGN_TOP_LEFT, 350, 160);
+    lv_label_set_text(lv_label_create(btn_edit_robot), "Edit");
+    
+    // SEND
+    lv_obj_add_event_cb(btn_edit_robot, [](lv_event_t* e){
+        ((ScreenUI*)lv_event_get_user_data(e))->createKeyboard("SET_ROBOT_NAME");
+    }, LV_EVENT_CLICKED, this);
+
+
+
 }
 
 void ScreenUI::createDPad(lv_obj_t* parent, int x_offset, std::string name) {
@@ -301,8 +372,13 @@ void ScreenUI::createKeyboard(std::string signal_type) {
         std::string content = lv_textarea_get_text(d->ta);
         
         d->ui->sendSignal(d->sig_type, content);
-        
+
         lv_obj_delete(d->mask_to_del);
+
+        if (d->sig_type == "SET_HOST_NAME" || d->sig_type == "SET_ROBOT_NAME") {
+            d->ui->showHomeScreen(); 
+        }
+        
         delete d; 
     }, LV_EVENT_CLICKED, data);
 
@@ -316,6 +392,11 @@ void ScreenUI::createKeyboard(std::string signal_type) {
             
             d->ui->sendSignal(d->sig_type, lv_textarea_get_text(ta));
             lv_obj_delete(d->mask_to_del);
+
+            if (d->sig_type == "SET_HOST_NAME" || d->sig_type == "SET_ROBOT_NAME") {
+                d->ui->showHomeScreen(); 
+            }
+            
             delete d;
         } else if(code == LV_EVENT_CANCEL) {
             ConfirmData* d = (ConfirmData*)lv_event_get_user_data(e);

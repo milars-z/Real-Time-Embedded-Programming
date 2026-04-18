@@ -31,6 +31,12 @@ SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::stri
     }else {
         std::cerr << "[Speaker] 无法找到正确的text映射 " << std::endl;
         system_state |= ERR_SPEAKER_INIT;
+    } 
+    if(loadVariable()){
+        std::cout << "[Speaker] variable已就绪" << std::endl;
+    }else {
+        std::cerr << "[Speaker] 无法找到正确的variable映射 " << std::endl;
+        system_state |= ERR_SPEAKER_INIT;
     }    
 }
 
@@ -103,20 +109,35 @@ std::string SpeakerExecutor::getText(const std::string& key){
         }
     }else{
 
-        // 替换词操作，晚点写
-
         if(currentLang == "en"){
             text = it->second.en;
         }else if(currentLang == "zh"){
             text = it->second.zh;
         }
+
+        std::string target = "{host_name}";
+        std::string actual_name = _host_name;
+        size_t pos = text.find(target);
+        while (pos != std::string::npos) {
+            text.replace(pos, target.length(), actual_name);
+            pos = text.find(target, pos + actual_name.length());
+        }
+
+        target = "{robot_name}";
+        actual_name = _robot_name;
+        pos = text.find(target);
+        while (pos != std::string::npos) {
+            text.replace(pos, target.length(), actual_name);
+            pos = text.find(target, pos + actual_name.length());
+        }
+
     }
     return text;
 }
 
-bool SpeakerExecutor::setLanguage(const std::string& lang){
+void SpeakerExecutor::setLanguage(const std::string& lang){
 
-    bool is_reset = false;
+    bool is_success = false;
 
     if (lang == "zh"){
         currentLang = "zh";
@@ -126,8 +147,37 @@ bool SpeakerExecutor::setLanguage(const std::string& lang){
         currentLang = "en";
     }
 
-    is_reset = loadLibrary();
+    // is_success = loadLibrary();
 
-    return is_reset;
+    // is_success &= loadVariable();
+
+    // return is_success;
+
+}
+
+void SpeakerExecutor::setVariable(const std::string& key, const std::string& value){
+
+    if( key == "host_name" ){
+        _host_name = value;
+    }else if( key == "robot_name" ){
+        _robot_name = value;
+    }else{
+        std::cout << "[SpeakerAPP] fail set variable" << std::endl;
+    }
+
+}
+
+bool SpeakerExecutor::loadVariable(){
+
+    config_var _var;
+    _var = screen_get_var();
+    currentLang = _var.lang;
+    if( (_var.host != "Error_value") && (_var.robot != "Error_value")){
+        _host_name = _var.host;
+        _robot_name = _var.robot;
+        return true;
+    }else{
+        return false;
+    }
 
 }

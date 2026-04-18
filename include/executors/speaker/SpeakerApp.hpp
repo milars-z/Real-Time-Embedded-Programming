@@ -6,6 +6,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "Tools.hpp"
+
 class UsbSpeaker;
 
 struct multi_lang {
@@ -32,11 +34,15 @@ private:
     // 加载lib
     bool loadLibrary();
 
-    // 更新变量
-    bool setVariable(const std::string& key, const std::string& value);
+    
+    
 
     // 配置语言-暂时不配置
-    bool setLanguage(const std::string& lang);
+    void setLanguage(const std::string& lang);
+
+    // config_name
+    std::string _host_name = "milars";
+    std::string _robot_name = "robot";
 
 public:
     
@@ -57,4 +63,10 @@ public:
 
     // 获取Lib对应的文本，外部调用
     std::string getText(const std::string& key);
+
+    // 刷新变量
+    bool loadVariable();
+
+    // 更新变量
+    void setVariable(const std::string& key, const std::string& value);
 };

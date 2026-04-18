@@ -27,6 +27,8 @@ namespace Config {
 
         const std::string SPEAKER_TEXT = SRC_ROOT + "/include/common/speaker_text.json";
 
+        const std::string VARIABLE_NAME = SRC_ROOT + "/include/common/varible_name.txt";
+
 
     }
 

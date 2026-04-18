@@ -43,6 +43,12 @@ RobotBrain::RobotBrain(std::shared_ptr<SpeakerExecutor> s,
     nlu->init();
     
     std::cout << "[Brain] 逻辑引擎已就绪" << std::endl;
+
+    config_var _var;
+    _var = screen_get_var();
+    _currentLang = _var.lang;
+    _host_name = _var.host;
+    _robot_name = _var.robot;
 }
 
 RobotBrain::~RobotBrain() = default;
@@ -355,6 +361,25 @@ bool RobotBrain::btn_detected(const std::string& type, const std::string& data) 
         return true;
     }else if (type == "STOP") {
         if(motion) motion->pushTask("STOP");
+        return true;
+    }else if (type == "SET_HOST_NAME"){
+
+        _host_name = data;
+
+        saveVariablesToFile(_currentLang,_host_name,_robot_name);
+        if(speaker) speaker->setVariable("host_name",_host_name);
+        if(speaker) speaker->pushTask(speaker->getText("check_host_name"));
+
+        return true;
+        
+    }else if (type == "SET_ROBOT_NAME"){
+
+        _robot_name = data;
+
+        saveVariablesToFile(_currentLang,_host_name,_robot_name);
+        if(speaker) speaker->setVariable("robot_name",_robot_name);
+        if(speaker) speaker->pushTask(speaker->getText("check_robot_name"));
+        
         return true;
     }
 

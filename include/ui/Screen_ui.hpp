@@ -8,6 +8,8 @@
 #include <opencv2/opencv.hpp>
 #include <atomic>
 
+#include "Tools.hpp"
+
 
 class ScreenUI {
 public:
@@ -25,6 +27,7 @@ public:
     void showHomeScreen();
     void showMotionScreen();
     void showVisionScreen();
+    void showSettingScreen();
 
     // 推流控制
     void updateVisionFrame(const cv::Mat& pre_processed_rgb);
@@ -66,6 +69,9 @@ private:
 
     // 刷新界面时用
     void prepareMainScreen();
+
+    std::string currentLang = "en";
+
 
 };
 

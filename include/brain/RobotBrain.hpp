@@ -7,6 +7,7 @@
 
 #include "NluHandle.hpp"
 #include "TaskMonitor.hpp" 
+#include "Tools.hpp"
 
 class SpeakerExecutor;
 class MotionExecutor;
@@ -77,4 +78,8 @@ private:
     TaskDescribe _taskdescribe;
     
     EmptyResult bg;
+
+    std::string _currentLang = "en";
+    std::string _host_name = "milars";
+    std::string _robot_name = "robot";
 };

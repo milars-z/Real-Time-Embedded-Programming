@@ -4,12 +4,12 @@
         "zh": "你好很高兴见到你"
     },
     "check_host_name":{
-        "en": "you are milars",
-        "zh": "你是米拉斯"
+        "en": "you are {host_name}",
+        "zh": "你是{host_name}"
     },
     "check_robot_name": {
-        "en": "my name is your robot",
-        "zh": "我叫小小机器人"
+        "en": "my name is {robot_name}",
+        "zh": "我叫{robot_name}"
     },
     "learn_moion_now": {
         "en": "i am learning how to ",
