@@ -152,7 +152,6 @@ void TaskSupervisor::processLoop(){
                                 << describe.Name << ","
                                 << std::fixed << std::setprecision(3) << duration << ","
                                 << event.issuccessful << ",";
-                        handleTaskResult(event);
                         _logFile << std::endl;
                         _logFile.flush(); 
 

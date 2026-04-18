@@ -38,7 +38,7 @@ SystemConfig makecfg(const std::string& testmodule) {
 
     // microphone测试模式，测试stt
     }else if (testmodule == "microphone") {
-        cfg.enableNlu         = false;
+        cfg.enableNlu         = true;
         cfg.enableSpeaker     = false;
         cfg.enableCamera      = false;
         cfg.enableMotion      = false;
@@ -47,6 +47,7 @@ SystemConfig makecfg(const std::string& testmodule) {
         cfg.testmode          = TestMode::MICROPHONETEST;
 
     // nlu测试模式，测试nlu转换性能，同时激活microphone，在屏幕输出text
+    // nlu测试暂时和microphone绑定，后续规划中该功能仅用作（是否启动nlu模块）而非测试nlu提取
     }else if (testmodule == "nlu") {
         cfg.enableNlu         = true;
         cfg.enableSpeaker     = false;

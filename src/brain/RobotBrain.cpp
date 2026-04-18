@@ -71,8 +71,11 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 
     TaskEvent _taskevent;
     _taskevent.moduleName = "Nlu";
-    
 
+    if(!speaker){
+        isLearningMode = false;
+    }
+    
     if (isLearningMode) {
         processLearning(text);
         if(!motion) return;
