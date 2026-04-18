@@ -116,9 +116,25 @@ void UsbMicrophone::captureLoop() {
         if (rc == -EPIPE) {
             // Overrun 
             snd_pcm_prepare(_handle);
-        } else if (rc < 0) {
-            std::cerr << "can't read: " << snd_strerror(rc) << std::endl;
-        } else if (rc > 0) {
+        } 
+        if (rc == -ENODEV) {
+            std::cerr << "[MicphoneEngine] device lost: " << snd_strerror(rc) << std::endl;
+            _running = false;
+            break;
+        }
+
+        if (rc < 0) {
+            std::cerr << "[MicphoneEngine] can't read: " << snd_strerror(rc) << std::endl;
+
+            if (snd_pcm_prepare(_handle) < 0) {
+                std::cerr << "[MicphoneEngine] recovery failed, exiting capture loop." << std::endl;
+                _running = false;
+                break;
+            }
+            continue;
+        }
+        
+         else if (rc > 0) {
             // read successfully
             if (_callback) {
                 _callback(buffer);
