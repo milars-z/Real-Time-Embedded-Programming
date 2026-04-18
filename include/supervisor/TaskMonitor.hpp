@@ -7,10 +7,6 @@
 #include"TaskMessage.hpp"
 #include"ThreadSafeQueue.hpp"
 
-// monitor负责两项任务，分别是将任务push进队列和pop出队列
-// 指针传给每个执行者，用postEvent
-// 外部用waitEvent来获取内部Task，然后计算时间并反馈任务
-
 class TaskMonitor{
 public:
 

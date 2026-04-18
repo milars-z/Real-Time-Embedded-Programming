@@ -15,15 +15,16 @@ CameraExecutor::CameraExecutor(std::atomic<int>& system_state, std::shared_ptr<T
         _taskMonitor
     );
     if (!cam->open()) {
-        std::cerr << "[CameraExecutor] Hardware initialization failed!" << std::endl;
+        std::cerr << "[Error][CameraApp] Hardware initialization failed!" << std::endl;
         system_state |= ERR_CAMERA_INIT;
     }
 }
 
 CameraExecutor::~CameraExecutor() {
-    std::cout << "[CameraExecutor] destructor end" << std::endl;
+    std::cout << "[End][CameraApp] destructor end" << std::endl;
 }
 
+// 线程绑定
 void CameraExecutor::pinThread(int num){
     pinThreadToCore(this->worker, "CameraTask", num);
 }
@@ -32,38 +33,31 @@ std::string CameraExecutor::get_module_name(){
     return "Camera";
 }
 
-// 阻塞退出
+// 内部线程退出
 void CameraExecutor::_stop(){
     if(cam){
         cam->stop_thread();
-        std::cout << "[CameraApp] Worker thread exited..." << std::endl;
+        std::cout << "[End][CameraApp] Worker thread exited..." << std::endl;
     }
 }
 
+// 内部线程启动
 void CameraExecutor::_start(int core){
     if (!cam) return;
     cam->start_thread(core);
-    std::cout << "[CameraApp] Internal thread started, pinned to core:" << core << std::endl;
+    std::cout << "[Info][CameraApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
+// Camera任务执行，线程函数
 void CameraExecutor::onExecute(const std::string& task) {
 
-    std::cout << "[CameraApp] Executing task: " << task << std::endl;
-
-    
-    // 任务由brain下发，现在已经确定的任务有以下几种
-    // FINDOBJ:apple
-    // LEARNOBJ:apple
-    // UPDATEBG
-    // 首先经过分词提取意图
+    std::cout << "[Info][CameraApp] Executing task: " << task << std::endl;
 
     CameraCommand cmd; 
     cmd = analyzecommand(task);
 
     if (cmd.command == "FINDOBJ"){
         cam->Find_obj(cmd.obj);
-        auto pos_res = cam->getObjectPosition();
-        std::cout << "[CameraApp] Target position: x=" << pos_res.x << " y=" << pos_res.y << std::endl;
     }else if(cmd.command == "LEARNOBJ"){
         cam->Learn_obj(cmd.obj);
         std::cout << "[CameraApp] Object features saved: " << cmd.obj << std::endl;
@@ -80,6 +74,7 @@ cv::Mat CameraExecutor::getLatestFrame() {
     return cam->getProcessedFrame();
 }
 
+// Camera任务解析
 CameraCommand CameraExecutor::analyzecommand(const std::string& text){
 
     CameraCommand cmd;

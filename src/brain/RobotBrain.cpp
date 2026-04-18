@@ -25,7 +25,7 @@ RobotBrain::RobotBrain(std::shared_ptr<SpeakerExecutor> s,
     nlu = std::make_unique<NLUEngine>(Config::Nlu::NLU_MODEL_DIR); 
     if(nlu) {
         nlu->init();
-        std::cout << "[Brain] 逻辑引擎已就绪" << std::endl;
+        std::cout << "[Init][RobotBrain] 逻辑引擎已就绪" << std::endl;
     }
 
     config_var _var;
@@ -72,7 +72,7 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 
     auto res = nlu->predict(text);
     if(!speaker){
-        std::cout << "raw_text:" << text << std::endl;
+        std::cout << "[RobotBrain][Microphone_Test]raw_text:" << text << std::endl;
     }
 
     if(!nlu_detected(res)){
@@ -86,14 +86,14 @@ void RobotBrain::handleIncomingText(const std::string& text) {
         _taskMonitor->postEvent(_taskevent);
 #endif
         if(!extractIntent(text)){
-            std::cout << "[Brain] 未能识别有效意图:" << text << std::endl;
+            std::cout << "[Info][RobotBrain] 未能识别有效意图:" << text << std::endl;
             if (speaker) speaker->pushTask(speaker->getText("what_do_you_say"));
         }
 
     }else{
         // 成功检测出正确的值
         if(!speaker){
-        std::cout << "nlu_intent:" << res.intent << "nlu_value:" << res.currentValue << std::endl;
+        std::cout << "[RobotBrain][Nlu_Test]" << "nlu_intent: " << res.intent << "nlu_value: " << res.currentValue << std::endl;
     }
 #ifdef TESTMODE
         _taskevent.status = TaskStatus::FINISHED;
@@ -114,7 +114,7 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 void RobotBrain::handleUISignal(const std::string& type, const std::string& data) {
     
     if (type == "STOP_SYSTEM") {
-        std::cout << "[Brain] 收到系统退出信号" << std::endl;
+        std::cout << "[End][RobotBrain] 收到系统退出信号" << std::endl;
         _exit_signal = true;
         return;
     }
@@ -122,17 +122,17 @@ void RobotBrain::handleUISignal(const std::string& type, const std::string& data
     if (isLearningMode){
        
         if( (type == "MOTION_CONFIRM") || (type == "DO_MOTION") ){
-            std::cout << "[onLearningMode]" << type << std::endl;
+            std::cout << "[RobotBrain][onLearningMode]" << type << std::endl;
             btn_detected(type, data);
             if(!motion) return;
             return;
         }else{
-            std::cout << "信号错误" << std::endl;
+            std::cout << "[Error][RobotBrain]信号错误" << std::endl;
             return;
         }
 
     }else if (!btn_detected(type, data)) {
-        std::cout << "[Brain] 未能识别有效 UI 信号: " << type << std::endl;
+        std::cout << "[Info][RobotBrain] 未能识别有效 UI 信号: " << type << std::endl;
         return;
     }
 }
@@ -149,7 +149,7 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
     switch (type) {
         case IntentType::OTHER:
         case IntentType::UNKNOWN:
-            std::cout << "[Brain] NLU 未能识别有效意图" << std::endl;
+            std::cout << "[Info][RobotBrain] NLU 未能识别有效意图" << std::endl;
             return false;
 
         case IntentType::DO_MOTION:
@@ -157,7 +157,7 @@ bool RobotBrain::nlu_detected(const nlu_output& res) {
         case IntentType::LEARN_MOTION:
         case IntentType::LEARN_OBJ:
             if (res.currentValue.empty()) {
-                std::cout << "[Brain] NLU 识别到意图但缺少参数" << std::endl;
+                std::cout << "[Info][RobotBrain] NLU 识别到意图但缺少参数" << std::endl;
                 return false;
             }
             break;
@@ -269,9 +269,8 @@ bool RobotBrain::extractIntent(const std::string& text) {
 // 输出：false -- 未能识别该信号类型
 //      true -- 成功识别
 bool RobotBrain::btn_detected(const std::string& type, const std::string& data) {
-    // 传来的数据是固定的，因此不需要反复修改
-    // MOTION_LEARN MOTION_CONFIRM  VISION_LEARN  VISION_DETECT  VISION_UPDATE DO_MOTION
-    // 就写if了屏幕的后续扩展应该不多
+
+    
     if (type == "MOTION_LEARN") {
         isLearningMode = true;
         if(motion) motion->pushTask("LEARNMOTION:" + data);
@@ -336,5 +335,6 @@ void RobotBrain::SetState(bool state){
         isLearningMode = true;
     }else{
         isLearningMode = false;
+        motion->end_learnning_mode();
     }
 }

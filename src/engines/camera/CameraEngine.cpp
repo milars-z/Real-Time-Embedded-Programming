@@ -25,7 +25,7 @@ bool CameraEngine::start(int width, int height, int fps) {
 
     cap.open(pipeline, cv::CAP_GSTREAMER);
     if (!cap.isOpened()) {
-        std::cerr << "[CameraEngine] wrong!:can't open GStreamer pipe" << std::endl;
+        std::cerr << "[Error][CameraEngine] wrong!:can't open GStreamer pipe" << std::endl;
         return false;
     }
 

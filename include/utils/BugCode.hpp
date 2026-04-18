@@ -1,6 +1,5 @@
 #pragma once
 
-// 用来放一些Bug提示
 
 // Motion_APP层的一些bug
 enum class BugCode_M {

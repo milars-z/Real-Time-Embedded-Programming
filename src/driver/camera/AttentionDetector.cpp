@@ -14,7 +14,7 @@ AttentionDetector::AttentionDetector(const string& model_path) {
         net.setPreferableBackend(dnn::DNN_BACKEND_OPENCV);
         net.setPreferableTarget(dnn::DNN_TARGET_CPU);
     } catch (const cv::Exception& e) {
-        cerr << "[Error] Model loading failed: " << e.what() << endl;
+        cerr << "[Error][AttentionDetector] Model loading failed: " << e.what() << endl;
     }
 }
 
@@ -53,7 +53,7 @@ void AttentionDetector::update_background(const Mat& frame) {
     if (frame.empty()) return;
     bg_features = get_features(frame).clone();
     has_background = true;
-    cout << "[Info] 背景特征已更新." << endl;
+    cout << "[Info][AttentionDetector] 背景特征已更新." << endl;
 }
 
 // Using the concept of ROI Pooling to quickly extract features without the need for multiple inferences
@@ -202,8 +202,8 @@ vector<DetectedObject> AttentionDetector::detect(const Mat& frame) {
         DetectedObject obj;
         obj.id = obj_id++;
         obj.box = box;
-        obj.score = (float)area; // 暂时用面积当分数
-        obj.feature = feat_vec;  // 保存特征
+        obj.score = (float)area; 
+        obj.feature = feat_vec;  
         obj.match_name = "Unknow";
         obj.match_dist = 1.0f;
 
@@ -241,5 +241,5 @@ void AttentionDetector::init_edge_mask(int H, int W) {
             ptr[x] = wy * wx; 
         }
     }
-    cout << "[Info] Mask Generate (" << H << "x" << W << ")" << endl;
+    cout << "[Info][AttentionDetector] Mask Generate (" << H << "x" << W << ")" << endl;
 }

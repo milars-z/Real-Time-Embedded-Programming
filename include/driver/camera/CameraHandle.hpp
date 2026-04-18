@@ -19,52 +19,34 @@
 
 
 enum class CamState {
-    IDLE,       // 闲置状态，不处理图像，后续追加屏幕再进行修改
+    IDLE,       // 闲置状态，不处理图像
     LEARNING,   // 学习/保存特征状态
     FINDING,    // 查找/匹配特征状态
     UPDATING_BG // 更新背景状态
 };
 
-struct ObjPosition {
-    int x = -1;
-    int y = -1;
-};
 
 class CameraHandle {
 public:
 
-    // 构造
+
     CameraHandle(const std::string& model_path, const std::string& feature_path,std::shared_ptr<TaskMonitor> taskMonitor);
-    
-    // 解构
     ~CameraHandle();
 
-    //背景更新
+    // 外部功能调用函数
     void Update_bg();
-
-    // obj学习
     void Learn_obj(const std::string name = "obj_1");
-
-    // obj查找
     void Find_obj(const std::string name = "obj_1");
 
-    // 推流开关
-    void setDisplayEnable(bool enable);
-
-    // 获取推流，外置显示用
-    cv::Mat getDisplayFrame();
-
-    bool open();
-
-    bool stop();
-
+    // 外部lvgl推流函数
     cv::Mat getProcessedFrame();
 
-    // 获取物体位置
-    ObjPosition getObjectPosition();    
+    // 外部cam硬件控制函数
+    bool open();
+    bool stop();
 
+    // 外部线程控制函数
     void start_thread(int core);
-
     void stop_thread();
 
 
@@ -77,26 +59,19 @@ private:
     void cameraWorker();
 
     // 实际任务处理，根据最后一帧MAT进行处理
-    // 后续会更改返回值
     void processTask(const cv::Mat& target_img);
 
-    void prepareUIFrame(const cv::Mat& raw_img);
-
-    cv::Mat getFrameForUI();
-
-    cv::Mat lvgl_frame();
-    
 private:
     
     // 外界调用路径相关
     AttentionDetector _detector;
     FeatureManager    _feat_mgr;
 
-    // 任务检测
-    std::shared_ptr<TaskMonitor> _taskMonitor;
-
     // Cam硬件驱动
     CameraEngine      cam;
+
+    // 任务检测
+    std::shared_ptr<TaskMonitor> _taskMonitor;
 
     // CameraHandle线程
     std::thread       cameraThread;
@@ -117,8 +92,7 @@ private:
     // 检测/学习目标名字
     std::string target_name;
 
-    // 持续推流相关
-    // 后续使用
+    // lvgl推流相关
     std::mutex display_mtx;
     cv::Mat display_frame;
 
@@ -132,22 +106,13 @@ private:
     double _last_inference_ms = 0;              
     std::mutex _result_mtx;     
     
+    // detect相关
     std::atomic<int> last_found_index;
 
-    ObjPosition last_position;
-
-    // lvgl相关
-    cv::Mat _ui_ready_frame;       
-    std::mutex _ui_frame_mtx;      
-    const cv::Size _ui_size = cv::Size(640, 480); 
-
-    // 任务Task
+    // 任务Task相关
     std::atomic<int> task_id = 1000;
-
     TaskDescribe _taskdescribe;
-    
     EmptyResult bg;
-    
 
 };
 

@@ -41,14 +41,14 @@ bool NLUEngine::loadVocab() {
 bool NLUEngine::init() {
     cout << "[Init] Loading Vocab..." << endl;
     if (!loadVocab()) {
-        cerr << "Error: Cannot load vocab from " << vocabPath << endl;
+        cerr << "[Error][NluHandle]: Cannot load vocab from " << vocabPath << endl;
         return false;
     }
 
     cout << "[Init] Loading Meta..." << endl;
     ifstream f(metaPath);
     if (!f.is_open()) {
-        cerr << "Error: Cannot load meta from " << metaPath << endl;
+        cerr << "[Error][NluHandle]: Cannot load meta from " << metaPath << endl;
         return false;
     }
     json meta;
@@ -57,11 +57,11 @@ bool NLUEngine::init() {
         for (const auto& l : meta["intents"]) intentLabels.push_back(l);
         for (const auto& l : meta["slots"]) slotLabels.push_back(l);
     } catch (const exception& e) {
-        cerr << "JSON Error: " << e.what() << endl;
+        cerr << "[Error][NluHandle]:JSON Error: " << e.what() << endl;
         return false;
     }
 
-    cout << "[Init] Loading ONNX Model via ONNX Runtime..." << endl;
+    cout << "[Init][NluHandle] Loading ONNX Model via ONNX Runtime..." << endl;
     try {
         Ort::SessionOptions session_options;
         session_options.SetIntraOpNumThreads(1); 
@@ -69,7 +69,7 @@ bool NLUEngine::init() {
 
         session = std::make_unique<Ort::Session>(env, modelPath.c_str(), session_options);
     } catch (const Ort::Exception& e) {
-        cerr << "ORT Error: " << e.what() << endl;
+        cerr << "[Error][NluHandle]ORT Error: " << e.what() << endl;
         return false;
     }
 
@@ -118,7 +118,7 @@ vector<int> NLUEngine::tokenize(const string& text) {
 nlu_output NLUEngine::predict(const string& text) {
 
     if (session == nullptr) {
-        std::cerr << "[Fatal Error] ORT Session is NULL! Model not loaded." << std::endl;
+        std::cerr << "[Error][NluHandle] ORT Session is NULL! Model not loaded." << std::endl;
         return {"Error", "SessionNull", ""};
     }
     //Tokenize
@@ -200,7 +200,7 @@ nlu_output NLUEngine::predict(const string& text) {
 
     } catch (const Ort::Exception& e) {
         nlu_output nlu_outp = {"None","None","None"};
-        cerr << "Inference Error: " << e.what() << endl;
+        cerr << "[Error][NluHandle]Inference Error: " << e.what() << endl;
         return nlu_outp;
     }
 }

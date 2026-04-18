@@ -5,28 +5,28 @@ RobotArmController::RobotArmController(const std::string& configFile)
     _fd = open("/dev/i2c-1", O_RDWR);
 
     if (_fd < 0 || ioctl(_fd, I2C_SLAVE, 0x40) < 0) {
-        std::cerr << "wrong i2c device or slave address, check sudo i2cdetect -y 1" << std::endl;
+        std::cerr << "[Error][PwmBoardController]wrong i2c device or slave address, check sudo i2cdetect -y 1" << std::endl;
         lastStatus = WRONG_IIC;
         return;
     }
 
     if (!initHardware()) {
-        std::cerr << "failed to initialize PCA9685" << std::endl;
+        std::cerr << "[Error][PwmBoardController]failed to initialize PCA9685" << std::endl;
         lastStatus = PWM_FAIL;
         return;
     }
 
     if (!loadConfig(configFile)) {
-        std::cerr << "failed to load config file" << std::endl;
+        std::cerr << "[Error][PwmBoardController]failed to load config file" << std::endl;
         lastStatus = CONFIG_FAIL;
         return;
     }
 
-    std::cout << "wait for init complete" << std::endl;
+    std::cout << "[Info][[PwmBoardController]wait for init complete" << std::endl;
 
     IninServo();
 
-    std::cout << "[Init] RobotArmController init successfully" << std::endl;
+    std::cout << "[Init][PwmBoardController]RobotArmController init successfully" << std::endl;
 }
 
 RobotArmController::~RobotArmController() {
@@ -56,7 +56,7 @@ bool RobotArmController::setAngle(const std::string& name, float angle){
     buffer[3] = static_cast<uint8_t>(offValue & 0xFF); 
     buffer[4] = static_cast<uint8_t>(offValue >> 8);  
     if (write(_fd, buffer, 5) != 5) {
-        cerr << "Failed to write servo " << s.name << " via batch write!" << endl;
+        cerr << "[Error][PwmBoardController]Failed to write servo " << s.name << " via batch write!" << endl;
         return false;
     }      
     return true;
@@ -106,7 +106,7 @@ bool RobotArmController::initHardware() {
 bool RobotArmController::writeReg(uint8_t reg, uint8_t val) {
         uint8_t buf[2] = {reg, val};
         if (write(_fd, buf, 2) != 2) {
-            cerr << "failed to write register 0x" << hex << (int)reg << dec << endl;
+            cerr << "[Error][PwmBoardController]failed to write register 0x" << hex << (int)reg << dec << endl;
             return false;
         }
         return true;
@@ -115,7 +115,7 @@ bool RobotArmController::writeReg(uint8_t reg, uint8_t val) {
 bool RobotArmController::loadConfig(const string& path) {
         ifstream file(path);
         if (!file.is_open()) { 
-            cerr << "cant find config file: " << path << endl;
+            cerr << "[Error][PwmBoardController]cant find config file: " << path << endl;
             return false; 
         }
 
@@ -131,7 +131,7 @@ bool RobotArmController::loadConfig(const string& path) {
             float init, minA, maxA;
             if (file >> ch >> init >> minA >> maxA) {
                 servos[name] = ServoConfig{name, ch, init, minA, maxA, init};
-                cout << "load: " << name << " channel: " << ch << endl;
+                cout << "[Info][PwmBoardController]" <<"load: " << name << " channel: " << ch << endl;
             }
         }
         return true;
@@ -141,7 +141,7 @@ void RobotArmController::IninServo(){
 
         for (auto& pair : servos) {
         if(!setAngle(pair.first, pair.second.initAngle)) {
-            std::cerr << "failed to set initial angle for servo: " << pair.first << std::endl;
+            std::cerr << "[Error][PwmBoardController]failed to set initial angle for servo: " << pair.first << std::endl;
             lastStatus = SET_FAIL;
             return;
         }

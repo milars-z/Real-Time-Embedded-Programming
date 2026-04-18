@@ -49,9 +49,9 @@ void pinThreadToCore(std::thread &th, std::string thread_name, int core_id) {
 
     int rc = pthread_setaffinity_np(th.native_handle(), sizeof(cpu_set_t), &cpuset);
     if (rc != 0) {
-        std::cerr << "Error pinning thread to core " << core_id << std::endl;
+        std::cerr << "[Error][Tools]Error pinning thread to core " << core_id << std::endl;
     } else {
-        std::cout << thread_name << "Thread bound to Core " << core_id << std::endl;
+        std::cout << thread_name << "[Init]Thread bound to Core " << core_id << std::endl;
     }
 }
 
@@ -61,8 +61,7 @@ void pinThreadToCore(std::thread &th, std::string thread_name, int core_id) {
 #include <iomanip>
 
 
-// wrote by AI
-// 后续有时间追加不同状态的banner
+// write with help of AI
 void print_startup_banner(SystemConfig cfg) {
 
     const int WIDTH = 64; 
@@ -97,7 +96,7 @@ void print_startup_banner(SystemConfig cfg) {
     auto status = [INNER_WIDTH](std::string mod, std::string stat, bool iserror = false) {
         std::string prefix = "> " + mod + " ";
         std::string suffix = " [ " + stat + " ]";
-        // 计算中间需要填充多少个点
+
         int dot_count = INNER_WIDTH - prefix.length() - suffix.length();
         if (dot_count < 0) dot_count = 0;
 
@@ -166,7 +165,7 @@ config_var screen_get_var(){
     _var.robot = "Error_value";
 
     if (!file.is_open()) {
-        std::cerr << "cant load speaker_text" << std::endl;
+        std::cerr << "[Error][Speaker] " << "cant load speaker_text" << std::endl;
         return _var;
     }else{
         
@@ -217,7 +216,7 @@ void saveVariablesToFile(const std::string& lang, const std::string& host, const
         
         file.close();
     } else {
-        std::cout << "[SpeakerAPP] fail to open file for writing" << std::endl;
+        std::cout << "[Error][SpeakerAPP] fail to open file for writing" << std::endl;
     }
 }
 
@@ -235,7 +234,9 @@ IntentType parseIntent(const std::string& intent) {
     return IntentType::UNKNOWN;
 }
 
-
+// 分词
+// string -> word vector
+// using in RobotBrain
 std::vector<std::string> split_text(const std::string& text) {
     std::stringstream ss(text);
     std::string word;

@@ -30,8 +30,7 @@ VoiceProducer::VoiceProducer(std::atomic<int>& system_state, const std::string& 
 }
 
 VoiceProducer::~VoiceProducer() {
-    // stop(); 
-    
+
     if (recognizer) {
         vosk_recognizer_free(recognizer);
         recognizer = nullptr;
@@ -40,27 +39,15 @@ VoiceProducer::~VoiceProducer() {
         vosk_model_free(model);
         model = nullptr;
     }
-    std::cout << "[MicrophoneApp] Voice resources released." << std::endl;
+    std::cout << "[End][MicrophoneApp] Voice resources released." << std::endl;
 }
 
 void VoiceProducer::start() {
     if (!mic) return;
-    std::cout << "[MicrophoneApp] Starting voice listening..." << std::endl;
+    std::cout << "[Init][MicrophoneApp] Starting voice listening..." << std::endl;
     
     mic->start([this](std::vector<short> data) {
-    
         _snddata.push(data);
-        // if (vosk_recognizer_accept_waveform(recognizer, 
-        //                                     (const char*)data.data(), 
-        //                                     data.size() * sizeof(short))) {
-        //     std::string result = vosk_recognizer_result(recognizer);
-        //     std::string text = extractText(result); 
-        //     if (!text.empty() && onTextReady) {
-        //         onTextReady(text); // 触发回调给 RobotBrain
-        //     }else{
-
-        //     }
-        // }
     });
 }
 
@@ -68,7 +55,7 @@ void VoiceProducer::_start(int core){
     if(!mic) return;
     start_thread(core);
     mic->start_thread(core);
-    std::cout << "[MicrophoneApp] Internal thread started, pinned to core:" << core << std::endl;
+    std::cout << "[Init][MicrophoneApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
 
@@ -76,7 +63,7 @@ void VoiceProducer::stop() {
     if (mic) {
         mic->stop(); 
         stop_thread();
-        std::cout << "[MicrophoneApp] Microphone stopped." << std::endl;
+        std::cout << "[End][MicrophoneApp] Microphone stopped." << std::endl;
     }
 }
 
@@ -110,23 +97,22 @@ void VoiceProducer::voskWorker(){
                                         (const char*)data.data(), 
                                         data.size() * sizeof(short))){
 #ifdef TESTMODE
-// 有内容，开始准备检测
-        TaskEvent _taskevent;
-        TaskDescribe _taskdescribe;
-        _taskevent.moduleName = "Microphone";
-        _taskevent.status = TaskStatus::STARTED;
-        _taskdescribe.TaskType = "STT";
-        _taskdescribe.Name = "None";
-        _taskevent.result = bg;
-        _taskevent.taskType = _taskdescribe;
-        _taskevent.taskId = task_id++;
-        _taskevent.timestamp = std::chrono::steady_clock::now();
-        _taskMonitor->postEvent(_taskevent);
+            TaskEvent _taskevent;
+            TaskDescribe _taskdescribe;
+            _taskevent.moduleName = "Microphone";
+            _taskevent.status = TaskStatus::STARTED;
+            _taskdescribe.TaskType = "STT";
+            _taskdescribe.Name = "None";
+            _taskevent.result = bg;
+            _taskevent.taskType = _taskdescribe;
+            _taskevent.taskId = task_id++;
+            _taskevent.timestamp = std::chrono::steady_clock::now();
+            _taskMonitor->postEvent(_taskevent);
 #endif
-        std::string result = vosk_recognizer_result(recognizer);
-        std::string text = extractText(result);
+            std::string result = vosk_recognizer_result(recognizer);
+            std::string text = extractText(result);
 
-        if (!text.empty() && onTextReady){
+            if (!text.empty() && onTextReady){
 #ifdef TESTMODE
                 _taskevent.moduleName = "Microphone";
                 _taskevent.status = TaskStatus::FINISHED;
@@ -138,8 +124,8 @@ void VoiceProducer::voskWorker(){
                 _taskevent.timestamp = std::chrono::steady_clock::now();
                 _taskMonitor->postEvent(_taskevent);
 #endif
-            onTextReady(text);
-        }else{
+                onTextReady(text);
+            }else{
 #ifdef TESTMODE
                 _taskevent.moduleName = "Microphone";
                 _taskevent.status = TaskStatus::FINISHED;
@@ -151,8 +137,8 @@ void VoiceProducer::voskWorker(){
                 _taskevent.timestamp = std::chrono::steady_clock::now();
                 _taskMonitor->postEvent(_taskevent);
 #endif
+            }
         }
-                                        }
         
     }
 }

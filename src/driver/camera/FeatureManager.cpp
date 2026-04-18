@@ -14,23 +14,20 @@ FeatureManager::FeatureManager(const string& path) : db_file_path(path) {
     load();
 }
 
-// 特征加载并保存
+
 void FeatureManager::load() {
     feature_db.clear();
     FileStorage fs(db_file_path, FileStorage::READ);
     if (!fs.isOpened()) {
-        cout << "[Info] 特征库文件不存在或无法打开，将创建新文件: " << db_file_path << endl;
+        cout << "[Info][FeatureManager] 特征库文件不存在或无法打开，将创建新文件: " << db_file_path << endl;
         return;
     }
 
-    // 遍历 YAML 中的所有节点
     FileNode root = fs.root();
     for (FileNodeIterator it = root.begin(); it != root.end(); ++it) {
         string name = (*it).name();
         FileNode features_node = *it;
-        
         vector<vector<float>> feats;
-        // 读取该名字下的所有特征向量
         for (auto fn : features_node) {
             vector<float> vec;
             fn >> vec;
@@ -39,7 +36,7 @@ void FeatureManager::load() {
         feature_db[name] = feats;
     }
     fs.release();
-    cout << "[Info] 特征库加载完成，共 " << feature_db.size() << " 类物品。" << endl;
+    cout << "[Info][FeatureManager] 特征库加载完成，共 " << feature_db.size() << " 类物品。" << endl;
 }
 
 
@@ -49,41 +46,31 @@ void FeatureManager::load() {
 // 返回保存状态
 bool FeatureManager::save_feature(const DetectedObject& obj, const string& name) {
     if (obj.feature.empty()) {
-        cerr << "[Error] 试图保存空特征！" << endl;
+        cerr << "[Error][FeatureManager] 试图保存空特征！" << endl;
         return false;
     }
 
-    // 更新内存
     feature_db[name].push_back(obj.feature);
 
-    // 写入文件 
     FileStorage fs(db_file_path, FileStorage::WRITE);
     if (!fs.isOpened()) return false;
 
     for (const auto& pair : feature_db) {
-        fs << pair.first << "["; // 开始列表
+        fs << pair.first << "["; 
         for (const auto& vec : pair.second) {
-            fs << vec; // 写入向量
+            fs << vec; 
         }
-        fs << "]"; // 结束列表
+        fs << "]"; 
     }
     fs.release();
     
-    cout << "[Info] 已保存 " << name << " 的特征 (样本数: " << feature_db[name].size() << ")" << endl;
+    cout << "[Info][FeatureManager] 已保存 " << name << " 的特征 (样本数: " << feature_db[name].size() << ")" << endl;
     return true;
 }
 
 // 计算L2
 float FeatureManager::compute_distance(const vector<float>& f1, const vector<float>& f2) {
-    // if (f1.size() != f2.size()) return 100.0f; // 维度不匹配
-    
-    // // 计算L2作为匹配分
-    // double sum = 0;
-    // for (size_t i = 0; i < f1.size(); ++i) {
-    //     double diff = f1[i] - f2[i];
-    //     sum += diff * diff;
-    // }
-    // return (float)sqrt(sum);
+
     if (f1.size() != f2.size()) return 1.0f; 
 
     double dot_product = 0.0;
@@ -109,7 +96,7 @@ float FeatureManager::compute_distance(const vector<float>& f1, const vector<flo
 // 输出当前匹配度最高的一个obj的id
 int FeatureManager::match_object(const string& target_name, vector<DetectedObject>& objects, float threshold) {
     if (feature_db.find(target_name) == feature_db.end()) {
-        cout << "[Warn] 数据库中没有 " << target_name << " 的特征" << endl;
+        cout << "[Info][FeatureManager] 数据库中没有 " << target_name << " 的特征" << endl;
         return -1;
     }
 
@@ -129,7 +116,7 @@ int FeatureManager::match_object(const string& target_name, vector<DetectedObjec
                 // 如果小于阈值，认为是候选
                 if (min_dist < threshold) {
                     best_match_idx = (int)i;
-                    objects[i].match_name = target_name; // 标记
+                    objects[i].match_name = target_name; 
                     objects[i].match_dist = min_dist;
                 }
             }
@@ -137,7 +124,7 @@ int FeatureManager::match_object(const string& target_name, vector<DetectedObjec
     }
 
     if (best_match_idx != -1) {
-        cout << "[Match] 找到 " << target_name << " (ID: " << objects[best_match_idx].id 
+        cout << "[Match][FeatureManager] 找到 " << target_name << " (ID: " << objects[best_match_idx].id 
              << ", Dist: " << min_dist << ")" << endl;
     }
 

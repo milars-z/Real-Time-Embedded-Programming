@@ -70,7 +70,7 @@ void TaskSupervisor::Initfile(){
         _logFile.open(Fp, std::ios::app);
 
         if (!_logFile.is_open()) {
-            throw std::runtime_error("Failed to open log file: " + Fp);
+            std::cerr << "[Error][Supervisor]Failed to open log file: " + Fp << std::endl;
         }
 
         _logFile.seekp(0, std::ios::end);
@@ -78,10 +78,10 @@ void TaskSupervisor::Initfile(){
             _logFile << "TaskID,Module,Type,TargetName,Duration(ms),issuccessful\n";
         }
 
-        std::cout << "[Supervisor] Logging initialized at: " << Fp << std::endl;
+        std::cout << "[Init][Supervisor] Logging initialized at: " << Fp << std::endl;
     } 
     catch (const std::exception& e) {
-        std::cerr << "[Critical][Supervisor] Logger initialization failed: " << e.what() << std::endl;
+        std::cerr << "[Error][Supervisor] Logger initialization failed: " << e.what() << std::endl;
     }
 }
 
@@ -132,9 +132,8 @@ void TaskSupervisor::processLoop(){
                     _pendingTasks.erase(it);
                 }else{
                     // 来到这里说明出现了异常，即有结束但是没有开始
-                    std::cerr << "[TaskSupervisor]file system error,ID : " << event.taskId << "Module : " << event.moduleName << std::endl;
+                    std::cerr << "[Error][TaskSupervisor]file system error,ID : " << event.taskId << "Module : " << event.moduleName << std::endl;
                 }
-
             }
 
 
@@ -159,26 +158,27 @@ void TaskSupervisor::processLoop(){
 
                         _pendingTasks.erase(it);
                     }else{
-                        std::cerr << "[TaskSupervisor]存在异步消息 : " << event.taskId << "Module : " << event.moduleName << std::endl;
+                        std::cerr << "[Error][TaskSupervisor]存在异步消息 : " << event.taskId << "Module : " << event.moduleName << std::endl;
                     }
                 }
 
             }else{
-                std::cout<< "[fatal][supervisor] error handle supervisor: " << event.moduleName << std::endl;
+                std::cout<< "[Error][TaskSupervisor] error handle supervisor: " << event.moduleName << std::endl;
             }
     }
 }
 
+// 处理来自Camera和motion侧的任务执行结果
+// 对不同的结果提供不同反馈
 void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
-    // 根据反馈的细节进行调节并部署新的task
-    //判断是否是cam
+
+    // 针对Camera的结果
     if (e.moduleName == "Camera"){
-        // 如果是camera的结果，分为三类
-        // 更新背景
-        // 获取任务描述
+
         const auto& describe = std::get<TaskDescribe>(e.taskType);
+
+        // 背景更新
         if(describe.TaskType == "Update"){
-            // 暂时没有做失败的逻辑，应该不会失败
             if(_speaker) _speaker->pushTask(_speaker->getText("update_bg"));
         }
 
@@ -207,6 +207,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
                 if(_speaker) _speaker->pushTask(_speaker->getText("need_bg"));
                 return;
             }
+            // 针对检测结果进行反馈
             const auto& learn_ans = std::get<CameraResult>(e.result);
             std::string name = learn_ans.objectName;
             if(learn_ans.isdetecte == false){
@@ -220,6 +221,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             }
         }
 
+    // 针对Motion的结果
     }else if (e.moduleName == "MotionSet"){
         const auto& learn_ans = std::get<MotionResult>(e.result);
         // DO NOTION (NORMAL)
@@ -227,7 +229,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             // donotion
         }
 
-        if(learn_ans.result == BugCode_M::DoingSuccess){
+        else if(learn_ans.result == BugCode_M::DoingSuccess){
             // doing motion
             if(_speaker) _speaker->pushTask(_speaker->getText("do_motion") + learn_ans.name);
         }
@@ -249,6 +251,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             if(_brain) _brain->SetState(false);
         }
 
+        // WriteInvalidSet - learning_nothing
         else if(learn_ans.result == BugCode_M::WriteInvalidSet){
             if(_speaker) _speaker->pushTask(_speaker->getText("learning_nothing") + learn_ans.name);
             if(_brain) _brain->SetState(false);
@@ -269,10 +272,9 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             if(_speaker) _speaker->pushTask(_speaker->getText("learn_moion_finish") + learn_ans.name);
             if(_brain) _brain->SetState(false);
         }else{
-            std::cout<< "[fatal][supervisor] error handle supervisor message _ motion" << std::endl;
+            std::cout<< "[Error][TaskSupervisor] error handle supervisor message _ motion: " << int(learn_ans.result) <<  std::endl;
         }
-        //仅查看学习状态
     }else{
-        std::cout<< "[fatal][supervisor] error handle supervisor message, name:" << e.moduleName << std::endl;
+        std::cout<< "[Error][TaskSupervisor] error handle supervisor message, name:" << e.moduleName << std::endl;
     }
 }

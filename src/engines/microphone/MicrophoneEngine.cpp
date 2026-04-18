@@ -25,12 +25,10 @@ UsbMicrophone::~UsbMicrophone() {
 bool UsbMicrophone::open() {
     int rc = snd_pcm_open(&_handle, _deviceName.c_str(), SND_PCM_STREAM_CAPTURE, 0);
     if (rc < 0) {
-        std::cerr << "cant open audio devices: " << snd_strerror(rc) << std::endl;
+        std::cerr << "[Error][MicrophoneEngine]cant open audio devices: " << snd_strerror(rc) << std::endl;
         return false;
     }
 
-    // hardware param setting
-    // snd_pcm_hw_params_t* params  :  vector to store params
     snd_pcm_hw_params_t* params;
     snd_pcm_hw_params_alloca(&params);
     // init params with device's information
@@ -49,7 +47,7 @@ bool UsbMicrophone::open() {
     // params check
     rc = snd_pcm_hw_params(_handle, params);
     if (rc < 0) {
-        std::cerr << "can't set suitable params for device: " << snd_strerror(rc) << std::endl;
+        std::cerr << "[Error][MicrophoneEngine]can't set suitable params for device: " << snd_strerror(rc) << std::endl;
         return false;
     }
     return true;
@@ -68,15 +66,6 @@ bool UsbMicrophone::start(AudioCallback callback) {
     if (_running) return true;
     _callback = callback;
     
-    // try{
-    //     captureThread = std::thread(&UsbMicrophone::captureLoop, this);
-    //     pinThreadToCore(captureThread, "Mic" ,3);
-    //     return true;
-    // }catch (const std::system_error& e) {
-    //     std::cerr << "[Fatal] Failed to create mic thread: " << e.what() << std::endl;
-    //     _running = false;
-    //     return false;
-    // }
     return true;
 }
 
@@ -86,19 +75,12 @@ void UsbMicrophone::start_thread(int core){
     pinThreadToCore(captureThread, "Mic" ,core);
 }
 
-// void UsbMicrophone::stop_thread(){
-//     _running = false;
-//     if (captureThread.joinable()) {
-//         captureThread.join();
-//         std::cout << "[UsbMicphone]:captureThread closed" << std::endl; 
-//     }
-// }
 
 void UsbMicrophone::stop() {
     _running = false;
     if (captureThread.joinable()) {
         captureThread.join();
-        std::cout << "[UsbMicphone]:captureThread closed" << std::endl; 
+        std::cout << "[Info][UsbMicphone]:captureThread closed" << std::endl; 
     }
 }
 
@@ -118,16 +100,16 @@ void UsbMicrophone::captureLoop() {
             snd_pcm_prepare(_handle);
         } 
         if (rc == -ENODEV) {
-            std::cerr << "[MicphoneEngine] device lost: " << snd_strerror(rc) << std::endl;
+            std::cerr << "[Error][MicphoneEngine] device lost: " << snd_strerror(rc) << std::endl;
             _running = false;
             break;
         }
 
         if (rc < 0) {
-            std::cerr << "[MicphoneEngine] can't read: " << snd_strerror(rc) << std::endl;
+            std::cerr << "[Error][MicphoneEngine] can't read: " << snd_strerror(rc) << std::endl;
 
             if (snd_pcm_prepare(_handle) < 0) {
-                std::cerr << "[MicphoneEngine] recovery failed, exiting capture loop." << std::endl;
+                std::cerr << "[Error][MicphoneEngine] recovery failed, exiting capture loop." << std::endl;
                 _running = false;
                 break;
             }

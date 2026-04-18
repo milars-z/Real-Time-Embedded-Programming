@@ -20,22 +20,22 @@ SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::stri
     );
 
     if (speaker->open()) {
-        std::cout << "[Speaker] 音频硬件已就绪" << std::endl;
+        std::cout << "[Init][Speaker] 音频硬件已就绪" << std::endl;
     } else {
-        std::cerr << "[Speaker] 无法打开音频设备: " << path << std::endl;
+        std::cerr << "[Error][Speaker] 无法打开音频设备: " << path << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     }
 
     if(loadLibrary()){
-        std::cout << "[Speaker] text已就绪" << std::endl;
+        std::cout << "[Init][Speaker] text已就绪" << std::endl;
     }else {
-        std::cerr << "[Speaker] 无法找到正确的text映射 " << std::endl;
+        std::cerr << "[Error][Speaker] 无法找到正确的text映射 " << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     } 
     if(loadVariable()){
-        std::cout << "[Speaker] variable已就绪" << std::endl;
+        std::cout << "[Init][Speaker] variable已就绪" << std::endl;
     }else {
-        std::cerr << "[Speaker] 无法找到正确的variable映射 " << std::endl;
+        std::cerr << "[Error][SpeakerApp] 无法找到正确的variable映射 " << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     }    
 }
@@ -43,7 +43,7 @@ SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::stri
 // 暂时用不到结构函数
 // 后续切换语言时或许需要在析构函数中清理资源
 SpeakerExecutor::~SpeakerExecutor() {
-    std::cout << "[SpeakerExecutor] destructor end" << std::endl;
+    std::cout << "[End][SpeakerApp] destructor end" << std::endl;
 }
 
 std::string SpeakerExecutor::get_module_name(){
@@ -54,14 +54,14 @@ std::string SpeakerExecutor::get_module_name(){
 void SpeakerExecutor::_stop(){
     if(speaker){
         speaker->stop_thread();
-        std::cout << "[Speaker] 内部线程已退出..." << std::endl;
+        std::cout << "[End][SpeakerApp] 内部线程已退出..." << std::endl;
     }
 }
 
 void SpeakerExecutor::_start(int core){
     if(!speaker) return;
     speaker->start_thread(core);
-    std::cout << "[Speaker] 内部线程已开启,绑定在core:" << core << std::endl;
+    std::cout << "[Init][SpeakerApp] 内部线程已开启,绑定在core:" << core << std::endl;
 }
 
 
@@ -83,7 +83,7 @@ bool SpeakerExecutor::loadLibrary(){
     std::ifstream file(_speaker_path);
 
     if (!file.is_open()) {
-        std::cerr << "cant load speaker_text" << std::endl;
+        std::cerr << "[Error][SpeakerApp]cant load speaker_text" << std::endl;
         return false;
     }else{
         nlohmann::json data;
@@ -147,12 +147,6 @@ void SpeakerExecutor::setLanguage(const std::string& lang){
         currentLang = "en";
     }
 
-    // is_success = loadLibrary();
-
-    // is_success &= loadVariable();
-
-    // return is_success;
-
 }
 
 void SpeakerExecutor::setVariable(const std::string& key, const std::string& value){
@@ -162,7 +156,7 @@ void SpeakerExecutor::setVariable(const std::string& key, const std::string& val
     }else if( key == "robot_name" ){
         _robot_name = value;
     }else{
-        std::cout << "[SpeakerAPP] fail set variable" << std::endl;
+        std::cerr << "[Error][SpeakerAPP] fail set variable" << std::endl;
     }
 
 }

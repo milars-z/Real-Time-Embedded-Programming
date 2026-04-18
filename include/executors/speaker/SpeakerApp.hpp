@@ -34,9 +34,6 @@ private:
     // 加载lib
     bool loadLibrary();
 
-    
-    
-
     // 配置语言-暂时不配置
     void setLanguage(const std::string& lang);
 

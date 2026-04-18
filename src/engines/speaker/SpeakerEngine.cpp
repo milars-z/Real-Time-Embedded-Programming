@@ -62,10 +62,10 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 
     if (_tts) {
         _sampleRate = SherpaOnnxOfflineTtsSampleRate(_tts);
-        std::cout << "Sherpa-Onnx Init Success! Sample Rate: " << _sampleRate << std::endl;
+        std::cout << "[Init][SpeakerEngine]Sherpa-Onnx Init Success! Sample Rate: " << _sampleRate << std::endl;
     } else {
-        std::cerr << "Error: Failed to create Sherpa-Onnx TTS engine!" << std::endl;
-        std::cerr << "Please check model path: " << modelPath << std::endl;
+        std::cerr << "[Error][SpeakerEngine] Failed to create Sherpa-Onnx TTS engine!" << std::endl;
+        std::cerr << "[Error][SpeakerEngine]Please check model path: " << modelPath << std::endl;
     }
 
     _running = false;
@@ -75,9 +75,9 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 
     load_innerText(Config::Speaker::INNER_TEXT);
 #ifdef PRECACHE
-    std::cout << "[speakerEngine]Loading internal phrases..." << std::endl;
+    std::cout << "[Info][speakerEngine]Loading internal phrases..." << std::endl;
     warmupCache(_inner_text);
-    std::cout << "[speakerEngine]Loading Successfully!!" << std::endl;
+    std::cout << "[Info][speakerEngine]Loading Successfully!!" << std::endl;
 #endif
 
 }
@@ -107,7 +107,6 @@ void UsbSpeaker::start_thread(int core){
 
 }
 
-// speaker模块设计的时候还没有ThreadSafeQueue
 void UsbSpeaker::stop_thread() {
     if (!_running) return ;
     _running = false;
@@ -126,7 +125,7 @@ bool UsbSpeaker::open() {
     // _deviceName.c_str(): device name, e.g. "hw:2,0"
     int rc = snd_pcm_open(&_handle, _deviceName.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
     if (rc < 0) {
-        std::cerr << "Speaker Error: " << snd_strerror(rc) << std::endl;
+        std::cerr << "[Error][SpeakerEngine]Speaker Error: " << snd_strerror(rc) << std::endl;
         return false;
     }
 
@@ -330,7 +329,7 @@ bool UsbSpeaker::load_innerText(const std::string& filepath) {
     std::ifstream file(filepath);
 
     if (!file.is_open()) {
-        std::cerr << "[SpeakerEngine] Failed to open inner_text file: " << filepath << std::endl;
+        std::cerr << "[Error][SpeakerEngine] Failed to open inner_text file: " << filepath << std::endl;
         return false;
     }
 
@@ -344,7 +343,7 @@ bool UsbSpeaker::load_innerText(const std::string& filepath) {
         count++;
     }
 
-    std::cout << "[SpeakerEngine] Loaded " << count << " cacheable texts." << std::endl;
+    std::cout << "[Info][SpeakerEngine] Loaded " << count << " cacheable texts." << std::endl;
     return true;
 }
 

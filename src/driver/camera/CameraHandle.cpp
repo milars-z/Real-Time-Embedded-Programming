@@ -20,9 +20,6 @@ CameraHandle::CameraHandle(const std::string &model_path, const std::string &fea
     // 线程绑定单核
     cv::setNumThreads(1);
 
-    
-    
-    
     // 设置相机回调
     cam.onFrame([this](const cv::Mat& img) {
 
@@ -47,10 +44,13 @@ CameraHandle::CameraHandle(const std::string &model_path, const std::string &fea
 };
 
 //解构的时候停止相机硬件
+
 CameraHandle::~CameraHandle() = default;
 
+// 内部线程启动
+// 优先开启底层线程
 void CameraHandle::start_thread(int core){
-    // 优先开启底层线程
+    
     cam.start_thread(core);
 
     running = true;
@@ -58,14 +58,14 @@ void CameraHandle::start_thread(int core){
     pinThreadToCore(cameraThread, "CamWorkThread", core);
 }
 
-
+// 内部线程关闭
+//最后关闭底层线程
 void CameraHandle::stop_thread(){
     
     running = false;
     camera_queue.stop();
     if (cameraThread.joinable()) cameraThread.join();
 
-    //最后关闭底层线程
     cam.stop_thread();
     
 }
@@ -73,32 +73,15 @@ void CameraHandle::stop_thread(){
 
 // Cam硬件启动
 bool CameraHandle::open() {
-    std::cout << "[CameraEngine] Opening Camera Hardware..." << std::endl;
+    std::cout << "[CameraHandle] Opening Camera Hardware..." << std::endl;
     if (cam.start()) {
-        std::cout << "[CameraEngine] Camera started successfully." << std::endl;
+        std::cout << "[CameraHandle] Camera started successfully." << std::endl;
         return true;
     } else {
-        std::cerr << "[CameraEngine] Failed to start camera." << std::endl;
+        std::cerr << "[CameraHandle] Failed to start camera." << std::endl;
         return false;
     }
-    cv::namedWindow("Demo", cv::WINDOW_AUTOSIZE);
 }
-
-// // Cam硬件关闭
-// bool CameraHandle::stop() {
-//     std::cout << "[CameraEngine] Closing Camera Hardware..." << std::endl;
-//     cam.stop();
-//     return true;
-// }
-
-    
-// 是否持续推流设置
-// 后续接外界屏的时候用
-// 现在暂时不需要
-void CameraHandle::setDisplayEnable(bool enable) {
-    is_display_enabled = enable;
-
-};
 
 // 外部调用函数
 // 更新背景
@@ -120,13 +103,6 @@ void CameraHandle::Find_obj(const std::string name) {
     startTask(CamState::FINDING);
 };
 
-// 获取用于显示的图像
-// 后续外接显示模块时用
-// 未使用
-cv::Mat CameraHandle::getDisplayFrame() {
-    std::lock_guard<std::mutex> lock(display_mtx);
-    return display_frame.clone();
-};
 
 void CameraHandle::startTask(CamState next_state) {
     state = CamState::IDLE;  
@@ -140,11 +116,13 @@ void CameraHandle::startTask(CamState next_state) {
 
     Camera_worker_buffer.clear();
     state = next_state;
-    std::cout << "Task Started: Sampling images..." << std::endl;
+    std::cout << "[CameraHandle]Task Started: Sampling images..." << std::endl;
 };
 
 
-
+// Cam图像处理线程
+// 保证稳定性，取5张只用最后一张进行处理
+// 在推流状态下取到合适的mat再根据Task进行处理
 void CameraHandle::cameraWorker() {
 
     while (running) {
@@ -152,16 +130,12 @@ void CameraHandle::cameraWorker() {
         if (camera_queue.pop(img)) {
             Camera_worker_buffer.push_back(img);
 
-            // 保证稳定性，取5张只用最后一张进行处理
+            
             if (Camera_worker_buffer.size() >= 5) {
 
                 cv::Mat task_img = Camera_worker_buffer.back(); 
-                          
-                // camera内部使用，根据当前状态进行逻辑处理，并绘制框图
-                processTask(task_img); 
 
-                // // lvgl侧使用，将最新的结果叠加到UI专用的图上，供UI线程调用
-                // prepareUIFrame(task_img); 
+                processTask(task_img); 
 
                 Camera_worker_buffer.clear();
                 state.store(CamState::IDLE);
@@ -171,9 +145,8 @@ void CameraHandle::cameraWorker() {
 };
 
 // 实际执行的函数，根据当前状态进行不同的处理
-// 后续需要设计返回不同的值
-// 例如物体的坐标
-// 暂时先不返回只print
+// 包括更新背景，obj学习，obj检测
+// 内部使用high_resolution_clock计算检测时间
 void CameraHandle::processTask(const cv::Mat& target_img) {
     
     if (target_img.empty()) return; 
@@ -184,9 +157,8 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     int match_idx = -1; 
     
     {
-    // 执行任务之前清空状态
-    std::lock_guard<std::mutex> lock(_result_mtx);
-    last_found_index = -1;
+        std::lock_guard<std::mutex> lock(_result_mtx);
+        last_found_index = -1;
     }
 
 #ifdef TESTMODE
@@ -206,10 +178,9 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
     learn_ans.position_y = -1;
 
 #endif
-    // 延迟计算，记录处理时间
+    
     auto start = std::chrono::high_resolution_clock::now();
-    
-    
+
     if (current_job == CamState::UPDATING_BG) {
 
 #ifdef TESTMODE
@@ -282,7 +253,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.timestamp = std::chrono::steady_clock::now();
             _taskMonitor->postEvent(std::move(_taskevent));
 #endif
-            // std::cout << "[Core 2] Learned: " << target_name << std::endl;
+
         }else{
 #ifdef TESTMODE
             // send message end
@@ -319,7 +290,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
             _taskevent.issuccessful = false;
             _taskMonitor->postEvent(std::move(_taskevent));
 #endif
-            // std::cout << "[Error][CameraHandle] No Background! " << std::endl;
+            
             return;
         }
         
@@ -327,7 +298,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 
 
         if (match_idx != -1) {
-            // std::cout << "[Core 2] Found " << target_name << " at index " << match_idx << std::endl;
+            
             cv::Rect _box = objs[match_idx].box ;
 #ifdef TESTMODE
             // send message
@@ -360,7 +331,6 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         }
     }
 
-    // 检测结束，记录时间，并保存结果
     auto end = std::chrono::high_resolution_clock::now();
     double duration = std::chrono::duration<double, std::milli>(end - start).count();
 
@@ -374,7 +344,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 
 // 在推流后绘制图用
 // 显示检测结果，框，检测时间
-// 现已使用，在main循环中调用
+// 在main循环中调用update() -> getLatestFrame() -> getProcessedFrame()
 // 返回mat
 cv::Mat CameraHandle::getProcessedFrame() {
     cv::Mat canvas;
@@ -418,21 +388,8 @@ cv::Mat CameraHandle::getProcessedFrame() {
         }
     }
 
-    // cv::resize(canvas, canvas, _ui_size);
-    // cv::cvtColor(canvas, canvas, cv::COLOR_BGR2RGB);
-
     return canvas;
 }
 
-ObjPosition CameraHandle::getObjectPosition() {
-    
-    std::lock_guard<std::mutex> lock(_result_mtx);
-
-    last_position.x = (last_found_index != -1) ? (_latest_objects[last_found_index].box.x + _latest_objects[last_found_index].box.width / 2) : -1;
-    last_position.y = (last_found_index != -1) ? (_latest_objects[last_found_index].box.y + _latest_objects[last_found_index].box.height / 2) : -1;
-
-    return last_position;
-
-}
 
 

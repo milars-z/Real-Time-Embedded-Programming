@@ -39,14 +39,8 @@ public:
     bool open();
     void close();
     
-    // PLAY PCM data directly (used by eSpeak callback)
-    void playInternal(const std::vector<short>& data);
-    
-    // PLAY text by synthesizing it with eSpeak
     void play(const std::string& text);
     
-    // void stop();
-
     void start_thread(int core);
 
     void stop_thread();
@@ -56,6 +50,8 @@ private:
     void playbackLoop();
 
     void synthesisLoop();
+
+    void playInternal(const std::vector<short>& data);
     
     void synthesisTask(const std::string& text);
 
@@ -106,6 +102,7 @@ private:
     // 缓存
     std::unordered_map<std::string, std::vector<short>> _ttsCache;
 
+    // 后续inner_text不会全部缓存，只缓存指定的text，因此设置为unordered_set方便直接用find
     std::unordered_set<std::string> _inner_text;
 };
 
