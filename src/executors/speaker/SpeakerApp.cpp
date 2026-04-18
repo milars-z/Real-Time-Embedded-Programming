@@ -20,20 +20,20 @@ SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::stri
     );
 
     if (speaker->open()) {
-        std::cout << "[Init][Speaker] 音频硬件已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] 音频硬件已就绪" << std::endl;
     } else {
-        std::cerr << "[Error][Speaker] 无法打开音频设备: " << path << std::endl;
+        std::cerr << "[Error][SpeakerApp] 无法打开音频设备: " << path << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     }
 
     if(loadLibrary()){
-        std::cout << "[Init][Speaker] text已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] text已就绪" << std::endl;
     }else {
-        std::cerr << "[Error][Speaker] 无法找到正确的text映射 " << std::endl;
+        std::cerr << "[Error][SpeakerApp] 无法找到正确的text映射 " << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     } 
     if(loadVariable()){
-        std::cout << "[Init][Speaker] variable已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] variable已就绪" << std::endl;
     }else {
         std::cerr << "[Error][SpeakerApp] 无法找到正确的variable映射 " << std::endl;
         system_state |= ERR_SPEAKER_INIT;

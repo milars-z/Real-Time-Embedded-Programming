@@ -23,7 +23,7 @@ _arm(configFile), _arm_calculator(camera_config), _taskMonitor(taskMonitor)
 
     refresh_motion_list();
     
-    std::cerr << "[Info][MotionManager] init successfully"<< std::endl;
+    std::cerr << "[Init][MotionManager] init successfully"<< std::endl;
     _isRunning = true;
     _stopRequested = true;
 
@@ -196,7 +196,7 @@ void MotionManager::refresh_motion_list() {
     _available_motions.clear();
     if (!std::filesystem::exists(_motion_folder)) {
         std::filesystem::create_directory(_motion_folder);
-        printf("[Info][MotionManager] Motion folder '%s' created.\n", _motion_folder.c_str());
+        printf("[Init][MotionManager] Motion folder '%s' created.\n", _motion_folder.c_str());
         return;
     }
 
@@ -205,7 +205,7 @@ void MotionManager::refresh_motion_list() {
             _available_motions.insert(entry.path().stem().string());
         }
     }
-    std::cout << "[Info][MotionManager] Found " << _available_motions.size() << " motion sets in folder." << std::endl;
+    std::cout << "[Init][MotionManager] Found " << _available_motions.size() << " motion sets in folder." << std::endl;
 }
 
 // 刷新已学到的motion指令集

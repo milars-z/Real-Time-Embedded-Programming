@@ -80,7 +80,7 @@ void UsbMicrophone::stop() {
     _running = false;
     if (captureThread.joinable()) {
         captureThread.join();
-        std::cout << "[Info][UsbMicphone]:captureThread closed" << std::endl; 
+        std::cout << "[End][UsbMicphone]:captureThread closed" << std::endl; 
     }
 }
 

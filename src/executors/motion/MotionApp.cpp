@@ -38,7 +38,7 @@ void MotionExecutor::_stop(){
 void MotionExecutor::_start(int core){
     if(!manager) return;
     manager->start_thread(core);
-    std::cout << "[Info][MotionApp] Internal thread started, pinned to core:" << core << std::endl;
+    std::cout << "[Init][MotionApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
 

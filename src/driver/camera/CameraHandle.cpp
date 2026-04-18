@@ -116,7 +116,7 @@ void CameraHandle::startTask(CamState next_state) {
 
     Camera_worker_buffer.clear();
     state = next_state;
-    std::cout << "[CameraHandle]Task Started: Sampling images..." << std::endl;
+    std::cout << "[Info][CameraHandle]Task Started: Sampling images..." << std::endl;
 };
 
 

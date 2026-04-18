@@ -51,7 +51,7 @@ void pinThreadToCore(std::thread &th, std::string thread_name, int core_id) {
     if (rc != 0) {
         std::cerr << "[Error][Tools]Error pinning thread to core " << core_id << std::endl;
     } else {
-        std::cout << thread_name << "[Init]Thread bound to Core " << core_id << std::endl;
+        std::cout << "[Init][Tools]" <<thread_name << "Thread bound to Core " << core_id << std::endl;
     }
 }
 

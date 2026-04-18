@@ -19,7 +19,7 @@ void FeatureManager::load() {
     feature_db.clear();
     FileStorage fs(db_file_path, FileStorage::READ);
     if (!fs.isOpened()) {
-        cout << "[Info][FeatureManager] 特征库文件不存在或无法打开，将创建新文件: " << db_file_path << endl;
+        cout << "[Init][FeatureManager] 特征库文件不存在或无法打开，将创建新文件: " << db_file_path << endl;
         return;
     }
 
@@ -36,7 +36,7 @@ void FeatureManager::load() {
         feature_db[name] = feats;
     }
     fs.release();
-    cout << "[Info][FeatureManager] 特征库加载完成，共 " << feature_db.size() << " 类物品。" << endl;
+    cout << "[Init][FeatureManager] 特征库加载完成，共 " << feature_db.size() << " 类物品。" << endl;
 }
 
 

@@ -51,7 +51,7 @@ public:
         isRunning = false;
         cv.notify_all();
         if (worker.joinable()) worker.join();
-        std::cout << "[Executor] Task thread stopped:" << get_module_name() << std::endl;
+        std::cout << "[End][Executor] Task thread stopped:" << get_module_name() << std::endl;
     }
 
     void pushTask(T task) {

@@ -45,7 +45,7 @@ void CameraExecutor::_stop(){
 void CameraExecutor::_start(int core){
     if (!cam) return;
     cam->start_thread(core);
-    std::cout << "[Info][CameraApp] Internal thread started, pinned to core:" << core << std::endl;
+    std::cout << "[Init][CameraApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
 // Camera任务执行，线程函数

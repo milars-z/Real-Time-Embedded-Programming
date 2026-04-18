@@ -22,7 +22,7 @@ RobotArmController::RobotArmController(const std::string& configFile)
         return;
     }
 
-    std::cout << "[Info][[PwmBoardController]wait for init complete" << std::endl;
+    std::cout << "[Init][[PwmBoardController]wait for init complete" << std::endl;
 
     IninServo();
 
@@ -131,7 +131,7 @@ bool RobotArmController::loadConfig(const string& path) {
             float init, minA, maxA;
             if (file >> ch >> init >> minA >> maxA) {
                 servos[name] = ServoConfig{name, ch, init, minA, maxA, init};
-                cout << "[Info][PwmBoardController]" <<"load: " << name << " channel: " << ch << endl;
+                cout << "[Init][PwmBoardController]" <<"load: " << name << " channel: " << ch << endl;
             }
         }
         return true;

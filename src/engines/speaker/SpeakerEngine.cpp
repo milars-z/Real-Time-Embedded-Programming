@@ -75,9 +75,9 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 
     load_innerText(Config::Speaker::INNER_TEXT);
 #ifdef PRECACHE
-    std::cout << "[Info][speakerEngine]Loading internal phrases..." << std::endl;
+    std::cout << "[Init][speakerEngine]Loading internal phrases..." << std::endl;
     warmupCache(_inner_text);
-    std::cout << "[Info][speakerEngine]Loading Successfully!!" << std::endl;
+    std::cout << "[Init][speakerEngine]Loading Successfully!!" << std::endl;
 #endif
 
 }
@@ -343,7 +343,7 @@ bool UsbSpeaker::load_innerText(const std::string& filepath) {
         count++;
     }
 
-    std::cout << "[Info][SpeakerEngine] Loaded " << count << " cacheable texts." << std::endl;
+    std::cout << "[Init][SpeakerEngine] Loaded " << count << " cacheable texts." << std::endl;
     return true;
 }
 

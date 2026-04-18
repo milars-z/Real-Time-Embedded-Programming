@@ -41,7 +41,7 @@ void ScreenUI::_stop(){
 
 void ScreenUI::sendSignal(std::string type, std::string data) {
         
-    printf("[ScreenUI] Triggered callback: %s:%s\n", type.c_str(), data.c_str());
+    printf("[Info][ScreenUI] Triggered callback: %s:%s\n", type.c_str(), data.c_str());
         if (onSignalEvent) {
             onSignalEvent(type, data);
         }

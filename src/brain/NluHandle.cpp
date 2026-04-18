@@ -39,13 +39,13 @@ bool NLUEngine::loadVocab() {
 }
 
 bool NLUEngine::init() {
-    cout << "[Init] Loading Vocab..." << endl;
+    cout << "[Init][NluHandle] Loading Vocab..." << endl;
     if (!loadVocab()) {
         cerr << "[Error][NluHandle]: Cannot load vocab from " << vocabPath << endl;
         return false;
     }
 
-    cout << "[Init] Loading Meta..." << endl;
+    cout << "[Init][NluHandle] Loading Meta..." << endl;
     ifstream f(metaPath);
     if (!f.is_open()) {
         cerr << "[Error][NluHandle]: Cannot load meta from " << metaPath << endl;
