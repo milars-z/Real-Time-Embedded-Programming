@@ -11,6 +11,9 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
+#include <unordered_map>
+#include <unordered_set>
+#include <fstream>
 
 #include "c-api.h"
 #include "Tools.hpp"
@@ -54,7 +57,15 @@ private:
 
     void synthesisLoop();
     
-    void synthesisTask(std::string text);
+    void synthesisTask(const std::string& text);
+
+    bool is_innerText(const std::string& text);
+
+    void warmupCache(const std::unordered_set<std::string>& texts);
+
+    std::vector<short> generate_pcm(const std::string& text);
+
+    bool load_innerText(const std::string& filepath);
 
     const SherpaOnnxOfflineTts* _tts = nullptr;
     SherpaOnnxOfflineTtsConfig _config;
@@ -75,6 +86,7 @@ private:
 
     std::mutex _queueMutex;
     std::mutex _textMutex;
+    std::mutex _cacheMutex;
 
     std::condition_variable _textCV;
     std::condition_variable _audioCV;
@@ -89,7 +101,12 @@ private:
     EmptyResult bg;
 
     // 多一个队列来维护id和文本用来处理跨函数记录
-    ThreadSafeQueue<Taskdata> _testdata;             
+    ThreadSafeQueue<Taskdata> _testdata;  
+    
+    // 缓存
+    std::unordered_map<std::string, std::vector<short>> _ttsCache;
+
+    std::unordered_set<std::string> _inner_text;
 };
 
 #endif

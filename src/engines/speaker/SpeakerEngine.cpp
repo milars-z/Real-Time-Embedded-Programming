@@ -73,6 +73,10 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
     _taskdescribe.Name = "None";
     _taskdescribe.TaskType = "TTS";
 
+    load_innerText(Config::Path::INNER_TEXT);
+    std::cout << "[speakerEngine]Loading internal phrases..." << std::endl;
+    warmupCache(_inner_text);
+    std::cout << "[speakerEngine]Loading Successfully!!" << std::endl;
 
 }
 
@@ -87,6 +91,8 @@ UsbSpeaker::~UsbSpeaker() {
     // use for VITS
     // if (_config.model.vits.lexicon) free((void*)_config.model.vits.lexicon);
     if (_config.model.vits.tokens) free((void*)_config.model.vits.tokens);
+
+    if (_config.model.vits.data_dir) free((void*)_config.model.vits.data_dir);
 }
 
 void UsbSpeaker::start_thread(int core){
@@ -177,32 +183,30 @@ void UsbSpeaker::play(const std::string& text) {
      _textCV.notify_one();
 }
 
-void UsbSpeaker::synthesisTask(std::string text) {
+void UsbSpeaker::synthesisTask(const std::string& text) {
     if (!_tts) return;
 
-    const SherpaOnnxGeneratedAudio* audio = SherpaOnnxOfflineTtsGenerate(_tts, text.c_str(), 0, 1.0f);
-
-    if (audio && audio->n > 0) {
-        std::vector<short> pcmData;
-        pcmData.reserve(audio->n * _channels); 
-        
-        for (int i = 0; i < audio->n; ++i) {
-            float s = audio->samples[i];
-
-            if (s > 1.0f) s = 1.0f;
-            if (s < -1.0f) s = -1.0f;
-
-            short sample = static_cast<short>(s * 32767);
-
-            for (int c = 0; c < _channels; ++c) {
-                pcmData.push_back(sample);
-            }
+    if (is_innerText(text)) {
+        std::lock_guard<std::mutex> lock(_cacheMutex);
+        auto it = _ttsCache.find(text);
+        if (it != _ttsCache.end()) {
+            playInternal(it->second);
+            return;
         }
-        playInternal(pcmData);
-        SherpaOnnxDestroyOfflineTtsGeneratedAudio(audio);
     }
-}
 
+    std::vector<short> pcmData = generate_pcm(text);
+    if (pcmData.empty()) return;
+    // if (is_innerText(text))
+    {
+        std::lock_guard<std::mutex> lock(_cacheMutex);
+        _ttsCache[text] = pcmData;
+    }
+
+    playInternal(std::move(pcmData));
+
+    
+}
 
 
 void UsbSpeaker::close() {
@@ -278,6 +282,91 @@ void UsbSpeaker::synthesisLoop() {
         } 
         if (!textToSpeak.empty()) {
             synthesisTask(textToSpeak);
+        }
+    }
+}
+
+bool UsbSpeaker::is_innerText(const std::string& text){
+
+    return _inner_text.find(text) != _inner_text.end();
+
+}
+
+std::vector<short> UsbSpeaker::generate_pcm(const std::string& text){
+    // generate pcmdata
+    const SherpaOnnxGeneratedAudio* audio = SherpaOnnxOfflineTtsGenerate(_tts, text.c_str(), 0, 1.0f);
+
+    std::vector<short> pcmData;
+    if (audio && audio->n > 0) {
+        
+        pcmData.reserve(audio->n * _channels); 
+        
+        for (int i = 0; i < audio->n; ++i) {
+            float s = audio->samples[i];
+
+            if (s > 1.0f) s = 1.0f;
+            if (s < -1.0f) s = -1.0f;
+
+            short sample = static_cast<short>(s * 32767);
+
+            for (int c = 0; c < _channels; ++c) {
+                pcmData.push_back(sample);
+            }
+        }
+    }
+
+    if(audio){
+        SherpaOnnxDestroyOfflineTtsGeneratedAudio(audio);
+    }
+
+    return pcmData;
+}
+
+bool UsbSpeaker::load_innerText(const std::string& filepath) {
+    std::ifstream file(filepath);
+
+    if (!file.is_open()) {
+        std::cerr << "[SpeakerEngine] Failed to open inner_text file: " << filepath << std::endl;
+        return false;
+    }
+
+    std::string line;
+    int count = 0;
+
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+
+        _inner_text.insert(line);
+        count++;
+    }
+
+    std::cout << "[SpeakerEngine] Loaded " << count << " cacheable texts." << std::endl;
+    return true;
+}
+
+void UsbSpeaker::warmupCache(const std::unordered_set<std::string>& texts) {
+    if (!_tts) return;
+
+    for (const auto& rawText : texts) {
+        if (rawText.empty()) continue;
+
+        if (!is_innerText(rawText)) {
+            continue;
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(_cacheMutex);
+            if (_ttsCache.find(rawText) != _ttsCache.end()) {
+                continue;
+            }
+        }
+
+        std::vector<short> pcmData = generate_pcm(rawText);
+        if (pcmData.empty()) continue;
+
+        {
+            std::lock_guard<std::mutex> lock(_cacheMutex);
+            _ttsCache[rawText] = std::move(pcmData);
         }
     }
 }

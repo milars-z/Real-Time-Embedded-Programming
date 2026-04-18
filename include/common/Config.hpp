@@ -29,6 +29,8 @@ namespace Config {
 
         const std::string VARIABLE_NAME = SRC_ROOT + "/include/common/varible_name.txt";
 
+        const std::string INNER_TEXT = SRC_ROOT + "/include/common/inner_text.txt";
+
 
     }
 
