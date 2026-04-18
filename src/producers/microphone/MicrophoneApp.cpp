@@ -47,13 +47,68 @@ void VoiceProducer::start() {
     if (!mic) return;
     std::cout << "[MicrophoneApp] Starting voice listening..." << std::endl;
     
-    mic->start([this](const std::vector<short>& data) {
-        if (!recognizer) return;
+    mic->start([this](std::vector<short> data) {
+    
+        _snddata.push(data);
+        // if (vosk_recognizer_accept_waveform(recognizer, 
+        //                                     (const char*)data.data(), 
+        //                                     data.size() * sizeof(short))) {
+        //     std::string result = vosk_recognizer_result(recognizer);
+        //     std::string text = extractText(result); 
+        //     if (!text.empty() && onTextReady) {
+        //         onTextReady(text); // 触发回调给 RobotBrain
+        //     }else{
+
+        //     }
+        // }
+    });
+}
+
+void VoiceProducer::_start(int core){
+    if(!mic) return;
+    start_thread(core);
+    mic->start_thread(core);
+    std::cout << "[MicrophoneApp] Internal thread started, pinned to core:" << core << std::endl;
+}
+
+
+void VoiceProducer::stop() {
+    if (mic) {
+        mic->stop(); 
+        stop_thread();
+        std::cout << "[MicrophoneApp] Microphone stopped." << std::endl;
+    }
+}
+
+void VoiceProducer::start_thread(int core){
+
+    isrunning = true;
+    voskThread = std::thread(&VoiceProducer::voskWorker, this);
+    pinThreadToCore(voskThread, "VoskWorkThread", core);
+}
+
+void VoiceProducer::stop_thread(){
+
+    isrunning = false;
+    _snddata.stop();
+    if (voskThread.joinable()) voskThread.join();
+
+}
+
+void VoiceProducer::voskWorker(){
+    
+    while(isrunning){
+        std::vector<short> data;
+        
+        if (!_snddata.pop(data)) {
+            break;
+        }
+
+        if (!recognizer) continue;
 
         if (vosk_recognizer_accept_waveform(recognizer, 
-                                            (const char*)data.data(), 
-                                            data.size() * sizeof(short))) {
-
+                                        (const char*)data.data(), 
+                                        data.size() * sizeof(short))){
 #ifdef TESTMODE
 // 有内容，开始准备检测
         TaskEvent _taskevent;
@@ -68,13 +123,10 @@ void VoiceProducer::start() {
         _taskevent.timestamp = std::chrono::steady_clock::now();
         _taskMonitor->postEvent(_taskevent);
 #endif
-            
-            std::string result = vosk_recognizer_result(recognizer);
-            
-            std::string text = extractText(result); 
+        std::string result = vosk_recognizer_result(recognizer);
+        std::string text = extractText(result);
 
-            if (!text.empty() && onTextReady) {
-                
+        if (!text.empty() && onTextReady){
 #ifdef TESTMODE
                 _taskevent.moduleName = "Microphone";
                 _taskevent.status = TaskStatus::FINISHED;
@@ -86,10 +138,8 @@ void VoiceProducer::start() {
                 _taskevent.timestamp = std::chrono::steady_clock::now();
                 _taskMonitor->postEvent(_taskevent);
 #endif
-
-                onTextReady(text); // 触发回调给 RobotBrain
-         
-            }else{
+            onTextReady(text);
+        }else{
 #ifdef TESTMODE
                 _taskevent.moduleName = "Microphone";
                 _taskevent.status = TaskStatus::FINISHED;
@@ -101,21 +151,8 @@ void VoiceProducer::start() {
                 _taskevent.timestamp = std::chrono::steady_clock::now();
                 _taskMonitor->postEvent(_taskevent);
 #endif
-            }
         }
-    });
-}
-
-void VoiceProducer::_start(int core){
-    if(!mic) return;
-    mic->start_thread(core);
-    std::cout << "[MicrophoneApp] Internal thread started, pinned to core:" << core << std::endl;
-}
-
-
-void VoiceProducer::stop() {
-    if (mic) {
-        mic->stop(); 
-        std::cout << "[MicrophoneApp] Microphone stopped." << std::endl;
+                                        }
+        
     }
 }

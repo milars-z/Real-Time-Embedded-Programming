@@ -13,6 +13,7 @@ find_package(OpenCV REQUIRED)
 find_package(SDL2 REQUIRED)
 
 add_definitions(-DTESTMODE)
+add_definitions(-DPRECACHE)
 
 # --- Executable ---
 add_executable(main

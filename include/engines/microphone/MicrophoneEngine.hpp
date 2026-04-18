@@ -11,7 +11,7 @@
 
 
 // short vector to store the message about audio (16-bit PCM)
-using AudioCallback = std::function<void(const std::vector<short>&)>;
+using AudioCallback = std::function<void(std::vector<short>)>;
 
 class UsbMicrophone {
 public:

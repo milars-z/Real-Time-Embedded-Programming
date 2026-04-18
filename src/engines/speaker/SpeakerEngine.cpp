@@ -74,9 +74,11 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
     _taskdescribe.TaskType = "TTS";
 
     load_innerText(Config::Path::INNER_TEXT);
+#ifdef PRECACHE
     std::cout << "[speakerEngine]Loading internal phrases..." << std::endl;
     warmupCache(_inner_text);
     std::cout << "[speakerEngine]Loading Successfully!!" << std::endl;
+#endif
 
 }
 
@@ -197,7 +199,9 @@ void UsbSpeaker::synthesisTask(const std::string& text) {
 
     std::vector<short> pcmData = generate_pcm(text);
     if (pcmData.empty()) return;
-    // if (is_innerText(text))
+#ifndef PRECACHE    
+    if (is_innerText(text))
+#endif
     {
         std::lock_guard<std::mutex> lock(_cacheMutex);
         _ttsCache[text] = pcmData;

@@ -5,8 +5,10 @@
 #include <functional>
 #include <vector>
 #include <atomic>
+#include <thread>
 
 #include "TaskMonitor.hpp"
+#include "ThreadSafeQueue.hpp"
 
 struct VoskModel;
 struct VoskRecognizer;
@@ -30,6 +32,14 @@ private:
     
     EmptyResult bg;
 
+    void voskWorker();
+
+    ThreadSafeQueue<std::vector<short>> _snddata;
+
+    std::atomic<bool> isrunning;
+
+    std::thread voskThread;
+
 public:
     VoiceProducer(std::atomic<int>& system_state, const std::string& path, TextCallback callback, std::shared_ptr<TaskMonitor> taskMonitor);
     ~VoiceProducer();
@@ -39,4 +49,9 @@ public:
 
     void _start(int core);
     void _stop();
+
+    void start_thread(int core);
+    void stop_thread();
+
+
 };
