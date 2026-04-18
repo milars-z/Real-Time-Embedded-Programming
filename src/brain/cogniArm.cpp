@@ -27,7 +27,7 @@ bool RobotSystem::init(SystemConfig cfg) {
     std::string speaker_path = "";
     std::string mic_path = "";
     bool hardware_check_passed = true;
-    std::string speaker_text = Config::Path::SPEAKER_TEXT;
+    std::string speaker_text = Config::Speaker::SPEAKER_TEXT;
 
     sys_cfg = cfg;
 

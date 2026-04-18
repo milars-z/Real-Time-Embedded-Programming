@@ -39,7 +39,7 @@ RobotBrain::RobotBrain(std::shared_ptr<SpeakerExecutor> s,
     : speaker(s), motion(m), camera(c), _taskMonitor(taskMonitor) {
     
     // 初始化 NLU 引擎
-    nlu = std::make_unique<NLUEngine>(Config::Path::NLU_MODEL_DIR); 
+    nlu = std::make_unique<NLUEngine>(Config::Nlu::NLU_MODEL_DIR); 
     nlu->init();
     
     std::cout << "[Brain] 逻辑引擎已就绪" << std::endl;

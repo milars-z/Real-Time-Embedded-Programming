@@ -24,14 +24,14 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 
     if(language == 0){
         // use En
-        modelPath = Config::Path::SPEAKER_MODELS_EN + "/en_GB-cori-medium.onnx";
-        dataDirPath = Config::Path::SPEAKER_MODELS_EN + "/espeak-ng-data";
-        tokensPath = Config::Path::SPEAKER_MODELS_EN + "/tokens.txt";
+        modelPath = Config::Speaker::SPEAKER_MODELS_EN + "/en_GB-cori-medium.onnx";
+        dataDirPath = Config::Speaker::SPEAKER_MODELS_EN + "/espeak-ng-data";
+        tokensPath = Config::Speaker::SPEAKER_MODELS_EN + "/tokens.txt";
     }else{
         // use Zh
-        modelPath = Config::Path::SPEAKER_MODELS_ZH + "/zh_CN-huayan-medium.onnx";
-        dataDirPath = Config::Path::SPEAKER_MODELS_ZH + "/espeak-ng-data";
-        tokensPath = Config::Path::SPEAKER_MODELS_ZH + "/tokens.txt";
+        modelPath = Config::Speaker::SPEAKER_MODELS_ZH + "/zh_CN-huayan-medium.onnx";
+        dataDirPath = Config::Speaker::SPEAKER_MODELS_ZH + "/espeak-ng-data";
+        tokensPath = Config::Speaker::SPEAKER_MODELS_ZH + "/tokens.txt";
     }
     // use for VITS
     //std::string lexiconPath = modelDir + "/lexicon.txt";
@@ -73,7 +73,7 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
     _taskdescribe.Name = "None";
     _taskdescribe.TaskType = "TTS";
 
-    load_innerText(Config::Path::INNER_TEXT);
+    load_innerText(Config::Speaker::INNER_TEXT);
 #ifdef PRECACHE
     std::cout << "[speakerEngine]Loading internal phrases..." << std::endl;
     warmupCache(_inner_text);

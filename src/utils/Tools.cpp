@@ -158,7 +158,7 @@ void print_startup_banner(SystemConfig cfg) {
 
 config_var screen_get_var(){
 
-    std::ifstream file(Config::Path::VARIABLE_NAME);
+    std::ifstream file(Config::Speaker::VARIABLE_NAME);
 
     config_var _var;
     _var.lang = "en";
@@ -201,7 +201,7 @@ config_var screen_get_var(){
 
 void saveVariablesToFile(const std::string& lang, const std::string& host, const std::string& robot ) {
 
-    std::ofstream file(Config::Path::VARIABLE_NAME);
+    std::ofstream file(Config::Speaker::VARIABLE_NAME);
     
     if (file.is_open()) {
 

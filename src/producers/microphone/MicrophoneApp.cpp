@@ -12,7 +12,7 @@ VoiceProducer::VoiceProducer(std::atomic<int>& system_state, const std::string& 
     : onTextReady(callback),_taskMonitor(taskMonitor) {
     
     // ASR 模型加载
-    model = vosk_model_new(Config::Path::VOSK_MODEL_DIR.c_str());
+    model = vosk_model_new(Config::Microphone::VOSK_MODEL_DIR.c_str());
     if (!model) {
         std::cerr << "[Error][MicrophoneApp] Failed to load Vosk model." << std::endl;
         system_state |= ERR_MICMODE_INIT;
