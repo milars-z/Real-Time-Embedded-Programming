@@ -9,6 +9,7 @@
 #include "TaskSupervisor.hpp"
 #include "SpeakerApp.hpp"
 #include "MotionApp.hpp"
+#include "RobotBrain.hpp"
 
 #include "system_config.hpp"
 
@@ -20,8 +21,9 @@ namespace fs = std::filesystem;
 TaskSupervisor::TaskSupervisor( std::shared_ptr<TaskMonitor> monitor,
                                 std::shared_ptr<MotionExecutor> motion,
                                 std::shared_ptr<SpeakerExecutor> speaker,
+                                std::shared_ptr<RobotBrain> brain,
                                 SystemConfig sys_cfg)
-:_speaker(speaker),_motion(motion),_monitor(monitor)
+:_speaker(speaker),_motion(motion),_monitor(monitor),_brain(brain)
 {
     _sys_cfg = sys_cfg;
     Initfile();
@@ -196,8 +198,6 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
                 std::string ans = _speaker->getText("learn_obj") + learn_ans.objectName;
                 if(_speaker) _speaker->pushTask(ans);
             }
-            
-
         }
         
         // 检测模式
@@ -240,17 +240,24 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
         // can't understand break
         else if(learn_ans.result == BugCode_M::TooMuchNoise){
             if(_speaker) _speaker->pushTask(_speaker->getText("noise_break"));
+            if(_brain) _brain->SetState(false);
         }
 
         // file_system
-        else if((learn_ans.result == BugCode_M::CannotOpenMotionFile) ||
-                 (learn_ans.result == BugCode_M::WriteInvalidSet)){
-                    if(_speaker) _speaker->pushTask(_speaker->getText("save_error"));
-                }
+        else if(learn_ans.result == BugCode_M::CannotOpenMotionFile){
+            if(_speaker) _speaker->pushTask(_speaker->getText("save_error"));
+            if(_brain) _brain->SetState(false);
+        }
 
+        else if(learn_ans.result == BugCode_M::WriteInvalidSet){
+            if(_speaker) _speaker->pushTask(_speaker->getText("learning_nothing") + learn_ans.name);
+            if(_brain) _brain->SetState(false);
+        }
+            
         // do_motion error
         else if(learn_ans.result == BugCode_M::MotionQueError){
             if(_speaker) _speaker->pushTask(_speaker->getText("do_motion_error"));
+            if(_brain) _brain->SetState(false);
         }
 
         // done
@@ -260,6 +267,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
         
         else if(learn_ans.result == BugCode_M::LearningSuccess){
             if(_speaker) _speaker->pushTask(_speaker->getText("learn_moion_finish") + learn_ans.name);
+            if(_brain) _brain->SetState(false);
         }else{
             std::cout<< "[fatal][supervisor] error handle supervisor message _ motion" << std::endl;
         }

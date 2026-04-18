@@ -15,18 +15,7 @@ class CameraExecutor;
 class NLUEngine;
 
 
-enum class IntentType {
-    OTHER,
-    DO_MOTION,
-    FIND_OBJ,
-    LEARN_MOTION,
-    LEARN_OBJ,
-    CHECK_HOST_NAME,
-    CHECK_ROT_NAME,
-    GREET,
-    BYE,
-    UNKNOWN
-};
+
 
 class RobotBrain {
 private:
@@ -52,9 +41,10 @@ public:
 
     void handleUISignal(const std::string& type, const std::string& data);
 
+    // supervisor侧调用，更改状态
+    void SetState(bool state);
+
 private:
-    // 内部状态，有点突兀后续找办法解决
-    void processLearning(const std::string& text);
 
     bool nlu_detected(const nlu_output& res);
 
@@ -62,11 +52,6 @@ private:
 
     bool extractIntent(const std::string& text);
 
-    IntentType parseIntent(const std::string& intent);
-
-    std::vector<std::string> split_text(const std::string& text);
-
-    // 大脑记一下上一个学的是什么动作不过分吧
     std::string _lastlearnmotion = "None" ;
 
     std::string _currentJoint = "left_";

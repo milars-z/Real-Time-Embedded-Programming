@@ -432,8 +432,8 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
         _res.result = state;
         _taskevent.result = _res;
         _taskMonitor->postEvent(_taskevent);
-        
 #endif
+        _currentLearningName = "";
         is_first_learning = true;
         return state;
     }
@@ -486,6 +486,7 @@ BugCode_M MotionManager::processLearningInput(const std::string& text, const std
         _taskevent.result = _res;
         _taskMonitor->postEvent(_taskevent);
 #endif
+        _currentLearningName = "";
         is_first_learning = true;
         return state;
     }
@@ -551,7 +552,6 @@ BugCode_M MotionManager::saveMotionSet(std::string motionName, std::vector<Motio
 
     if (rawTasks.empty()) {
         state = BugCode_M::WriteInvalidSet;
-        _currentLearningName = "None";
         _tempTasks.clear();
         return state;
     }

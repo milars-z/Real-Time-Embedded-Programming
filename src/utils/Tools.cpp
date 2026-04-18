@@ -221,3 +221,28 @@ void saveVariablesToFile(const std::string& lang, const std::string& host, const
     }
 }
 
+// nlu返回的intent，处理成枚举类型，方便后续逻辑判断
+IntentType parseIntent(const std::string& intent) {
+    if (intent == "unknown" || intent.empty()) return IntentType::OTHER;
+    if (intent == "do_motion") return IntentType::DO_MOTION;
+    if (intent == "find_object") return IntentType::FIND_OBJ;
+    if (intent == "learn_motion") return IntentType::LEARN_MOTION;
+    if (intent == "learn_object") return IntentType::LEARN_OBJ;
+    if (intent == "ask_user_name") return IntentType::CHECK_HOST_NAME;
+    if (intent == "ask_robot_name") return IntentType::CHECK_ROT_NAME;
+    if (intent == "greet") return IntentType::GREET;
+    if (intent == "bye") return IntentType::BYE;
+    return IntentType::UNKNOWN;
+}
+
+
+std::vector<std::string> split_text(const std::string& text) {
+    std::stringstream ss(text);
+    std::string word;
+    std::vector<std::string> tokens;
+
+    while (ss >> word) {
+        tokens.push_back(word);
+    }
+    return tokens;
+}

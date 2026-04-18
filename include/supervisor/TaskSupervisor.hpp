@@ -18,6 +18,7 @@
 
 class SpeakerExecutor;
 class MotionExecutor;
+class RobotBrain;
 
 struct SystemConfig;
 
@@ -27,6 +28,7 @@ public:
     TaskSupervisor( std::shared_ptr<TaskMonitor> monitor,
                     std::shared_ptr<MotionExecutor> motion,
                     std::shared_ptr<SpeakerExecutor> speaker,
+                    std::shared_ptr<RobotBrain> brain,
                     SystemConfig sys_cfg); 
     ~TaskSupervisor(); 
 
@@ -53,6 +55,7 @@ private:
     std::shared_ptr<TaskMonitor> _monitor;
     std::shared_ptr<SpeakerExecutor> _speaker;
     std::shared_ptr<MotionExecutor> _motion;
+    std::shared_ptr<RobotBrain> _brain;
 
     // task_map : use to store time
     std::unordered_map<int, std::chrono::steady_clock::time_point> _pendingTasks;

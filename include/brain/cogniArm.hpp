@@ -23,23 +23,26 @@ private:
     std::shared_ptr<MotionExecutor> motion;
     std::shared_ptr<CameraExecutor> camera;
 
+    std::shared_ptr<RobotBrain> brain;
+
     std::unique_ptr<ScreenProducer> screenIn;
     std::unique_ptr<VoiceProducer> voiceIn;
 
-    std::unique_ptr<RobotBrain> brain;
     std::unique_ptr<TaskSupervisor> supervisor;
-
     std::shared_ptr<TaskMonitor> globalMonitor;
 
     std::atomic<bool> isRunning{false};
 
-    // 测试用
+    // use for speaker test
     std::vector<std::string> test_scripts;
     int current_line_idx = 0;
 
     void Init_speaker_test();
 
+    void start_thread();
+
 public:
+    // system debug state
     std::atomic<int> state = 0;
     RobotSystem();
     ~RobotSystem(); 
@@ -50,8 +53,5 @@ public:
 
     bool check_state(std::atomic<int>& state);
 
-    SystemConfig sys_cfg;
-
-    // speaker单模块测试用
-    
+    SystemConfig sys_cfg;    
 };

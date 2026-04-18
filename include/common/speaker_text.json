@@ -89,6 +89,10 @@
     "do_motion_error": {
         "en": "sorry i can't do hardware wrong",
         "zh": "不好意思机械臂故障请检查"
+    },
+    "learning_nothing":{
+        "en": "sorry i learn nothing about ",
+        "zh": "不好意思我没学到怎么"
     }
 
 }
