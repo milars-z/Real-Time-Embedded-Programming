@@ -70,6 +70,16 @@ void RobotBrain::handleIncomingText(const std::string& text) {
 
 #endif 
 
+    if( text == "update"){
+        if(camera) camera->pushTask("UPDATEBG");
+        return;
+    }
+    if ( text == "reset"){
+        if(motion) motion->pushTask("RESET");
+        if(speaker) speaker->pushTask(speaker->getText("reset"));
+        return;
+    }
+
     auto res = nlu->predict(text);
     if(!speaker){
         std::cout << "[RobotBrain][Microphone_Test]raw_text:" << text << std::endl;
