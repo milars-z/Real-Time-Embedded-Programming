@@ -185,30 +185,41 @@ void UsbSpeaker::play(const std::string& text) {
 }
 
 void UsbSpeaker::synthesisTask(const std::string& text) {
+
+    std::string rawText = text;
+
     if (!_tts) return;
 
-    if (is_innerText(text)) {
-        std::lock_guard<std::mutex> lock(_cacheMutex);
-        auto it = _ttsCache.find(text);
-        if (it != _ttsCache.end()) {
-            playInternal(it->second);
-            return;
-        }
-    }
-
-    std::vector<short> pcmData = generate_pcm(text);
-    if (pcmData.empty()) return;
-#ifndef PRECACHE    
-    if (is_innerText(text))
-#endif
+    // if (is_innerText(rawText)) {
+    std::vector<short> cachedPcm;
     {
         std::lock_guard<std::mutex> lock(_cacheMutex);
-        _ttsCache[text] = pcmData;
+        auto it = _ttsCache.find(rawText);
+        if (it != _ttsCache.end()) {
+            std::cout << "[Info][SpeakerEngine]" << "get cache: " << rawText << "!" << std::endl;
+            cachedPcm = it->second;
+        }
     }
+    if (!cachedPcm.empty()) {
+        playInternal(std::move(cachedPcm));
+        return;
+    }
+    // }
 
-    playInternal(std::move(pcmData));
 
+    std::vector<short> pcmData = generate_pcm(rawText);
+    if (pcmData.empty()) return;
+// #ifndef PRECACHE    
+//     if (is_innerText(text))
+// #endif
+
+    playInternal(pcmData);
     
+    {
+        std::cout << "[Info][SpeakerEngine]" << "add cache: " << rawText << "!" <<std::endl;
+        std::lock_guard<std::mutex> lock(_cacheMutex);
+        _ttsCache[rawText] = std::move(pcmData);
+    }
 }
 
 
