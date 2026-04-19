@@ -18,8 +18,8 @@ The robot arm model used in this project is based on the open-source **EEZYbotAR
 It is not claimed as original CAD work by our team.
 Please see `SOURCE.md` for attribution details.
 
+STL files are stored in `hardware/STL/`, and 3MF files are stored in `hardware/3mf/`.
+
 ## Folder Contents
+- `README.md` — overview of the 3D printing integration work
 - `SOURCE.md` — source and attribution details
-- `test_log.md` — test notes
-- `assembly_notes.md` — assembly notes
-- `images/` — reference and print photos
