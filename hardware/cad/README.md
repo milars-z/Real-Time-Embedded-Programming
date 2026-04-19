@@ -11,7 +11,6 @@ My contribution includes:
 - preparing the model for printing
 - printing the required parts
 - testing fitting and assembly
-- documenting the hardware integration process
 
 ## Important Note
 The robot arm model used in this project is based on the open-source **EEZYbotARM Mk2** project.
