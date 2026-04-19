@@ -1,7 +1,6 @@
 #include "Screen_ui.hpp"
 #include <iostream>
 
-// 结构体，装自己这个类的指针和btn的string，用来满足lvgl事件回调的要求
 struct DPadPayload {
     ScreenUI* ui;  // 向函数内提供内部指针，发送信号用         
     std::string signalStr;  // 信号字符串，由轮盘名称和btn上的方向组合成
@@ -142,12 +141,13 @@ void ScreenUI::showMotionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("RESET");
     }, LV_EVENT_CLICKED, this);
 
-    lv_obj_t* btn_stop = lv_button_create(main_screen);
-    lv_obj_align(btn_stop, LV_ALIGN_TOP_RIGHT, -10, 190);
-    lv_label_set_text(lv_label_create(btn_stop), "Stop");
-    lv_obj_add_event_cb(btn_stop, [](lv_event_t* e){
-        ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("STOP");
-    }, LV_EVENT_CLICKED, this);
+    // 后续使用
+    // lv_obj_t* btn_stop = lv_button_create(main_screen);
+    // lv_obj_align(btn_stop, LV_ALIGN_TOP_RIGHT, -10, 190);
+    // lv_label_set_text(lv_label_create(btn_stop), "Stop");
+    // lv_obj_add_event_cb(btn_stop, [](lv_event_t* e){
+    //     ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("STOP");
+    // }, LV_EVENT_CLICKED, this);
 
     lv_screen_load(main_screen);
 
@@ -162,11 +162,10 @@ void ScreenUI::showVisionScreen() {
     prepareMainScreen();
 
     vision_img_obj = lv_image_create(main_screen);
-    lv_obj_set_size(vision_img_obj, 640, 480); // 假设视频大小
+    lv_obj_set_size(vision_img_obj, 640, 480); 
     lv_obj_align(vision_img_obj, LV_ALIGN_CENTER, -50, 0); 
 
 
-    // 初始化描述符（假设 800 宽，根据 SDL 配置可能需要 RGB888）
     memset(&vision_img_dsc, 0, sizeof(lv_image_dsc_t));
     vision_img_dsc.header.cf = LV_COLOR_FORMAT_RGB888;
     vision_img_dsc.header.w = 640;
@@ -174,10 +173,6 @@ void ScreenUI::showVisionScreen() {
     vision_img_dsc.header.stride = 640 * 3;
     vision_img_dsc.data_size = 640 * 480 * 3;
 
-    // malloc不能用
-    // 分配持久化缓冲区
-    // if(!canvas_buffer) canvas_buffer = (uint8_t*)malloc(640 * 480 * 3);
-    // vision_img_dsc.data = canvas_buffer;
 
     size_t required_size = 640 * 480 * 3;
     if(canvas_buffer.size() != required_size) {
@@ -339,7 +334,7 @@ void ScreenUI::createKeyboard(std::string signal_type) {
     // 创建容器
     lv_obj_t* cont = lv_obj_create(mask);
     lv_obj_set_size(cont, 600, 80);
-    lv_obj_align(cont, LV_ALIGN_TOP_MID, 0, 50);  // 修改了位置
+    lv_obj_align(cont, LV_ALIGN_TOP_MID, 0, 50); 
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW); 
     lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
@@ -408,8 +403,6 @@ void ScreenUI::createKeyboard(std::string signal_type) {
 
 void ScreenUI::updateVisionFrame(const cv::Mat& frame) {
     if (!is_in_vision_screen || frame.empty() || !vision_img_obj) return;
-
-    // memcpy(canvas_buffer, frame.data, 640 * 480 * 3);
 
     memcpy(canvas_buffer.data(), frame.data, canvas_buffer.size());
 
