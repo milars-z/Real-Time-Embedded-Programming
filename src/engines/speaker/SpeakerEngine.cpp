@@ -260,6 +260,8 @@ void UsbSpeaker::playbackLoop() {
                 if (rc == -EPIPE) {
                     snd_pcm_prepare(_handle);
                 } else if (rc < 0) {
+                    std::cerr << "[Error][SpeakerEngine] snd_pcm_writei failed: "
+                        << snd_strerror(rc) << " (" << rc << ")" << std::endl;
                     break; 
                 } else {
                     framesWritten += rc;
