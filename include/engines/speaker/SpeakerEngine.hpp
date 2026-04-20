@@ -2,7 +2,6 @@
 #define SPEAKER_ENGINE_HPP
 
 #include <alsa/asoundlib.h>
-#include <espeak-ng/speak_lib.h>
 #include <iostream>
 #include <vector>
 #include <string>

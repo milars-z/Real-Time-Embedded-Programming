@@ -16,7 +16,7 @@ namespace Config {
     namespace Nlu{
 
         // Nlu model
-        inline const std::string NLU_MODEL_DIR = SRC_ROOT + "/third_party/model_nlu_2"; 
+        inline const std::string NLU_MODEL_DIR = SRC_ROOT + "/third_party/model_nlu"; 
 
     }
 
