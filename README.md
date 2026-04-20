@@ -2,6 +2,22 @@
 
 ---
 
+## 📚 Table of Contents
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [System Architecture](#system-architecture)
+- [Technical Documentation](#technical-documentation)
+- [Project Structure](#project-structure)
+- [Hardware Requirements](#hardware-requirements)
+- [Quick Start](#quick-start)
+- [Module Testing](#module-testing)
+- [Tips for voice interaction](#tips-for-voice-interaction)
+- [v2.0 Highlights](#v20-highlights)
+- [Known Issues](#known-issues)
+- [Team Contribution](#team-contribution)
+- [License](#license)
+
 ## Introduction
 
 As of April 13, 2026, the first version of our project has been officially released.
@@ -25,10 +41,9 @@ It supports voice interaction, visual perception, and motion learning.
 For a detailed overview, see [Project Overview](#cogniarm-a-learnable-robotic-arm-system_),These documents also include the initial project planning during the early development stage, as well as several minor updates made prior to the official release.
 
 
-
 ---
 
-## 🚀 Features
+##  Features
 
 - 🎤 Speech recognition and command parsing (Microphone + NLU)
 - 👁️ Visual detection (OpenCV)
@@ -38,7 +53,7 @@ For a detailed overview, see [Project Overview](#cogniarm-a-learnable-robotic-ar
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 The system adopts a three-layer architecture:
 
@@ -121,10 +136,9 @@ detailed results provided in
 
 ***docs/test_data/Analysis.xlsx***.
 
-
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 ```bash
 src/
@@ -152,6 +166,22 @@ main.cpp
 setup.sh                  # Automated dependency setup(enhanced in v2.0)
 
 ```
+
+## Hardware Requirements
+
+| Component        | Model / Specification                | Description                          |
+|------------------|-------------------------------------|--------------------------------------|
+| Main Controller  | Raspberry Pi 5 (4GB)               | Core processing unit                 |
+| Camera Module    | Raspberry Pi Camera Module 3       | Vision input                         |
+| Microphone       | VEETOP USB Microphone              | Audio input                          |
+| Speaker          | USB Speaker                        | Audio output                         |
+| Servo Driver     | PCA9685                            | PWM controller (I2C)                 |
+| Servos           | MG996R (x3), MG90 (x1)             | Robotic arm actuators                |
+| Display (Optional)| OSOYOO 3.5-inch DSI touchscreen   | User interface                       |
+| Robotic Arm      | EEZYbotARM Mk2                     | Mechanical structure                 |
+| Power Supply     | External 5V Power Supply (for PCA9685) | Required for stable servo operation |
+
+
 ## Quick Start
 
 Follow these steps to set up the environment and verify your hardware before running the project.
@@ -377,20 +407,6 @@ Here are some tips for voice interaction [Tips for Voice Interaction](#tips-for-
 
 
 
-## Hardware Requirements
-
-| Component        | Model / Specification                | Description                          |
-|------------------|-------------------------------------|--------------------------------------|
-| Main Controller  | Raspberry Pi 5 (4GB)               | Core processing unit                 |
-| Camera Module    | Raspberry Pi Camera Module 3       | Vision input                         |
-| Microphone       | VEETOP USB Microphone              | Audio input                          |
-| Speaker          | USB Speaker                        | Audio output                         |
-| Servo Driver     | PCA9685                            | PWM controller (I2C)                 |
-| Servos           | MG996R (x3), MG90 (x1)             | Robotic arm actuators                |
-| Display (Optional)| OSOYOO 3.5-inch DSI touchscreen   | User interface                       |
-| Robotic Arm      | EEZYbotARM Mk2                     | Mechanical structure                 |
-| Power Supply     | External 5V Power Supply (for PCA9685) | Required for stable servo operation |
-
 ### Note
 > It is strongly recommended to use an external power supply for the PCA9685 board instead of powering servos directly from the Raspberry Pi.
 
@@ -567,10 +583,9 @@ Currently, this page is used to modify the `hostname` and `robotname`. More impo
 
 In addition, commonly used fixed text has been centralized into a dedicated text configuration, preparing the system for easier expansion and integration of new features in future updates.
 
+---
 
 ## Known Issues
-
-## 📌 Known Issues
 
 The current version still has several limitations:
 
@@ -609,6 +624,13 @@ The current version still has several limitations:
 
     The current hardware setup does not support object grasping. If the project is further developed in the future, more advanced robotic arms or robotic platforms may be used to enable grasping capabilities.
 
+6. **Develop commit**
+    During the transition from module-based development to the Producer–Brain–Executor architecture, a major merge was performed from the `integration_micro_motor` branch into `main`.
+
+    This merge consolidated previous development history, which may make the commit timeline appear partially non-continuous.  
+
+    If any development records around April seem missing, please refer to the `integration_micro_motor` branch for the complete history.
+
 ---
 
 ## Team Contribution
@@ -618,11 +640,11 @@ The current version still has several limitations:
 | Ziyin Zeng      | System architecture design, core module implementation, system integration，and hardware selection and assembly |
 | Shantong Wang   | Social media, video production, and camera–motion coordinate transformation                       |
 | Longyi Chen     | YOLO model design, system testing data analysis and text translation                                       |
-| Dingyan Guo     | 3D printing, and text translation                                          |
+| Dingyan Guo     | 3D printing, integrate hardware modules list and text translation                              |
 | Hang Liu        | IK documentation                                                       |
 
 
-## 📄 License
+## License
 
 GPL License
 
