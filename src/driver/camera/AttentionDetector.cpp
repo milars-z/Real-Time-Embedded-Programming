@@ -204,7 +204,7 @@ vector<DetectedObject> AttentionDetector::detect(const Mat& frame) {
         obj.box = box;
         obj.score = (float)area; 
         obj.feature = feat_vec;  
-        obj.match_name = "Unknow";
+        obj.match_name = "Unknown";
         obj.match_dist = 1.0f;
 
         objects.push_back(obj);
