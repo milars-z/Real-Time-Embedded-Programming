@@ -7,29 +7,37 @@
 #include <string>
 #include "ObjectTypes.hpp"
 
-// 配置参数
+/**
+ * @brief Feature-difference-based object detector.
+ *
+ * This class uses a neural network to extract image features and detects
+ * objects by comparing the difference between the current frame and the
+ * background frame. It also generates feature vectors for detected objects.
+ */
+
+// Detection configuration parameters
 struct DetConfig {
     cv::Size INPUT_SIZE = cv::Size(224, 224);
-    float BINARY_THRESH = 0.5f;       // 二值化阈值
-    int MIN_PIXEL_AREA = 300;          // 最小面积
-    float EDGE_SUPPRESSION_RATIO = 0.07f; // 周边屏蔽比例
-    int MAX_OUTPUT_TARGETS = 10; // 最大obj限制
+    float BINARY_THRESH = 0.5f;           // Threshold for binarization
+    int MIN_PIXEL_AREA = 300;             // Minimum object area
+    float EDGE_SUPPRESSION_RATIO = 0.07f; // Edge suppression ratio
+    int MAX_OUTPUT_TARGETS = 10;          // Maximum number of output objects
 };
 
 class AttentionDetector {
 public:
     AttentionDetector(const std::string& model_path);
     
-    // 更新背景
+    // Update background features
     void update_background(const cv::Mat& frame);
     
-    // 检测并返回对象列表 (包含特征向量)
+    // Detect objects and return a list (including feature vectors)
     std::vector<DetectedObject> detect(const cv::Mat& frame);
     
-    // 检查是否准备好
+    // Check whether the detector is ready
     bool is_ready() const;
 
-    // 边缘检测模板
+    // Edge suppression mask
     cv::Mat edge_mask; 
 
 private:
@@ -38,16 +46,16 @@ private:
     DetConfig cfg;
     bool has_background = false;
     
-    // 标准化参数
+    // Normalization parameters
     const cv::Scalar mean_val = cv::Scalar(0.485, 0.456, 0.406);
     const cv::Scalar std_val = cv::Scalar(0.229, 0.224, 0.225);
 
-    // 内部函数：推理全图特征
+    // Internal function: extract full-image features
     cv::Mat get_features(const cv::Mat& img);
     
-    // 内部函数：从特征图上通过 ROI 提取特征向量
+    // Internal function: extract feature vector from ROI in feature map
     std::vector<float> extract_feature_vector(const cv::Mat& feature_map, const cv::Rect& original_box, const cv::Size& original_size);
-    
+    // Initialize edge suppression mask
     void init_edge_mask(int H, int W);
 };
 
