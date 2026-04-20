@@ -20,25 +20,28 @@ private:
     std::shared_ptr<TaskMonitor> _taskMonitor;
     std::mutex frameMtx;
 
-public:
-    CameraExecutor(std::atomic<int>& ststem_state, std::shared_ptr<TaskMonitor> taskMonitor);
-    ~CameraExecutor(); 
-
-    void pinThread(int num);
+private:
 
     void onExecute(const std::string& task) override;
 
     std::string get_module_name() override;
-
-    void _stop() override;
-
-    void _start(int core) override;
-
-    cv::Mat getLatestFrame();
     
     void findObject(const std::string& name);
     void learnObject(const std::string& name);
 
     CameraCommand analyzecommand(const std::string& text);
+
+public:
+
+    CameraExecutor(std::atomic<int>& ststem_state, std::shared_ptr<TaskMonitor> taskMonitor);
+    ~CameraExecutor(); 
+    
+    void _stop() override;
+
+    void _start(int core) override;
+
+    void pinThread(int num);
+
+    cv::Mat getLatestFrame();
 
 };

@@ -31,14 +31,6 @@ public:
     void stop_thread();
     void start_thread(int core);
 
-    // 将需要执行的motion加入队列，测试用
-    BugCode_M enqueue_motion(const MotionTask& cmd);
-
-    BugCode_M read_motion_set(const std::string& motion_set_name,MotionSetType type = MotionSetType::External);
-
-    // 外部调用，motionset刷新
-    void learn_motion_fresh();
-
     // do easy task
     BugCode_M excuteTask(const std::string& task);
 
@@ -76,6 +68,14 @@ private:
 
     // 检查错误次数，超出3次则清空信号并退出学习模式
     bool check_error_code();
+
+    // 外部调用，motionset刷新
+    void learn_motion_fresh();
+
+    // 将需要执行的motion加入队列，测试用
+    BugCode_M enqueue_motion(const MotionTask& cmd);
+
+    BugCode_M read_motion_set(const std::string& motion_set_name,MotionSetType type = MotionSetType::External);
 
     // motion工具
     //string -> Joint

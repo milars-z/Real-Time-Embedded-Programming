@@ -41,6 +41,12 @@ private:
 
     void start_thread();
 
+    void stop();
+
+    bool check_state(std::atomic<int>& state);
+
+    SystemConfig sys_cfg;  
+
 public:
     // system debug state
     std::atomic<int> state = 0;
@@ -49,9 +55,7 @@ public:
 
     bool init(SystemConfig cfg);
     void start();
-    void stop();
 
-    bool check_state(std::atomic<int>& state);
 
-    SystemConfig sys_cfg;    
+  
 };

@@ -27,24 +27,28 @@ enum class ARMMODE {
 
 
 class MotionExecutor : public BaseExecutor<std::string> {
-private:
-    std::unique_ptr<MotionManager> manager;
-    std::shared_ptr<TaskMonitor> _taskMonitor;
-
-    std::atomic<ARMMODE> armMode = ARMMODE::IDLE;
-
 public:
     MotionExecutor(std::atomic<int>& system_stete, std::shared_ptr<TaskMonitor> taskMonitor);
     ~MotionExecutor(); 
     
     void pinThread(int num);
 
-    void onExecute(const std::string& motionName) override;
-
     void _stop() override;
 
     void _start(int core) override;
 
+    // Brain 调用，结束学习模式
+    void end_learnning_mode();
+
+    // 从supervisor处获取检测到的obj的位置坐标
+    void get_obj_APP(int position_x,int position_y);
+
+private:
+
+    // 主要执行函数
+    void onExecute(const std::string& motionName) override;
+
+    // 执行者内部函数，获取当前模块名称
     std::string get_module_name() override;
 
     // 学习状态
@@ -53,14 +57,19 @@ public:
     // 意外退出检查
     bool check_acclearning_stop();
 
-    void get_obj_APP(int position_x,int position_y);
+    // 解析来自brain的指令
+    MotionCommand analyzecommand(const std::string& task);
 
-    // Brain 调用，结束学习模式
-    void end_learnning_mode();
+    // 解析模块状态
+    void HandleState(BugCode_M msg);
+
 
 private:    
-    MotionCommand analyzecommand(const std::string& task);
-    void HandleState(BugCode_M msg);
+
+    std::unique_ptr<MotionManager> manager;
+    std::shared_ptr<TaskMonitor> _taskMonitor;
+
+    std::atomic<ARMMODE> armMode = ARMMODE::IDLE;
 
     std::atomic<bool> _islearningfinish = false;
 

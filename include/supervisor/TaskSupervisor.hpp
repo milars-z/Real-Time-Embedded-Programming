@@ -43,11 +43,6 @@ private:
     void processLoop();
 
     void handleTaskResult(const TaskEvent& e);
-
-    void MotionT(int x, int y);
-
-    void SpeakerT(std::string Command);
-
     
     std::thread _TaskWorker;
     std::atomic<bool> _running;

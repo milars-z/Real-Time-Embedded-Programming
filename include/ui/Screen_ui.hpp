@@ -14,20 +14,12 @@
 class ScreenUI {
 public:
     
-    // ScreenUI(ThreadSafeQueue<std::string>* outQueue);
-    
     using UIEventCallback = std::function<void(std::string, std::string)>;
 
     ScreenUI(UIEventCallback callback);
     ~ScreenUI();
 
     void _stop();
-
-    
-    void showHomeScreen();
-    void showMotionScreen();
-    void showVisionScreen();
-    void showSettingScreen();
 
     // 推流控制
     void updateVisionFrame(const cv::Mat& pre_processed_rgb);
@@ -36,10 +28,21 @@ public:
 
     ThreadSafeQueue<std::string>* signalQueue;
 
-    
-
 private:
     
+    void showHomeScreen();
+    void showMotionScreen();
+    void showVisionScreen();
+    void showSettingScreen();
+
+    void sendSignal(std::string type, std::string data = "");
+    
+    void createKeyboard(std::string signal_type);
+    void createDPad(lv_obj_t* parent, int x_offset, std::string name);
+    
+    // 刷新界面时用
+    void prepareMainScreen();
+
     // 防止界面切换时内存泄露，创建一个屏幕指针，所有屏幕都用该指针
     lv_obj_t* main_screen = nullptr;
 
@@ -49,14 +52,6 @@ private:
     // uint8_t* canvas_buffer = nullptr;   // 图像像素缓冲区
     std::vector<uint8_t> canvas_buffer;
     
-    
-
-    void sendSignal(std::string type, std::string data = "");
-    
-    void createKeyboard(std::string signal_type);
-
-    void createDPad(lv_obj_t* parent, int x_offset, std::string name);
-
     lv_obj_t* kb_obj = nullptr;
     lv_obj_t* ta_obj = nullptr;
 
@@ -67,11 +62,7 @@ private:
 
     UIEventCallback onSignalEvent; 
 
-    // 刷新界面时用
-    void prepareMainScreen();
-
     std::string currentLang = "en";
-
 
 };
 

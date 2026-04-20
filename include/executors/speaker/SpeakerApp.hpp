@@ -31,12 +31,6 @@ private:
     // 变量配置，如host_name;robot_name
     std::unordered_map<std::string, std::string> variables;
 
-    // 加载lib
-    bool loadLibrary();
-
-    // 配置语言-暂时不配置
-    void setLanguage(const std::string& lang);
-
     // config_name
     std::string _host_name = "milars";
     std::string _robot_name = "robot";
@@ -47,23 +41,32 @@ public:
     SpeakerExecutor(std::atomic<int>& system_state, const std::string& path,const std::string& text_path, std::shared_ptr<TaskMonitor> taskMonitor);
     ~SpeakerExecutor();
 
-    // 任务实现
-    void onExecute(const std::string& text) override;
-
     void pinThread(int core);
 
     void _stop() override;
 
     void _start(int core) override;
 
-    std::string get_module_name() override;
+    // 更新变量
+    void setVariable(const std::string& key, const std::string& value);
 
     // 获取Lib对应的文本，外部调用
     std::string getText(const std::string& key);
 
+private:
+
+    // 任务实现
+    void onExecute(const std::string& text) override;
+
+    // 执行者内部函数，获取当前模块名称
+    std::string get_module_name() override;
+
     // 刷新变量
     bool loadVariable();
 
-    // 更新变量
-    void setVariable(const std::string& key, const std::string& value);
+    // 加载lib
+    bool loadLibrary();
+
+    // 配置语言-暂时不配置
+    void setLanguage(const std::string& lang);
 };
