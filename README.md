@@ -263,6 +263,8 @@ edit MIC_NAME
 
 ### Step 7:build and start!
 
+Before running, please make sure to download the **third_party** files and ensure they are in the same directory as src.
+
 ```bash
 cd Real-Time-Embedded-Programming
 mkdir build
@@ -271,6 +273,7 @@ cmake ..
 make
 ./main
 ```
+If the downloaded folder name ends with "2.0", make sure not to enter the wrong one! Please navigate to the correct project folder, likely named xxxx.2.0
 
 ### Note:
 
