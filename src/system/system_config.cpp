@@ -3,10 +3,15 @@
 #include <iostream>
 #include <string>
 
+/**
+ * @brief Create a system configuration based on the selected test module.
+ * @param testmodule Name of the test module or operating mode.
+ * @return A configured SystemConfig object.
+ */
 SystemConfig makecfg(const std::string& testmodule) {
     SystemConfig cfg;
 
-    // speaker测试模式，测试环境下speaker持续输出指定的text，测量耗时
+    // Speaker test mode: in the test environment, the speaker continuously outputs predefined text to measure elapsed time.
     if (testmodule == "speaker") {
         cfg.enableNlu         = false;
         cfg.enableSpeaker     = true;
@@ -16,7 +21,7 @@ SystemConfig makecfg(const std::string& testmodule) {
         cfg.enableScreen      = false;
         cfg.testmode          = TestMode::SPEAKERTEST;
 
-    // camera测试模式，测试camera检测的延迟，需要屏幕显示
+    // Camera test mode: measures camera detection latency and requires screen display.
     }else if (testmodule == "camera") {
         cfg.enableNlu         = false;
         cfg.enableSpeaker     = false;
@@ -26,7 +31,7 @@ SystemConfig makecfg(const std::string& testmodule) {
         cfg.enableScreen      = true;
         cfg.testmode          = TestMode::CAMERATEST;
 
-    // motion测试模式，测试screen发送信号到motion实际相应的时间
+    // Motion test mode: measures the actual response time from screen signal input to motion execution.
     }else if (testmodule == "motion") {
         cfg.enableNlu         = false;
         cfg.enableSpeaker     = false;
@@ -36,7 +41,7 @@ SystemConfig makecfg(const std::string& testmodule) {
         cfg.enableScreen      = true;
         cfg.testmode          = TestMode::MOTIONTEST;
 
-    // microphone测试模式，测试stt
+    // Microphone test mode: tests speech-to-text performance.
     }else if (testmodule == "microphone") {
         cfg.enableNlu         = true;
         cfg.enableSpeaker     = false;
@@ -46,8 +51,8 @@ SystemConfig makecfg(const std::string& testmodule) {
         cfg.enableScreen      = false;
         cfg.testmode          = TestMode::MICROPHONETEST;
 
-    // nlu测试模式，测试nlu转换性能，同时激活microphone，在屏幕输出text
-    // nlu测试暂时和microphone绑定，后续规划中该功能仅用作（是否启动nlu模块）而非测试nlu提取
+    // NLU test mode: tests NLU processing performance while also enabling the microphone and displaying text on the screen.
+    // NLU test mode is currently coupled with the microphone. In future plans, this mode will only be used to determine whether the NLU module is enabled, rather than to test NLU extraction itself.
     }else if (testmodule == "nlu") {
         cfg.enableNlu         = true;
         cfg.enableSpeaker     = false;
@@ -55,9 +60,9 @@ SystemConfig makecfg(const std::string& testmodule) {
         cfg.enableMotion      = false;
         cfg.enableMicrophone  = true;
         cfg.enableScreen      = false;
-        cfg.testmode          = TestMode::NORMAL; // 还没写
+        cfg.testmode          = TestMode::NORMAL; // Not implemented yet
 
-    // 普通模式
+    // Normal mode
     }else{
         cfg.enableNlu         = true;
         cfg.enableSpeaker     = true;

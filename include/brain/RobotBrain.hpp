@@ -14,9 +14,12 @@ class MotionExecutor;
 class CameraExecutor;
 class NLUEngine;
 
-
-
-
+/**
+ * @brief Core logic module of the robot system.
+ *
+ * RobotBrain processes text input, UI signals, and NLU output,
+ * and coordinates the speaker, motion, and camera executors.
+ */
 class RobotBrain {
 private:
     std::shared_ptr<SpeakerExecutor> speaker;
@@ -41,7 +44,7 @@ public:
 
     void handleUISignal(const std::string& type, const std::string& data);
 
-    // supervisor侧调用，更改状态
+    // Called by the supervisor to update the state
     void SetState(bool state);
 
 private:

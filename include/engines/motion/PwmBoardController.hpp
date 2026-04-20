@@ -34,6 +34,12 @@ enum BugCode {
     SET_FAIL = -5
 };
 
+/**
+ * @brief Low-level controller for the robotic arm servos.
+ *
+ * RobotArmController manages servo configuration, hardware initialization,
+ * angle control, and reset operations for the robotic arm.
+ */
 class RobotArmController {
 public:
 
@@ -47,7 +53,7 @@ public:
     void detachAll();
     float getAngle(const std::string& name);
 
-    // 外部调用，根据config重置角度
+    // Externally callable, reset angles based on the configuration
     void IninServo();
 
 private:

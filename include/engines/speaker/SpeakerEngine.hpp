@@ -24,6 +24,12 @@ struct Taskdata {
     std::string speaktext;
 };
 
+/**
+ * @brief Low-level USB speaker engine for speech synthesis and audio playback.
+ *
+ * UsbSpeaker handles text-to-speech synthesis, audio playback,
+ * task queuing, and cache management for speaker output.
+ */
 class UsbSpeaker {
 public:
     
@@ -88,20 +94,20 @@ private:
 
     std::shared_ptr<TaskMonitor> _taskMonitor;
 
-    // 任务Task
+    // Task tracking
     std::atomic<int> task_id = 2000;
 
     TaskDescribe _taskdescribe;
 
     EmptyResult bg;
 
-    // 多一个队列来维护id和文本用来处理跨函数记录
+    // Additional queue used to maintain task IDs and text for cross-function tracking
     ThreadSafeQueue<Taskdata> _testdata;  
     
-    // 缓存
+    // Cache
     std::unordered_map<std::string, std::vector<short>> _ttsCache;
 
-    // 后续inner_text不会全部缓存，只缓存指定的text，因此设置为unordered_set方便直接用find
+    // In the future, not all inner_text entries will be cached, only specified text entries will be cached. So unordered_set is used for efficient lookup.
     std::unordered_set<std::string> _inner_text;
 
     std::string _ModelPath;

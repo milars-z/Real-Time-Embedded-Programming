@@ -15,6 +15,13 @@ struct multi_lang {
     std::string zh;
 };
 
+/**
+ * @brief Speaker execution module.
+ *
+ * This class handles text-to-speech execution by interacting with the underlying
+ * UsbSpeaker engine. It manages multi-language text mapping, variable substitution
+ * (e.g., host name, robot name), and executes speech tasks received from the system.
+ */
 class SpeakerExecutor : public BaseExecutor<std::string> {
 private:
     std::unique_ptr<UsbSpeaker> speaker;
@@ -22,22 +29,22 @@ private:
 
     std::string _speaker_path;
 
-    // command -> text
+    // Command -> text
     std::unordered_map<std::string, multi_lang> text_lib;
 
-    // 默认英文
+    // Default language: English
     std::string currentLang = "en";
 
-    // 变量配置，如host_name;robot_name
+    // Variable configuration (e.g., host_name, robot_name)
     std::unordered_map<std::string, std::string> variables;
 
-    // config_name
+    // Config_name
     std::string _host_name = "milars";
     std::string _robot_name = "robot";
 
 public:
     
-    // 基础构造函数，暂时只有英文，后续可以添加语言参数
+    // Constructor (currently supports English only, multi-language support can be added later)
     SpeakerExecutor(std::atomic<int>& system_state, const std::string& path,const std::string& text_path, std::shared_ptr<TaskMonitor> taskMonitor);
     ~SpeakerExecutor();
 
@@ -47,26 +54,26 @@ public:
 
     void _start(int core) override;
 
-    // 更新变量
+    // Update variables
     void setVariable(const std::string& key, const std::string& value);
 
-    // 获取Lib对应的文本，外部调用
+    // Get text from library by key (external call)
     std::string getText(const std::string& key);
 
 private:
 
-    // 任务实现
+    // Task execution implementation
     void onExecute(const std::string& text) override;
 
-    // 执行者内部函数，获取当前模块名称
+    // Internal executor function to retrieve the current module name
     std::string get_module_name() override;
 
-    // 刷新变量
+    // Refresh variables
     bool loadVariable();
 
-    // 加载lib
+    // Load text library
     bool loadLibrary();
 
-    // 配置语言-暂时不配置
+    // Set language (currently not fully implemented)
     void setLanguage(const std::string& lang);
 };
