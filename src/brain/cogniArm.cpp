@@ -22,14 +22,14 @@ RobotSystem::RobotSystem() = default;
 RobotSystem::~RobotSystem() = default;
 
 
-// 系统初始化
-// 输入：
-//      cfg: 系统模式
-//      详细配置见system_config.hpp
-// 输出：
-//      true : 启动成功
-//      false: 无法找到speaker与microphone硬件
-// 后续结构体的构造结果由state在start()中反馈
+// System initialization
+// Input:
+//      cfg: system configuration
+//           See system_config.hpp for detailed configuration settings
+// Output:
+//      true  : initialization succeeded
+//      false : failed to find the speaker and microphone hardware
+// The initialization status of subsequent components is reflected by state in start()
 bool RobotSystem::init(SystemConfig cfg) {
     std::cout << "[CogniArm] Initializing hardware..." << std::endl;
 
@@ -40,7 +40,7 @@ bool RobotSystem::init(SystemConfig cfg) {
 
     sys_cfg = cfg;
     
-    // 硬件查找
+    // Hardware detection
     if( sys_cfg.enableSpeaker ){
         speaker_path = find_alsa_device(Config::Hardware::SPEAKER_NAME);
         if (speaker_path.empty()){
@@ -63,10 +63,10 @@ bool RobotSystem::init(SystemConfig cfg) {
         return false;
     }
 
-    // 全局监控者
+    // Global task monitor
     globalMonitor = std::make_shared<TaskMonitor>();
 
-    // 初始化执行层
+    // Initialize the execution layer
     if( sys_cfg.enableSpeaker ){
         std::cout << "[Init][CogniArm] Initializing Speaker..." << std::endl;
         speaker = std::make_shared<SpeakerExecutor>(state,speaker_path,speaker_text,globalMonitor);
@@ -82,12 +82,12 @@ bool RobotSystem::init(SystemConfig cfg) {
         camera  = std::make_shared<CameraExecutor>(state,globalMonitor);
     }
     
-    // 初始化brain逻辑层
+    // Initialize the brain logic layer
     std::cout << "[Init][CogniArm] Initializing Brain..." << std::endl;
     brain = std::make_shared<RobotBrain>(speaker, motion, camera, globalMonitor);
 
-    // 初始化输入层，绑定输入回调到 brain
-    // 语音输入
+    // Initialize the input layer and bind input callbacks to the brain
+    // Voice input
     if( sys_cfg.enableMicrophone){
         std::cout << "[Init][CogniArm] Initializing Microphone..." << std::endl;
         voiceIn = std::make_unique<VoiceProducer>(state, mic_path, [this](std::string text) {
@@ -96,7 +96,7 @@ bool RobotSystem::init(SystemConfig cfg) {
     }
     
 
-    // 屏幕输入
+    // Screen input
     if( sys_cfg.enableScreen){
         std::cout << "[Init][CogniArm] Initializing Screen..." << std::endl;
         screenIn = std::make_unique<ScreenProducer>(camera, [this](std::string t, std::string d){
@@ -104,7 +104,7 @@ bool RobotSystem::init(SystemConfig cfg) {
     }, globalMonitor);
     }
     
-    // supervisor，用来提供反馈与记录时间
+    // supervisor, used to provide feedback and record timing information
     std::cout << "[Init][CogniArm] Initializing Supervisor..." << std::endl;
     supervisor = std::make_unique<TaskSupervisor>(globalMonitor,motion,speaker,brain,sys_cfg);
 
@@ -112,13 +112,13 @@ bool RobotSystem::init(SystemConfig cfg) {
 }
 
 
-// 系统启动
-// 输入：-
-// 输出：-
-// 主循环
-// 1 - 启动所有线程
-// 2 - 判断state是否满足启动要求，如果不满足则直接退出
-// 3 - 开始主循环，刷新screen ( speaker-test mode下每2s给speaker下发任务 )
+// System startup
+// Input: -
+// Output: -
+// Main loop
+// 1 - Start all threads
+// 2 - Check whether state meets the startup requirements; exit directly if not
+// 3 - Start the main loop and refresh the screen (in speaker-test mode, a task is sent to the speaker every 2 seconds)
 void RobotSystem::start() {
     if (isRunning) return;
 
@@ -138,7 +138,7 @@ void RobotSystem::start() {
 
     std::cout << "[Init][CogniArm] Initialization complete." << std::endl;
 
-    // speaker测试
+    // speaker test
     if(speaker && (!screenIn) && (!voiceIn)){
         Init_speaker_test();
     }
@@ -149,15 +149,15 @@ void RobotSystem::start() {
             break;
         }
 
-        // UI 更新循环
+        // UI update loop
         if(screenIn){
             uint32_t next_ms = screenIn->update();
-            // 限制帧率最高为33fps左右
+            // Limit the frame rate to approximately 33 FPS
             next_ms = std::max(1u, std::min(next_ms, 30u));
             usleep(next_ms * 1000);
         }
 
-        // Speaker 单模块测试
+        // Speaker single-module test
         if(speaker && (!screenIn) && (!voiceIn)){
 
             if (current_line_idx < test_scripts.size()) {
@@ -172,47 +172,47 @@ void RobotSystem::start() {
     stop();
 }
 
-// 系统启动
-// 输入：-
-// 输出：-
-// 启动线程
-// Task线程 -- Executor层 -- producer层 -- supervisor层
+// System startup
+// Input: -
+// Output: -
+// Start threads
+// Task threads -- Executor layer -- Producer layer -- Supervisor layer
 void RobotSystem::start_thread(){
 
-    // 优先开启底层执行者线程 Callback -> TaskQueue
+    // Start the low-level executor threads first: Callback -> TaskQueue
     std::cout << "[Init][CogniArm] Starting executor threads..." << std::endl;
     if (speaker) speaker->_start(3);
     if (motion)  motion->_start(1);
     if (camera)  camera->_start(2);
 
-    // 启动任务线程  TaskQueue -> Executor module
+    // Start task threads: TaskQueue -> Executor module
     std::cout << "[Init][CogniArm] Starting task threads..." << std::endl;
     if(speaker) speaker->start();
     if(motion) motion->start();
     if(camera) camera->start();
 
-    // 线程绑定
+    // Bind threads
     std::cout << "[Init][CogniArm] Binding task threads..." << std::endl;
     if(speaker) speaker->pinThread(3);
     if(motion) motion->pinThread(1);
     if(camera) camera->pinThread(2);
 
-    // 优先等待执行者线程开启
+    // Start producer threads after the executor threads are ready
     if(voiceIn)  voiceIn->start();
     if(screenIn) screenIn->start(state);
     
     std::cout << "[Init][CogniArm] Starting producer threads..." << std::endl;
     if(voiceIn) voiceIn->_start(3);
 
-    // 启动检测线程
+    // Start the monitoring thread
     supervisor->start_thread(0);
 
 }
 
-// 系统退出
-// 输入：-
-// 输出：-
-// 停止producer线程 -- 停止任务线程停止接受任务 -- 停止执行者线程停止处理任务
+// System shutdown
+// Input: -
+// Output: -
+// Stop producer threads -- stop task threads from accepting tasks -- stop executor threads from processing tasks
 void RobotSystem::stop() {
     if (!isRunning) return;
     isRunning = false;
@@ -221,17 +221,17 @@ void RobotSystem::stop() {
 
     supervisor->stop_thread();
     
-    // 停止输入任务
+    // Stop input tasks
     if (voiceIn) voiceIn->stop();
     if (screenIn) screenIn->stop();
 
-    // 停止输出任务
-    // 退出任务线程
+    // Stop output tasks
+    // Exit task threads
     if (motion) motion->stop();
     if (speaker) speaker->stop();
     if (camera) camera->stop();
 
-    // 退出底部线程
+    // Exit low-level threads
     if (motion) motion->_stop();
     if (speaker) speaker->_stop();
     if (camera) camera->_stop();
@@ -239,11 +239,11 @@ void RobotSystem::stop() {
     std::cout << "[End][CogniArm] Threads exited safely... destroying resources..." << std::endl;
 }
 
-// 系统状态检查
-// 输入：state
-// 输出：true -- 可以正常进入系统
-//       false -- 不满足要求，系统退出
-// 后续需更细化错误log
+// System state check
+// Input: state
+// Output: true -- the system can enter normally
+//         false -- requirements are not met, and the system exits
+// Detailed error logs should be refined later
 bool RobotSystem::check_state(std::atomic<int>& state){
 
     int current_state = state;
@@ -256,27 +256,27 @@ bool RobotSystem::check_state(std::atomic<int>& state){
     const int FATAL_ERRORS = ERR_SPEAKER_INIT | ERR_MOTION_INIT | ERR_CAMERA_INIT | ERR_SCREEN_INIT;
 
     if (current_state & FATAL_ERRORS) {
-        std::cerr << "[Fatal] 关键硬件异常，状态码: " << current_state << std::endl;
-        if (current_state & ERR_SPEAKER_INIT) std::cerr << " [Error][CogniArm]" << " -> speaker故障" << std::endl;
-        if (current_state & ERR_MOTION_INIT)  std::cerr << " [Error][CogniArm]" << " -> motion故障" << std::endl;
-        if (current_state & ERR_CAMERA_INIT)  std::cerr << " [Error][CogniArm]" << " -> camera故障" << std::endl;
-        if (current_state & ERR_MIC_INIT)     std::cerr << " [Error][CogniArm]" << " -> microphone故障" << std::endl;
+        std::cerr << "[Fatal] Critical hardware error, status code: " << current_state << std::endl;
+        if (current_state & ERR_SPEAKER_INIT) std::cerr << " [Error][CogniArm]" << " -> speaker failure" << std::endl;
+        if (current_state & ERR_MOTION_INIT)  std::cerr << " [Error][CogniArm]" << " -> motion failure" << std::endl;
+        if (current_state & ERR_CAMERA_INIT)  std::cerr << " [Error][CogniArm]" << " -> camera failure" << std::endl;
+        if (current_state & ERR_MIC_INIT)     std::cerr << " [Error][CogniArm]" << " -> microphone failure" << std::endl;
         return false; 
     }
 
     if (current_state & ERR_SCREEN_INIT) {
-        std::cerr << "[Error][CogniArm] 屏幕初始化失败。" << std::endl;
+        std::cerr << "[Error][CogniArm] Screen initialization failed." << std::endl;
     }
 
     return true; 
 
 }
 
-// 系统退出
-// 输入：-
-// 输出：-
-// 初始化speaker_test
-// 读取speaker_test文档存入test_scripts
+// System shutdown
+// Input: -
+// Output: -
+// Initialize speaker_test
+// Read the speaker_test file into test_scripts
 void RobotSystem::Init_speaker_test(){
 
     std::ifstream test_file(Config::Test::SPEAKER_TEST);

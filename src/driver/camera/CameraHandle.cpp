@@ -17,13 +17,13 @@ CameraHandle::CameraHandle(const std::string &model_path, const std::string &fea
     _taskMonitor(std::move(taskMonitor))    
 {
     
-    // 线程绑定单核
+    // Bind processing to a single CPU core
     cv::setNumThreads(1);
 
-    // 设置相机回调
+    // Set the camera callback
     cam.onFrame([this](const cv::Mat& img) {
 
-        // 节省内存，当没有指令且不显示画面时直接丢弃图像数据
+        // Save memory by discarding image data directly when there is no task and display is disabled
         if (!is_display_enabled && state == CamState::IDLE) {
             return; 
         }
@@ -36,19 +36,19 @@ CameraHandle::CameraHandle(const std::string &model_path, const std::string &fea
             img.copyTo(display_frame);
         }
 
-        // 如果有任务，则将MATpop进queue
+        // If there is a task, push the Mat into the queue
         if (state.load() != CamState::IDLE) {
             camera_queue.push(img.clone());
         }
     });
 };
 
-//解构的时候停止相机硬件
+//Stop the camera hardware during destruction
 
 CameraHandle::~CameraHandle() = default;
 
-// 内部线程启动
-// 优先开启底层线程
+// Start internal threads
+// Start the low-level thread first
 void CameraHandle::start_thread(int core){
     
     cam.start_thread(core);
@@ -58,8 +58,8 @@ void CameraHandle::start_thread(int core){
     pinThreadToCore(cameraThread, "CamWorkThread", core);
 }
 
-// 内部线程关闭
-//最后关闭底层线程
+// Stop internal threads
+// Stop the low-level thread last
 void CameraHandle::stop_thread(){
     
     running = false;
@@ -71,7 +71,7 @@ void CameraHandle::stop_thread(){
 }
 
 
-// Cam硬件启动
+// Start the camera hardware
 bool CameraHandle::open() {
     std::cout << "[CameraHandle] Opening Camera Hardware..." << std::endl;
     if (cam.start()) {
@@ -83,21 +83,21 @@ bool CameraHandle::open() {
     }
 }
 
-// 外部调用函数
-// 更新背景
+// Externally callable function
+// Update the background
 void CameraHandle::Update_bg() {
     startTask(CamState::UPDATING_BG);
 };
 
-// 外部调用函数
-// 学习物体
+// Externally callable function
+// Learn an object
 void CameraHandle::Learn_obj(const std::string name) {
     target_name = name;
     startTask(CamState::LEARNING);
 };
 
-// 外部调用函数
-// 查找物体
+// Externally callable function
+// Find an object
 void CameraHandle::Find_obj(const std::string name) {
     target_name = name;
     startTask(CamState::FINDING);
@@ -120,9 +120,9 @@ void CameraHandle::startTask(CamState next_state) {
 };
 
 
-// Cam图像处理线程
-// 保证稳定性，取5张只用最后一张进行处理
-// 在推流状态下取到合适的mat再根据Task进行处理
+// Camera image processing thread
+// For stability, capture 5 frames and process only the last one
+// Under streaming conditions, obtain a suitable Mat and process it according to the current task
 void CameraHandle::cameraWorker() {
 
     while (running) {
@@ -144,9 +144,9 @@ void CameraHandle::cameraWorker() {
     }
 };
 
-// 实际执行的函数，根据当前状态进行不同的处理
-// 包括更新背景，obj学习，obj检测
-// 内部使用high_resolution_clock计算检测时间
+// Actual execution function that performs different processing based on the current state
+// Includes background updating, object learning, and object detection
+// Internally uses high_resolution_clock to measure detection time
 void CameraHandle::processTask(const cv::Mat& target_img) {
     
     if (target_img.empty()) return; 
@@ -225,7 +225,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
         objs = _detector.detect(target_img);
         if(objs.size() == 0){
 #ifdef TESTMODE
-            _taskdescribe.Name = "NoBackground"; // 通过name来判断是否学习失败
+            _taskdescribe.Name = "NoBackground"; // Use the name field to determine whether learning failed
             _taskevent.taskType = _taskdescribe;
             _taskevent.status = TaskStatus::FINISHED;
             _taskevent.issuccessful = false;
@@ -271,7 +271,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 #ifdef TESTMODE        
         //send message start
         _taskdescribe.Name = target_name;
-        _taskdescribe.TaskType = "Detecte";
+        _taskdescribe.TaskType = "Detect";
         _taskevent.taskId = task_id++;
         _taskevent.status = TaskStatus::STARTED;
         _taskevent.result = bg;
@@ -342,24 +342,24 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 };
 
 
-// 在推流后绘制图用
-// 显示检测结果，框，检测时间
-// 在main循环中调用update() -> getLatestFrame() -> getProcessedFrame()
-// 返回mat
+// Used for drawing after streaming
+// Display detection results, bounding boxes, and detection time
+// Called in the main loop through update() -> getLatestFrame() -> getProcessedFrame()
+// Return a mat
 cv::Mat CameraHandle::getProcessedFrame() {
     cv::Mat canvas;
     std::vector<DetectedObject> objs;
     double ms;
     int match_idx = last_found_index.load();
 
-    // 获取画图数据
+    // Get drawing data
     {
         std::lock_guard<std::mutex> lock(display_mtx);
         if (display_frame.empty()) return cv::Mat();
         canvas = display_frame.clone();
     }
 
-    // 如果有检测结果
+    // If there are detection results
     if (match_idx != -1) {
 
         {

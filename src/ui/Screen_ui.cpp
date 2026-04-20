@@ -2,16 +2,16 @@
 #include <iostream>
 
 struct DPadPayload {
-    ScreenUI* ui;  // 向函数内提供内部指针，发送信号用         
-    std::string signalStr;  // 信号字符串，由轮盘名称和btn上的方向组合成
+    ScreenUI* ui;  // Provide an internal pointer for sending signals inside the function
+    std::string signalStr;  // Signal string composed of the D-pad name and the button direction
 };
 
-// 结构体，键盘发数据用
+// Structure used for keyboard input data
 struct ConfirmData {
-    ScreenUI* ui;  // 向函数内提供内部指针，发送信号用
-    std::string sig_type; // 信号类型，由调用键盘的地方决定
-    lv_obj_t* mask_to_del; // 遮罩对象，执行完确认后需要删除
-    lv_obj_t* ta; // 输入框
+    ScreenUI* ui;  // Provide an internal pointer for sending signals inside the function
+    std::string sig_type; // Signal type determined by the caller of the keyboard
+    lv_obj_t* mask_to_del; // Mask object, which should be deleted after confirmation
+    lv_obj_t* ta; // Input box
 };
 
 ScreenUI::ScreenUI(ScreenUI::UIEventCallback callback)
@@ -25,13 +25,13 @@ void ScreenUI::_stop(){
 
     onSignalEvent = nullptr;
 
-    // 键盘遮罩
+    // Keyboard mask
     lv_obj_t* active_scr = lv_screen_active();
     if (active_scr) {
         lv_obj_clean(active_scr); 
     }
 
-    // 主屏幕
+    // Main screen
     if (main_screen) {
             lv_obj_delete(main_screen);
             main_screen = nullptr;
@@ -46,10 +46,10 @@ void ScreenUI::sendSignal(std::string type, std::string data) {
         }
     }
 
-// 初始界面 
+// Home screen
 void ScreenUI::showHomeScreen() {
 
-    // 关闭视觉界面状态
+    // Disable vision screen state
     is_in_vision_screen = false;
 
     prepareMainScreen();
@@ -61,7 +61,7 @@ void ScreenUI::showHomeScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("STOP_SYSTEM");
     }, LV_EVENT_CLICKED, this);
     
-    // Motion 按钮
+    // Motion button
     lv_obj_t* btn_m = lv_button_create(main_screen);
     lv_obj_set_size(btn_m, 100, 100);
     lv_obj_align(btn_m, LV_ALIGN_CENTER, -150, 0);
@@ -70,7 +70,7 @@ void ScreenUI::showHomeScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->showMotionScreen();
     }, LV_EVENT_CLICKED, this);
 
-    // Vision 按钮
+    // Vision button
     lv_obj_t* btn_v = lv_button_create(main_screen);
     lv_obj_set_size(btn_v, 100, 100);
     lv_obj_align(btn_v, LV_ALIGN_CENTER, 0, 0);
@@ -80,7 +80,7 @@ void ScreenUI::showHomeScreen() {
         ui->showVisionScreen();
     }, LV_EVENT_CLICKED, this);
 
-    // Setting 按钮
+    // Setting button
     lv_obj_t* btn_s = lv_button_create(main_screen);
     lv_obj_set_size(btn_s, 100, 100);
     lv_obj_align(btn_s, LV_ALIGN_CENTER, 150, 0);
@@ -93,12 +93,12 @@ void ScreenUI::showHomeScreen() {
     lv_screen_load(main_screen);
 }
 
-// Motion 界面 
+// Motion screen 
 void ScreenUI::showMotionScreen() {
 
     prepareMainScreen();
 
-    // 返回键
+    // Back button
     lv_obj_t* btn_back = lv_button_create(main_screen);
     lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 10, 10);
     lv_label_set_text(lv_label_create(btn_back), "Back");
@@ -106,7 +106,7 @@ void ScreenUI::showMotionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->showHomeScreen();
     }, LV_EVENT_CLICKED, this);
 
-    // Learn 键 (右上)
+    // Learn button (top-right)
     lv_obj_t* btn_learn = lv_button_create(main_screen);
     lv_obj_align(btn_learn, LV_ALIGN_TOP_RIGHT, -10, 10);
     lv_label_set_text(lv_label_create(btn_learn), "Learn");
@@ -114,11 +114,11 @@ void ScreenUI::showMotionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->createKeyboard("MOTION_LEARN");
     }, LV_EVENT_CLICKED, this);
 
-    // 两个轮盘
+    // Two D-pads
     createDPad(main_screen, -180, "left");
     createDPad(main_screen, 180, "right");
 
-    // OK 键 (中间)
+    // OK button (center)
     lv_obj_t* btn_ok = lv_button_create(main_screen);
     lv_obj_set_size(btn_ok, 80, 80);
     lv_obj_align(btn_ok, LV_ALIGN_CENTER, 0, 50);
@@ -141,7 +141,7 @@ void ScreenUI::showMotionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("RESET");
     }, LV_EVENT_CLICKED, this);
 
-    // 后续使用
+    // For future use
     // lv_obj_t* btn_stop = lv_button_create(main_screen);
     // lv_obj_align(btn_stop, LV_ALIGN_TOP_RIGHT, -10, 190);
     // lv_label_set_text(lv_label_create(btn_stop), "Stop");
@@ -154,7 +154,7 @@ void ScreenUI::showMotionScreen() {
     
 }
 
-// Vision 界面 
+// Vision screen
 void ScreenUI::showVisionScreen() {
 
     is_in_vision_screen = true; 
@@ -214,7 +214,7 @@ void ScreenUI::showVisionScreen() {
         ((ScreenUI*)lv_event_get_user_data(e))->sendSignal("RESET");
     }, LV_EVENT_CLICKED, this);
 
-    // 返回
+    // Back
     lv_obj_t* btn_back = lv_button_create(main_screen);
     lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 10, 10);
     lv_label_set_text(lv_label_create(btn_back), "Back");
@@ -233,7 +233,7 @@ void ScreenUI::showSettingScreen(){
 
     prepareMainScreen();
 
-    // 返回
+    // Back
     lv_obj_t* btn_back = lv_button_create(main_screen);
     lv_obj_align(btn_back, LV_ALIGN_TOP_LEFT, 10, 10);
     lv_label_set_text(lv_label_create(btn_back), "Back");
@@ -291,31 +291,31 @@ void ScreenUI::createDPad(lv_obj_t* parent, int x_offset, std::string name) {
     
     for(int i = 0; i < 4; i++) {
         
-        // 创建按键位置和大小
+        // Create the button position and size
         lv_obj_t* btn = lv_button_create(parent);
         lv_obj_set_size(btn, 85, 85); 
         lv_obj_align(btn, LV_ALIGN_CENTER, x_offset + pos_offset[i][0], pos_offset[i][1]);
         
-        // 配置按键label
+        // Configure the button label
         lv_obj_t* label = lv_label_create(btn);
         lv_label_set_text(label, dirs[i]);
         lv_obj_center(label);
 
         
-        // 配置需要传入的结构体信息
+        // Configure the payload structure to be passed in
         std::string full_sig = name + "_" + dirs[i];
         DPadPayload* payload = new DPadPayload{this, full_sig};
 
-        // 绑定信号与按键回调
+        // Bind the signal and button callback
         lv_obj_add_event_cb(btn, [](lv_event_t* e) {
             DPadPayload* p = (DPadPayload*)lv_event_get_user_data(e);
             
-            // 信号发送
+            // Send the signal
             p->ui->sendSignal("DO_MOTION", p->signalStr);
             
         }, LV_EVENT_CLICKED, payload);
 
-        // 删除事件方式泄露
+        // Use the delete event to prevent memory leaks
         lv_obj_add_event_cb(btn, [](lv_event_t* e) {
             DPadPayload* p = (DPadPayload*)lv_event_get_user_data(e);
             delete p; 
@@ -325,43 +325,43 @@ void ScreenUI::createDPad(lv_obj_t* parent, int x_offset, std::string name) {
 
 void ScreenUI::createKeyboard(std::string signal_type) {
    
-    // 背景模板
+    // Background overlay
     lv_obj_t* mask = lv_obj_create(lv_screen_active());
     lv_obj_set_size(mask, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_bg_opa(mask, LV_OPA_50, 0); 
     lv_obj_set_style_bg_color(mask, lv_palette_main(LV_PALETTE_GREY), 0);
 
-    // 创建容器
+    // Create the container
     lv_obj_t* cont = lv_obj_create(mask);
     lv_obj_set_size(cont, 600, 80);
     lv_obj_align(cont, LV_ALIGN_TOP_MID, 0, 50); 
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_ROW); 
     lv_obj_set_flex_align(cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    // 创建输入框
+    // Create the input box
     ta_obj = lv_textarea_create(cont);
     lv_obj_set_width(ta_obj, 450);
     lv_textarea_set_placeholder_text(ta_obj, "Input Command...");
     lv_textarea_set_one_line(ta_obj, true);
     lv_obj_add_state(ta_obj, LV_STATE_FOCUSED); 
 
-    // 创建确定按钮
+    // Create the confirm button
     lv_obj_t* btn_ok = lv_button_create(cont);
     lv_obj_set_size(btn_ok, 80, 45);
     lv_obj_t* lbl_ok = lv_label_create(btn_ok);
     lv_label_set_text(lbl_ok, "OK");
     lv_obj_center(lbl_ok);
 
-    // 创建键盘
+    // Create the keyboard
     kb_obj = lv_keyboard_create(mask);
-    lv_obj_set_size(kb_obj, 800, 240); // 占据下半屏
+    lv_obj_set_size(kb_obj, 800, 240); // Occupy the lower half of the screen
     lv_obj_align(kb_obj, LV_ALIGN_BOTTOM_MID, 0, -30);
     lv_keyboard_set_textarea(kb_obj, ta_obj);
 
 
     ConfirmData* data = new ConfirmData{this, signal_type, mask, ta_obj};
 
-    // 确认键确认
+    // Confirm through the OK button
     lv_obj_add_event_cb(btn_ok, [](lv_event_t* e) {
         ConfirmData* d = (ConfirmData*)lv_event_get_user_data(e);
         std::string content = lv_textarea_get_text(d->ta);
@@ -377,7 +377,7 @@ void ScreenUI::createKeyboard(std::string signal_type) {
         delete d; 
     }, LV_EVENT_CLICKED, data);
 
-    // 键盘内的确定与取消事件
+    // Confirm and cancel events inside the keyboard
     lv_obj_add_event_cb(kb_obj, [](lv_event_t* e) {
         lv_event_code_t code = lv_event_get_code(e);
         if(code == LV_EVENT_READY) { 
@@ -406,7 +406,7 @@ void ScreenUI::updateVisionFrame(const cv::Mat& frame) {
 
     memcpy(canvas_buffer.data(), frame.data, canvas_buffer.size());
 
-    // 刷新逻辑
+    // Refresh logic
     lv_image_set_src(vision_img_obj, &vision_img_dsc);
     lv_obj_invalidate(vision_img_obj);
 }

@@ -11,7 +11,7 @@
 SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::string& path, const std::string& text_path, std::shared_ptr<TaskMonitor> taskMonitor) 
 :_taskMonitor(taskMonitor),_speaker_path(text_path)
 {
-    // 初始化底层播放引擎
+    // Initialize the underlying playback engine
     speaker = std::make_unique<UsbSpeaker>(
         path, // device path
         2,  // hardware settings
@@ -20,28 +20,28 @@ SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::stri
     );
 
     if (speaker->open()) {
-        std::cout << "[Init][SpeakerApp] 音频硬件已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] Audio hardware is ready" << std::endl;
     } else {
-        std::cerr << "[Error][SpeakerApp] 无法打开音频设备: " << path << std::endl;
+        std::cerr << "[Error][SpeakerApp] Failed to open the audio device: " << path << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     }
 
     if(loadLibrary()){
-        std::cout << "[Init][SpeakerApp] text已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] Text library is ready" << std::endl;
     }else {
-        std::cerr << "[Error][SpeakerApp] 无法找到正确的text映射 " << std::endl;
+        std::cerr << "[Error][SpeakerApp] Failed to find the correct text mapping " << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     } 
     if(loadVariable()){
-        std::cout << "[Init][SpeakerApp] variable已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] Variables are ready" << std::endl;
     }else {
-        std::cerr << "[Error][SpeakerApp] 无法找到正确的variable映射 " << std::endl;
+        std::cerr << "[Error][SpeakerApp] Failed to find the correct variable mapping " << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     }    
 }
 
-// 暂时用不到结构函数
-// 后续切换语言时或许需要在析构函数中清理资源
+// The destructor is not needed for now
+// Resource cleanup may be needed in the destructor when language switching is added later
 SpeakerExecutor::~SpeakerExecutor() {
     std::cout << "[End][SpeakerApp] destructor end" << std::endl;
 }
@@ -50,24 +50,24 @@ std::string SpeakerExecutor::get_module_name(){
     return "Speaker";
 }
 
-// 阻塞退出
+// Blocking shutdown
 void SpeakerExecutor::_stop(){
     if(speaker){
         speaker->stop_thread();
-        std::cout << "[End][SpeakerApp] 内部线程已退出..." << std::endl;
+        std::cout << "[End][SpeakerApp] Internal thread has exited..." << std::endl;
     }
 }
 
 void SpeakerExecutor::_start(int core){
     if(!speaker) return;
     speaker->start_thread(core);
-    std::cout << "[Init][SpeakerApp] 内部线程已开启,绑定在core:" << core << std::endl;
+    std::cout << "[Init][SpeakerApp] Internal thread started, bound to core:" << core << std::endl;
 }
 
 
 void SpeakerExecutor::onExecute(const std::string& text) {
     if (!text.empty() && speaker) {
-        // 调用底层speaker的播放接口
+        // Call the playback interface of the underlying speaker
         speaker->play(text);
     }
 }
@@ -105,7 +105,7 @@ std::string SpeakerExecutor::getText(const std::string& key){
         if (currentLang == "en"){
             return "please check speaker test";
         }else if( currentLang == "zh"){
-            return "我不知道该说些什么";
+            return "I'm not sure what to say.";
         }
     }else{
 

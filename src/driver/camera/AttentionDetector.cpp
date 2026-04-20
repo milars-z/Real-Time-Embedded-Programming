@@ -18,7 +18,7 @@ AttentionDetector::AttentionDetector(const string& model_path) {
     }
 }
 
-// 对外提供背景检测状态
+// Provide the background detection status externally
 bool AttentionDetector::is_ready() const {
      return has_background; 
     }
@@ -53,7 +53,7 @@ void AttentionDetector::update_background(const Mat& frame) {
     if (frame.empty()) return;
     bg_features = get_features(frame).clone();
     has_background = true;
-    cout << "[Info][AttentionDetector] 背景特征已更新." << endl;
+    cout << "[Info][AttentionDetector] Background features updated." << endl;
 }
 
 // Using the concept of ROI Pooling to quickly extract features without the need for multiple inferences
@@ -131,7 +131,7 @@ vector<DetectedObject> AttentionDetector::detect(const Mat& frame) {
     int H = f_obj.size[2];
     int W = f_obj.size[3];
 
-    // 存储差异map
+    // Store the difference map
     Mat diff_map(H, W, CV_32F, Scalar(0));
     // Create pointers to manipulate background features and obj image features
     const float* p_obj = f_obj.ptr<float>();
@@ -176,35 +176,35 @@ vector<DetectedObject> AttentionDetector::detect(const Mat& frame) {
         // Ignore noise smaller than BINARY_THRESH
     threshold(heatmap_large, mask, cfg.BINARY_THRESH * 255, 255, THRESH_BINARY);
 
-    // 轮廓提取
-    // RETR_EXTERNAL只取外部轮廓
-    // CHAIN_APPROX_SIMPLE存储边缘特征点集
+    // Contour extraction
+    // RETR_EXTERNAL retrieves only external contours
+    // CHAIN_APPROX_SIMPLE stores the contour feature points
     vector<vector<Point>> contours;
     findContours(mask, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
 
     int obj_id = 0;
-    // 去除超出MAX_OUTPUT_TARGETS的物品
-    // 去除面积小于MIN_PIXEL_AREA的物品
+    // Discard objects exceeding MAX_OUTPUT_TARGETS
+    // Discard objects with an area smaller than MIN_PIXEL_AREA
     for (const auto& cnt : contours) {
         if (obj_id >= cfg.MAX_OUTPUT_TARGETS) break;
         double area = contourArea(cnt);
         if (area < cfg.MIN_PIXEL_AREA) continue;
 
-        // 对符合要求的点集做方形化处理
+        // Apply bounding-rectangle processing to contours that meet the requirements
         Rect box = boundingRect(cnt);
         
 
-        // 获取图像特征
+        // Extract image features
         vector<float> feat_vec = extract_feature_vector(f_obj, box, frame.size());
 
-        //完善obj的各项属性
+        //Complete the attributes of the object
         DetectedObject obj;
         obj.id = obj_id++;
         obj.box = box;
         obj.score = (float)area; 
         obj.feature = feat_vec;  
-        obj.match_name = "Unknow";
+        obj.match_name = "Unknown";
         obj.match_dist = 1.0f;
 
         objects.push_back(obj);
@@ -213,9 +213,9 @@ vector<DetectedObject> AttentionDetector::detect(const Mat& frame) {
     return objects;
 }
 
-// 用来排除边缘变动的影响
-// 生成一个边缘检测模板，对边缘的变化做渐变处理
-// 当图像尺寸不变的时候只需要进行一次生成模板的操作，节省运行时间
+// Used to eliminate the influence of edge variations
+// Generate an edge suppression mask and apply gradual attenuation to edge changes
+// When the image size does not change, the mask only needs to be generated once to save runtime
 void AttentionDetector::init_edge_mask(int H, int W) {
 
     if (!edge_mask.empty() && edge_mask.rows == H && edge_mask.cols == W) {

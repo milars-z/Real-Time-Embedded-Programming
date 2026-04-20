@@ -41,7 +41,7 @@ std::string find_alsa_device(const std::string& keyword) {
     return ""; 
 }
 
-// tool for multithread
+// Tool for multithread
 void pinThreadToCore(std::thread &th, std::string thread_name, int core_id) {
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
@@ -61,7 +61,7 @@ void pinThreadToCore(std::thread &th, std::string thread_name, int core_id) {
 #include <iomanip>
 
 
-// write with help of AI
+// Write with help of AI
 void print_startup_banner(SystemConfig cfg) {
 
     const int WIDTH = 64; 
@@ -220,7 +220,7 @@ void saveVariablesToFile(const std::string& lang, const std::string& host, const
     }
 }
 
-// nlu返回的intent，处理成枚举类型，方便后续逻辑判断
+// Convert the intent returned by the NLU into an enum type for easier subsequent logic handling
 IntentType parseIntent(const std::string& intent) {
     if (intent == "unknown" || intent.empty()) return IntentType::OTHER;
     if (intent == "do_motion") return IntentType::DO_MOTION;
@@ -234,9 +234,9 @@ IntentType parseIntent(const std::string& intent) {
     return IntentType::UNKNOWN;
 }
 
-// 分词
+// Tokenization
 // string -> word vector
-// using in RobotBrain
+// Using in RobotBrain
 std::vector<std::string> split_text(const std::string& text) {
     std::stringstream ss(text);
     std::string word;

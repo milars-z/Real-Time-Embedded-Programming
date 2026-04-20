@@ -5,11 +5,11 @@
 using namespace cv;
 using namespace std;
 
-// 少量样本学习检索
+// Few-shot learning and retrieval
 
-// 特征管理类
-// 打开特征文件并加载
-// 没有文件则会重新创建
+// Feature manager class
+// Open and load the feature file
+// Create a new file if it does not exist
 FeatureManager::FeatureManager(const string& path) : db_file_path(path) {
     load();
 }
@@ -19,7 +19,7 @@ void FeatureManager::load() {
     feature_db.clear();
     FileStorage fs(db_file_path, FileStorage::READ);
     if (!fs.isOpened()) {
-        cout << "[Init][FeatureManager] 特征库文件不存在或无法打开，将创建新文件: " << db_file_path << endl;
+        cout << "[Init][FeatureManager] Feature database file does not exist or cannot be opened. A new file will be created: " << db_file_path << endl;
         return;
     }
 
@@ -36,17 +36,17 @@ void FeatureManager::load() {
         feature_db[name] = feats;
     }
     fs.release();
-    cout << "[Init][FeatureManager] 特征库加载完成，共 " << feature_db.size() << " 类物品。" << endl;
+    cout << "[Init][FeatureManager] Feature database loaded successfully, total " << feature_db.size() << " object categories." << endl;
 }
 
 
-// 保存特征
-// 全量重写，特征量过大运行速度会变慢，后续需改进
-// 输入物品的特征与物品的名字
-// 返回保存状态
+// Save features
+// Rewrite the entire database each time. Performance may degrade when the number of features becomes large and should be improved later
+// Input the object's feature and name
+// Return the save status
 bool FeatureManager::save_feature(const DetectedObject& obj, const string& name) {
     if (obj.feature.empty()) {
-        cerr << "[Error][FeatureManager] 试图保存空特征！" << endl;
+        cerr << "[Error][FeatureManager] Attempted to save an empty feature!" << endl;
         return false;
     }
 
@@ -64,11 +64,11 @@ bool FeatureManager::save_feature(const DetectedObject& obj, const string& name)
     }
     fs.release();
     
-    cout << "[Info][FeatureManager] 已保存 " << name << " 的特征 (样本数: " << feature_db[name].size() << ")" << endl;
+    cout << "[Info][FeatureManager] Features for " << name << " have been saved (sample count: " << feature_db[name].size() << ")" << endl;
     return true;
 }
 
-// 计算L2
+// Compute cosine-based distance
 float FeatureManager::compute_distance(const vector<float>& f1, const vector<float>& f2) {
 
     if (f1.size() != f2.size()) return 1.0f; 
@@ -91,12 +91,12 @@ float FeatureManager::compute_distance(const vector<float>& f1, const vector<flo
     return 1.0f - similarity; 
 }
 
-// 物体匹配
-// 输入物体名称，所有当前帧中检测到的物体的特征组，检测阈值
-// 输出当前匹配度最高的一个obj的id
+// Object matching
+// Input the object name, the feature set of all objects detected in the current frame, and the matching threshold
+// Output the id of the object with the highest matching score
 int FeatureManager::match_object(const string& target_name, vector<DetectedObject>& objects, float threshold) {
     if (feature_db.find(target_name) == feature_db.end()) {
-        cout << "[Info][FeatureManager] 数据库中没有 " << target_name << " 的特征" << endl;
+        cout << "[Info][FeatureManager] No features for " << target_name << " found in the database" << endl;
         return -1;
     }
 
@@ -105,15 +105,15 @@ int FeatureManager::match_object(const string& target_name, vector<DetectedObjec
     int best_match_idx = -1;
     float min_dist = 1000.0f;
 
-    // 遍历画面中所有检测到的物体
+    // Traverse all detected objects in the current frame
     for (size_t i = 0; i < objects.size(); ++i) {
-        // 让当前物体与数据库中该名字的所有样本比对，取最小值
+        // Compare the current object with all samples of the target name in the database and take the minimum distance
         for (const auto& db_feat : stored_feats) {
             float dist = compute_distance(objects[i].feature, db_feat);
             
             if (dist < min_dist) {
                 min_dist = dist;
-                // 如果小于阈值，认为是候选
+                // If it is smaller than the threshold, treat it as a candidate
                 if (min_dist < threshold) {
                     best_match_idx = (int)i;
                     objects[i].match_name = target_name; 
@@ -124,7 +124,7 @@ int FeatureManager::match_object(const string& target_name, vector<DetectedObjec
     }
 
     if (best_match_idx != -1) {
-        cout << "[Match][FeatureManager] 找到 " << target_name << " (ID: " << objects[best_match_idx].id 
+        cout << "[Match][FeatureManager] Found " << target_name << " (ID: " << objects[best_match_idx].id 
              << ", Dist: " << min_dist << ")" << endl;
     }
 
