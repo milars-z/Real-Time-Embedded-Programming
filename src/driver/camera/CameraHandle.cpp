@@ -271,7 +271,7 @@ void CameraHandle::processTask(const cv::Mat& target_img) {
 #ifdef TESTMODE        
         //send message start
         _taskdescribe.Name = target_name;
-        _taskdescribe.TaskType = "Detect";
+        _taskdescribe.TaskType = "Detecte";
         _taskevent.taskId = task_id++;
         _taskevent.status = TaskStatus::STARTED;
         _taskevent.result = bg;

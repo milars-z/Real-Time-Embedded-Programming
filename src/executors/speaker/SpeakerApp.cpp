@@ -105,7 +105,7 @@ std::string SpeakerExecutor::getText(const std::string& key){
         if (currentLang == "en"){
             return "please check speaker test";
         }else if( currentLang == "zh"){
-            return "I'm not sure what to say.";
+            return "我不知道该说些什么";
         }
     }else{
 
