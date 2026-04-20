@@ -7,28 +7,38 @@
 
 class FeatureManager {
 public:
+
+    /// @brief Constructor to initialize the feature manager with path.
     FeatureManager(const std::string& db_path = "features_db.yml");
 
-    // 加载本地特征库
+    /// @brief Load the local feature dataset
     void load();
 
-    // 保存特征到本地
-    // input: detected_obj (包含特征), name (如 "obj_1")
+    /**
+     * @brief Save an object's feature to the local database.
+     * @param obj The detected object containing feature data.
+     * @param name The label/name for the object (e.g., "obj_1").
+     * @return true if saved successfully, false otherwise.
+     */
     bool save_feature(const DetectedObject& obj, const std::string& name);
 
-    // 匹配函数
-    // input: target_name objects 
-    // output: 返回匹配到的物体在 objects 列表中的索引，如果没有匹配返回 -1
-    // threshold: 距离阈值 (越小越严格)
-    // 后期可以改为动态阈值
+    /**
+     * @brief Match a target name against a list of detected objects.
+     * @param target_name The name to search for.
+     * @param objects Vector of candidate objects to match against.
+     * @param threshold Distance threshold (smaller values are stricter).
+     * @return Index of the matched object in the list, or -1 if no match found.
+     */
     int match_object(const std::string& target_name, std::vector<DetectedObject>& objects, float threshold = 0.5f);
 
 private:
-    std::string db_file_path;
-    // 内存中的数据库: name -> [feature_vector_1, feature_vector_2, ...]
+
+    std::string db_file_path;  ///< Path to the local database file
+
+    /// @brief In-memory database: name -> [feature_vector_1, feature_vector_2, ...]
     std::map<std::string, std::vector<std::vector<float>>> feature_db;
 
-    // 计算欧氏距离
+    /// @brief Compute Euclidean distance between two feature vectors.
     float compute_distance(const std::vector<float>& f1, const std::vector<float>& f2);
 };
 

@@ -1,7 +1,9 @@
 #pragma once
 
 
-// Motion_APP层的一些bug
+/**
+ * @brief Error and status codes for the Motion application layer.
+ */
 enum class BugCode_M {
     Success = 0,
     LearningSuccess = 1,

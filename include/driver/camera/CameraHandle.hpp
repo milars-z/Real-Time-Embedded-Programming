@@ -19,10 +19,10 @@
 
 
 enum class CamState {
-    IDLE,       // 闲置状态，不处理图像
-    LEARNING,   // 学习/保存特征状态
-    FINDING,    // 查找/匹配特征状态
-    UPDATING_BG // 更新背景状态
+    IDLE,       ///< Idle state, no image processing
+    LEARNING,   ///< Learning and saving object features
+    FINDING,    ///< Finding and matching object features
+    UPDATING_BG ///< Updating background model state
 };
 
 
@@ -33,86 +33,82 @@ public:
     CameraHandle(const std::string& model_path, const std::string& feature_path,std::shared_ptr<TaskMonitor> taskMonitor);
     ~CameraHandle();
 
-    // 外部功能调用函数
+    // --- External API ---
+    /// @brief Update background model.
     void Update_bg();
+    /// @brief Learn and find object features.
     void Learn_obj(const std::string name = "obj_1");
     void Find_obj(const std::string name = "obj_1");
 
-    // 外部lvgl推流函数
+    // --- Streaming ---
+    /// @brief External LVGL streaming function.
     cv::Mat getProcessedFrame();
 
-    // 外部cam硬件控制函数
+    // --- Camera Hardware Control ---
+    /// @brief External camera hardware control functions.
     bool open();
     bool stop();
 
-    // 外部线程控制函数
+    // --- Thread Control ---
+    /// @brief External thread management functions.
     void start_thread(int core);
     void stop_thread();
 
 
 private:
 
-    // 根据新的状态启动检测学习相关任务
+    /// @brief Start detection or learning tasks based on the new state.
     void startTask(CamState next_state);
 
-    // 主线程
+    /// @brief Main camera worker thread logic.
     void cameraWorker();
 
-    // 实际任务处理，根据最后一帧MAT进行处理
+     /// @brief Core task processing based on the latest MAT frame.
     void processTask(const cv::Mat& target_img);
 
 private:
     
-    // 外界调用路径相关
-    AttentionDetector _detector;
-    FeatureManager    _feat_mgr;
+    // --- External Modules ---
+    AttentionDetector _detector;                ///< Path for external attention detection
+    FeatureManager    _feat_mgr;                ///< Feature management instance
 
-    // Cam硬件驱动
-    CameraEngine      cam;
+    // --- Hardware & Task ---
+    CameraEngine      cam;  ///< Camera hardware engine
+    std::shared_ptr<TaskMonitor> _taskMonitor;  ///< Task monitoring and management
 
-    // 任务检测
-    std::shared_ptr<TaskMonitor> _taskMonitor;
-
-    // CameraHandle线程
-    std::thread       cameraThread;
-
-    // CameraHandle队列
-    ThreadSafeQueue<cv::Mat> camera_queue;
+    // --- Threading & Synchronization ---
+    std::thread       cameraThread;             ///< Main processing thread
+    ThreadSafeQueue<cv::Mat> camera_queue;      ///< Frame buffer queue
     
-    // CameraHandle构造函数用
-    // 构造是否开始
-    std::atomic<bool> running;
+    // --- Control Flags (Atomic) ---
+    std::atomic<bool> running;            ///< Flag for constructor/system status
+    std::atomic<CamState> state;          ///< Current Camera state
+    std::atomic<bool> is_display_enabled; ///< Streaming/display toggle
 
-    // 状态设置
-    std::atomic<CamState> state;
+    std::string target_name;     ///< Name of the target for detection/learning
 
-    // 是否持续推流
-    std::atomic<bool> is_display_enabled;
-
-    // 检测/学习目标名字
-    std::string target_name;
-
-    // lvgl推流相关
+    // --- Display & Buffering ---
     std::mutex display_mtx;
     cv::Mat display_frame;
 
-    // CameraWorker的buffer
-    // 用来放MAT图像，当图像大于5张时进行处理
-    // 防止抖动
+     /** 
+     * @brief Buffer for CameraWorker to reduce jitter (anti-shake).
+     * Accumulates MAT images and triggers processing when buffer size exceeds 5.
+     */
     std::vector<cv::Mat> Camera_worker_buffer;
 
-    // 结果显示相关
-    std::vector<DetectedObject> _latest_objects; 
-    double _last_inference_ms = 0;              
-    std::mutex _result_mtx;     
+    // --- Detection Results ---
+    std::vector<DetectedObject> _latest_objects;   ///< List of most recently detected objects
+    double _last_inference_ms = 0;                 ///< Duration of the last inference in milliseconds 
+    std::mutex _result_mtx;                        ///< Mutex for thread-safe access to results
     
-    // detect相关
+    // --- Detection Tracking ---
     std::atomic<int> last_found_index;
 
-    // 任务Task相关
-    std::atomic<int> task_id = 1000;
-    TaskDescribe _taskdescribe;
-    EmptyResult bg;
+    // --- Task Management ---
+    std::atomic<int> task_id = 1000;               ///< Unique identifier for the current task(supervisor)
+    TaskDescribe _taskdescribe;                    ///< Metadata describing the current task
+    EmptyResult bg;                                ///< Reference for background/empty results
 
 };
 

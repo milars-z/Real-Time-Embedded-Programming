@@ -6,7 +6,7 @@
 
 #include "BugCode.hpp"
 
-// 不同模块的结果
+// The results of different modules
 struct CameraResult {
     std::string objectName; 
     int position_x;
@@ -29,7 +29,9 @@ struct NluResult {
     std::string name = "None";
 };
 
-// 任务描述，用来记录任务干了什么
+/**
+ * @brief Task description structure used to record task activities.
+ */
 struct TaskDescribe{
     std::string TaskType;
     std::string Name;
@@ -39,10 +41,15 @@ using ResultData = std::variant<EmptyResult, CameraResult, MotionResult, NluResu
 using TaskType = std::variant<TaskDescribe>;
 
 
-// 任务状态用来匹配获得任务执行所需的时间
+/**
+ * @brief Task status used for tracking and calculating execution duration.
+ */
 enum class TaskStatus { STARTED, FINISHED };
 
-// 队列中的每一条消息
+
+/**
+ * @brief Represents an individual message/event within the task queue.
+ */
 struct TaskEvent {
     int taskId;   // Motion 0000-999; Camera 1000-1999; Speaker 2000-2999; Nlu 3000-3999
     std::string moduleName;  // Motion;Camera;Speaker;Nlu

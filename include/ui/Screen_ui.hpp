@@ -21,41 +21,47 @@ public:
 
     void _stop();
 
-    // 推流控制
     void updateVisionFrame(const cv::Mat& pre_processed_rgb);
 
-    std::atomic<bool> is_in_vision_screen = false;   // 状态位
+    std::atomic<bool> is_in_vision_screen = false;   // state
 
     ThreadSafeQueue<std::string>* signalQueue;
 
 private:
-    
+
+/// @name Screen Navigation
+    /// @{
     void showHomeScreen();
     void showMotionScreen();
     void showVisionScreen();
     void showSettingScreen();
+    /// @}
 
+    /// @brief Send a UI signal with a specific type and optional data.
     void sendSignal(std::string type, std::string data = "");
     
     void createKeyboard(std::string signal_type);
     void createDPad(lv_obj_t* parent, int x_offset, std::string name);
     
-    // 刷新界面时用
+
+    /// @brief Refresh and prepare the main screen interface.
     void prepareMainScreen();
 
-    // 防止界面切换时内存泄露，创建一个屏幕指针，所有屏幕都用该指针
+    /** 
+     * @brief Shared screen pointer used to prevent memory leaks during transitions.
+     * All screens share this pointer to ensure proper resource management.
+     */
     lv_obj_t* main_screen = nullptr;
 
-    // LVGL 相关对象
-    lv_obj_t* vision_img_obj = nullptr; // 图像显示组件
-    lv_image_dsc_t vision_img_dsc;      // LVGL 图像描述符
-    // uint8_t* canvas_buffer = nullptr;   // 图像像素缓冲区
-    std::vector<uint8_t> canvas_buffer;
+    // --- LVGL Objects ---
+    lv_obj_t* vision_img_obj = nullptr; ///< Image display component
+    lv_image_dsc_t vision_img_dsc;      ///< LVGL image descriptor
+    std::vector<uint8_t> canvas_buffer; ///< Pixel buffer for the image canvas
     
     lv_obj_t* kb_obj = nullptr;
     lv_obj_t* ta_obj = nullptr;
 
-    // 图片显示相关
+    //Image display related
     cv::Mat _ui_ready_frame;       
     std::mutex _ui_frame_mtx;      
     const cv::Size _ui_size = cv::Size(640, 480); 

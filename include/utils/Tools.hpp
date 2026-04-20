@@ -27,8 +27,9 @@ enum class IntentType {
     UNKNOWN
 };
 
-// MotionManager相关定义
-// Joint类型
+// --- MotionManager Related Definitions --
+
+/// @brief Robot arm joint types.
 enum class Joint {
     Base,
     Shoulder,
@@ -37,13 +38,16 @@ enum class Joint {
     UNKNOWN,
 };
 
-// 运动类型定义
+/// @brief Movement method definitions.
 enum class MoveMethod {
     ABS,
     REL,
 };
 
-// MotionTask定义
+
+/**
+ * @brief Represents a single motion task/step.
+ */
 struct MotionTask {
 
     Joint joint;   // "Base" / "Shoulder" / "Elbow"
@@ -53,13 +57,15 @@ struct MotionTask {
 
 };
 
-// MotionSet解构定义
+/**
+ * @brief Structure for a complete motion set (a sequence of tasks).
+ */
 struct MotionSet {
     std::string name;
     std::vector<MotionTask> tasks;
 };
 
-// Motionset类型定义
+/// @brief Classification of motion set types.
 enum class MotionSetType {
     Inner,
     External

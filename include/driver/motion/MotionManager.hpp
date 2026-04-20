@@ -28,56 +28,81 @@ public:
 
     ~MotionManager();
 
+    /// @brief Stop and start the motion processing thread.
     void stop_thread();
     void start_thread(int core);
 
-    // do easy task
+    /// @brief Execute a simple task.
     BugCode_M excuteTask(const std::string& task);
 
-    // do motion set
+     /// @brief Execute a specific set of motion sequences.
     BugCode_M excuteMotionSet(const std::string& name);
 
-    // stop motion
+    /// @brief Stop all current motions immediately.
     void excuteStop();
 
-    // reset motion
+    /// @brief Reset the sevro state init position.
     void excuteReset();
 
-    // APP侧接口，学习模式
+    /**
+     * @brief Application-side API for Learning Mode.
+     * @param text The input command 
+     * @param name The name of motion set.
+     * @return BugCode_M Status of the learning process.
+     */
     BugCode_M processLearningInput(const std::string& text, const std::string& name);
 
-    // APP侧接口，抓取物体
+    /**
+     * @brief Application-side API for grabbing an object.
+     * @param position_x The X-coordinate for the grab target.
+     * @param position_y The Y-coordinate for the grab target.
+     */
     void get_obj_MANA(int position_x, int position_y);
 
 
 private:
-    // motion学习相关，保存motionset
+
+    // --- Motion Learning ---
+    /// @brief Save a learned motion set to the system.
     BugCode_M saveMotionSet(std::string motionName, std::vector<MotionTask>& rawTasks);
     
-    // motion底层链接相关函数
+    // --- Low-level Linkage & Control ---
+    /// @brief Move a specific joint to a target absolute angle.
     void move_joint_to_angle(Joint joint,float targetAngle,int motionSpeed);
+
+    /// @brief Move a specific joint by a relative value.
     void move_joint_with_val(Joint joint,float angleVal,int motionSpeed);
+
+    /// @brief Execute a raw motion command.
     void executeMotion(const MotionTask& cmd);
+
+    /// @brief Initialize the servo system/settings.
     void servo_set_init();
 
-    // motion工具，刷新动作集列表
+    // --- Motion Utilities ---
+    /// @brief Refresh the list of available motion sets.
     void refresh_motion_list();
 
-    // motion thread
+    /// @brief Main motion processing worker thread.
     void motionworker();
 
-    // 检查错误次数，超出3次则清空信号并退出学习模式
+     /** 
+     * @brief Check for error codes. 
+     * @details If errors exceed 3, clear signals and exit Learning Mode.
+     * @return true if error threshold is reached, false otherwise.(no use now feedback by supervisor)
+     */
     bool check_error_code();
 
-    // 外部调用，motionset刷新
+    /// @brief External call to refresh/reload motion sets.
     void learn_motion_fresh();
 
-    // 将需要执行的motion加入队列，测试用
+    /// @brief Add a motion to the execution queue (primarily for testing).
     BugCode_M enqueue_motion(const MotionTask& cmd);
 
+    /// @brief Read a motion set by name and type.
     BugCode_M read_motion_set(const std::string& motion_set_name,MotionSetType type = MotionSetType::External);
 
-    // motion工具
+    // --- Type Converters ---
     //string -> Joint
     Joint stringToJoint(const std::string& name);
     // Joint -> string
@@ -94,37 +119,36 @@ private:
 
 private:
     
-    // 相关成员结构体
-    RobotArmController _arm;
-    CoordinateTransformer _arm_calculator;
-    std::shared_ptr<TaskMonitor> _taskMonitor;
+    // --- Core Components ---
+    RobotArmController _arm;                    ///< Controller for the robot arm hardware
+    CoordinateTransformer _arm_calculator;      ///< Handles kinematics and coordinate transformations
+    std::shared_ptr<TaskMonitor> _taskMonitor;  ///< Shared monitor for task execution status
 
-    // 配置文件目录
-    const std::string _motion_folder = Config::Motion::MOTION_SET; 
-    const std::string _inner_motion  = Config::Motion::INNER_MOTION_SET;
+    // --- Configuration Paths ---
+    const std::string _motion_folder = Config::Motion::MOTION_SET;         ///< Directory for user-defined motion sets
+    const std::string _inner_motion  = Config::Motion::INNER_MOTION_SET;   ///< Directory for internal/system motion sets
 
-    // Mananger运行控制
-    std::atomic<bool> _isRunning;
-
-    // 紧急停止
-    std::atomic<bool> _stopRequested = false;
+    // --- Execution Control ---
+    std::atomic<bool> _isRunning;                ///< Main operational status of the manager
+    std::atomic<bool> _stopRequested = false;    ///< Flag for emergency stop requests
     
-    // 线程相关
-    // app -> manager
-    std::thread _motionworker;
-    ThreadSafeQueue<MotionTask> MotionQueue; 
+    // --- Threading & Communication ---
+    std::thread _motionworker;                   ///< Internal background thread for motion processing
+    ThreadSafeQueue<MotionTask> MotionQueue;     ///< Task queue 
 
-    // motion学习相关
-    // 存储文件夹中搜到的动作集名称
-    std::set<std::string> _available_motions; 
-    std::string _currentLearningName = "";
-    std::vector<MotionTask> _tempTasks ; 
-    Joint _currentJoint = Joint::Base;
+    // --- Learning Mode State ---
+    std::set<std::string> _available_motions;    ///< Set of motion names found in the storage folders
+    std::string _currentLearningName = "";       ///< Name of the motion set currently being learned
+    std::vector<MotionTask> _tempTasks ;         ///< Temporary buffer for newly recorded motion tasks
+    Joint _currentJoint = Joint::Base;           ///< The specific joint normal use
 
-    // 用来解决学习过程中收到过多无关信息或者学习退出功能
+    /** 
+     * @brief Error tracking for the learning process. 
+     * Used to handle redundant/irrelevant information or to trigger an exit from learning mode.
+     */
     int learning_error_code = 0;
 
-    // 是否是刚开始学习
+    /// @brief Flag to indicate if the learning process has just initiated.
     bool is_first_learning = true;
 
 };
