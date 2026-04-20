@@ -421,11 +421,22 @@ In this comprehensive demonstration, we showcase the core capabilities of our em
 
 [back to Contents](#-table-of-contents)
 
+---
+
+## Contact
+
+If you have any questions or suggestions, feel free to reach out:
+
+- **Project Lead**: Ziyin Zeng
+- **Email**: milapdx@163.com(3113788Z@student.gla.ac.uk)
+
+---
+
 ## License
 
 GPL License
 
----
+
 
 
 
