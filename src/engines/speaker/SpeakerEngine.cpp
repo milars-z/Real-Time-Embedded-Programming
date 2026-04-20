@@ -8,6 +8,13 @@
 
 //set the callback function for espeak
 //_instance is a pointer to the class
+/**
+ * @brief Constructor for UsbSpeaker, initializes TTS engine and audio device
+ * @param deviceName Name of the audio device
+ * @param channels Number of audio channels
+ * @param language Language selection (0 for English, other for Chinese)
+ * @param taskMonitor Shared pointer to task monitor
+ */
 UsbSpeaker::UsbSpeaker(const std::string& deviceName, 
                        int channels,
                        int language,
@@ -86,6 +93,9 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 
 }
 
+/**
+ * @brief Destructor for UsbSpeaker, closes resources and destroys TTS engine
+ */
 UsbSpeaker::~UsbSpeaker() {
     close();
     //espeak_Terminate();
@@ -95,6 +105,10 @@ UsbSpeaker::~UsbSpeaker() {
     }
 }
 
+/**
+ * @brief Start synthesis and playback threads, pin them to specified CPU core
+ * @param core CPU core number to pin threads to
+ */
 void UsbSpeaker::start_thread(int core){
 
     _playbackThread = std::thread(&UsbSpeaker::playbackLoop, this);
@@ -105,6 +119,9 @@ void UsbSpeaker::start_thread(int core){
 
 }
 
+/**
+ * @brief Stop synthesis and playback threads
+ */
 void UsbSpeaker::stop_thread() {
     if (!_running) return ;
     _running = false;
@@ -117,6 +134,10 @@ void UsbSpeaker::stop_thread() {
 
 }
 
+/**
+ * @brief Open ALSA audio device and set hardware parameters
+ * @return true if successful, false otherwise
+ */
 bool UsbSpeaker::open() {
     // create a connection to the ALSA device
     // handle: space for PCM data
@@ -149,7 +170,10 @@ bool UsbSpeaker::open() {
     return true;
 }
 
-//used by espeakCallback to play PCM data
+/**
+ * @brief Queue PCM audio data for playback, used by espeakCallBack to play PCM data
+ * @param data Vector of short audio samples
+ */
 void UsbSpeaker::playInternal(const std::vector<short>& data) {
     { 
     std::lock_guard<std::mutex> lock(_queueMutex);
@@ -158,7 +182,10 @@ void UsbSpeaker::playInternal(const std::vector<short>& data) {
     _audioCV.notify_one();
 }
 
-//use by main.cpp to play text
+/**
+ * @brief Queue text for speech synthesis and playback,used by main.cpp to play text
+ * @param text Text to be spoken
+ */
 void UsbSpeaker::play(const std::string& text) {
 
     // 从函数调用开始计算时间
@@ -182,6 +209,10 @@ void UsbSpeaker::play(const std::string& text) {
      _textCV.notify_one();
 }
 
+/**
+ * @brief Perform text-to-speech synthesis for given text
+ * @param text Text to synthesize
+ */
 void UsbSpeaker::synthesisTask(const std::string& text) {
 
     std::string rawText = text;
@@ -220,7 +251,9 @@ void UsbSpeaker::synthesisTask(const std::string& text) {
     }
 }
 
-
+/**
+ * @brief Close the ALSA audio device
+ */
 void UsbSpeaker::close() {
     if (_handle) {
         snd_pcm_close(_handle);
@@ -228,6 +261,9 @@ void UsbSpeaker::close() {
     }
 }
 
+/**
+ * @brief Main playback loop that writes audio data to ALSA device
+ */
 void UsbSpeaker::playbackLoop() {
     while (_running) {
         std::vector<short> buffer;
@@ -282,6 +318,9 @@ void UsbSpeaker::playbackLoop() {
     }
 }
 
+/**
+ * @brief Main synthesis loop that processes text-to-speech requests
+ */
 void UsbSpeaker::synthesisLoop() {
     while (_running) {
         std::string textToSpeak;
@@ -300,12 +339,22 @@ void UsbSpeaker::synthesisLoop() {
     }
 }
 
+/**
+ * @brief Check if text is in the inner text cache
+ * @param text Text to check
+ * @return true if text is cached, false otherwise
+ */
 bool UsbSpeaker::is_innerText(const std::string& text){
 
     return _inner_text.find(text) != _inner_text.end();
 
 }
 
+/**
+ * @brief Generate PCM audio data from text using TTS engine
+ * @param text Text to synthesize
+ * @return Vector of short audio samples
+ */
 std::vector<short> UsbSpeaker::generate_pcm(const std::string& text){
     // generate pcmdata
     const SherpaOnnxGeneratedAudio* audio = SherpaOnnxOfflineTtsGenerate(_tts, text.c_str(), 0, 1.0f);
@@ -336,6 +385,11 @@ std::vector<short> UsbSpeaker::generate_pcm(const std::string& text){
     return pcmData;
 }
 
+/**
+ * @brief Load inner text cache from file
+ * @param filepath Path to the cache file
+ * @return true if successful, false otherwise
+ */
 bool UsbSpeaker::load_innerText(const std::string& filepath) {
     std::ifstream file(filepath);
 
@@ -358,6 +412,10 @@ bool UsbSpeaker::load_innerText(const std::string& filepath) {
     return true;
 }
 
+/**
+ * @brief Pre-generate and cache PCM data for inner texts
+ * @param texts Set of texts to cache
+ */
 void UsbSpeaker::warmupCache(const std::unordered_set<std::string>& texts) {
     if (!_tts) return;
 
