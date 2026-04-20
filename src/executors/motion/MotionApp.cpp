@@ -27,7 +27,7 @@ std::string MotionExecutor::get_module_name(){
     return "Motion";
 }
 
-// 阻塞退出
+// Blocking shutdown
 void MotionExecutor::_stop(){
     if(manager){
         manager->stop_thread();
@@ -50,15 +50,15 @@ void MotionExecutor::onExecute(const std::string& task) {
 
     if (!manager) return;
 
-    // 非学习模式
+    // Non-learning mode
     if(armMode == ARMMODE::IDLE){
         
         MotionCommand cmd;
         BugCode_M state;
 
-        std::cout << "[Info][MotionApp] 正在执行动作: " << task << std::endl;
+        std::cout << "[Info][MotionApp] Executing motion: " << task << std::endl;
         cmd = analyzecommand(task);
-        // 简易动作
+        // Simple motion
         if (cmd.command == "DO_MOTION"){
             manager->excuteTask(cmd.obj);
 
@@ -81,15 +81,15 @@ void MotionExecutor::onExecute(const std::string& task) {
         else if(cmd.command == "MOTIONSET"){
             manager->excuteMotionSet(cmd.obj);
         }
-        // 重置
+        // Reset
         else if(cmd.command == "RESET"){
             manager->excuteReset();
         }
-        // 暂停
+        // Pause
         else if(cmd.command == "STOP"){
             manager->excuteStop();
         }
-        // 开启学习模式
+        // Enter learning mode
         else if(cmd.command == "LEARNMOTION"){
             armMode = ARMMODE::LEARNING;
             motion_name = cmd.obj;
@@ -107,9 +107,9 @@ void MotionExecutor::onExecute(const std::string& task) {
 }
 
 
-// 分析string指令
-// 输入: text
-// 输出: MotionCommand
+// Parse string commands
+// Input: text
+// Output: MotionCommand
 MotionCommand MotionExecutor::analyzecommand(const std::string& text){
 
     MotionCommand cmd;
@@ -156,7 +156,7 @@ MotionCommand MotionExecutor::analyzecommand(const std::string& text){
     return cmd;
 }
 
-// MotionAPP侧处理检测到的物品
+// Handle detected objects on the MotionApp side
 void MotionExecutor::get_obj_APP(int position_x,int position_y){
 
     std::cout << "[Info][MotionApp]detect : " << position_x  << "......" << position_y << std::endl;
@@ -165,8 +165,8 @@ void MotionExecutor::get_obj_APP(int position_x,int position_y){
     
 }
 
-// 外侧调用
-// 根据supervisor侧的反馈结束学习模式
+// Externally callable
+// Exit learning mode based on feedback from the supervisor
 void MotionExecutor::end_learnning_mode(){
     armMode = ARMMODE::IDLE;
 }
