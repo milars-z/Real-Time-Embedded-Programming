@@ -82,6 +82,8 @@ The system adopts a three-layer architecture:
   - Task feedback (provides real-time execution status to the Brain)
   - Task latency tracking (records execution time for performance analysis)
 
+[back to Contents](#-table-of-contents)
+
 ---
 
 ## Technical Documentation
@@ -136,6 +138,8 @@ detailed results provided in
 
 ***docs/test_data/Analysis.xlsx***.
 
+[back to Contents](#-table-of-contents)
+
 ---
 
 ## Project Structure
@@ -166,6 +170,9 @@ main.cpp
 setup.sh                  # Automated dependency setup(enhanced in v2.0)
 
 ```
+[back to Contents](#-table-of-contents)
+
+---
 
 ## Hardware Requirements
 
@@ -181,6 +188,10 @@ setup.sh                  # Automated dependency setup(enhanced in v2.0)
 | Robotic Arm      | EEZYbotARM Mk2                     | Mechanical structure                 |
 | Power Supply     | External 5V Power Supply (for PCA9685) | Required for stable servo operation |
 
+
+[back to Contents](#-table-of-contents)
+
+---
 
 ## Quick Start
 
@@ -410,6 +421,10 @@ Here are some tips for voice interaction [Tips for Voice Interaction](#tips-for-
 ### Note
 > It is strongly recommended to use an external power supply for the PCA9685 board instead of powering servos directly from the Raspberry Pi.
 
+[back to Contents](#-table-of-contents)
+
+---
+
 ## Module Testing
 
 If you encounter persistent errors during the full system test, or if you do not have all the required hardware, you can use individual module testing to experience specific functionalities of the system.
@@ -466,6 +481,10 @@ All test logs can be found in the `test` directory.
 We also conducted a series of tests during the development of the project. Detailed test results can be found in docs/test_data
 
 **You may also modify the underlying code to test your own modules or extend the system functionality.**
+
+[back to Contents](#-table-of-contents)
+
+---
 
 ## Tips for voice interaction
 
@@ -537,6 +556,10 @@ Please keep the following points in mind during usage. Although the robot provid
 2. The robotic arm may occasionally enter motion learning mode unintentionally. In this mode, only motion-related commands will be processed correctly. All other inputs will receive the response: `what's do you mean`.  
 You can exit this mode by using the `finish` command or by clicking **confirm** on the screen.
 
+[back to Contents](#-table-of-contents)
+
+---
+
 ## v2.0 Highlights
 
 ### 1. Supervisor Node
@@ -582,6 +605,8 @@ A **Settings interface** has been introduced in this version.
 Currently, this page is used to modify the `hostname` and `robotname`. More importantly, it serves as a foundation for future extensions, such as supporting multi-language modes.
 
 In addition, commonly used fixed text has been centralized into a dedicated text configuration, preparing the system for easier expansion and integration of new features in future updates.
+
+[back to Contents](#-table-of-contents)
 
 ---
 
@@ -631,6 +656,8 @@ The current version still has several limitations:
 
     If any development records around April seem missing, please refer to the `integration_micro_motor` branch for the complete history.
 
+[back to Contents](#-table-of-contents)
+
 ---
 
 ## Team Contribution
@@ -643,6 +670,7 @@ The current version still has several limitations:
 | Dingyan Guo     | 3D printing, integrate hardware modules list and text translation                              |
 | Hang Liu        | IK documentation                                                       |
 
+[back to Contents](#-table-of-contents)
 
 ## License
 
@@ -793,6 +821,8 @@ The overall system workflow is illustrated in the diagram above.
 
 - Thread start/stop behaviors are not yet fully unified
 - This will be addressed in future updates
+
+[back to Contents](#-table-of-contents)
 
 
 
