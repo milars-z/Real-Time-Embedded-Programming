@@ -123,8 +123,8 @@ target_include_directories(main PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include/ui"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/utils"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/supervisor"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/kinematics/"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/system/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/kinematics"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/system"
     "${SHERPA_HOME}/include"
     "${ORT_ROOT}/include" 
 )

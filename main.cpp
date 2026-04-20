@@ -1,4 +1,3 @@
-// #include "voiceInteraction.hpp"
 #include "cogniArm.hpp"
 #include "system_config.hpp"
 #include <iostream>
@@ -20,7 +19,7 @@ void handleSigint(int) {
 
 int main(int argc, char* argv[]) {
     
-    // 退出信号处理
+
     std::signal(SIGINT, handleSigint);
     {
         RobotSystem robot;
