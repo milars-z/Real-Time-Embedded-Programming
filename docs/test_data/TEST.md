@@ -78,9 +78,11 @@ The Camera, STT, Nlu,and Screen-motion modules maintain consistent execution tim
 
 
 ![Whole system test and Seperate system test2](../pic/System_Latency_2.png)
+
 The TTS module—which lacked caching mechanisms in early testing—are experiencing severe delays caused by significant queue latency.Introduction of caching mechanism improves performance in repeat sentences.
 
 ![Whole system latency scenarios](../pic/System_Latency_Scenarios.png)
+
 In real usage scenarios, TTS module costs most of the time in entire procedure. Caching mechanism can significantly reduce its cost.
 
 ![Caching mechanism TTS test](../pic/Caching_TTS_Latency.png)
