@@ -16,7 +16,7 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 {
 
     // reset the config file
-    memset(&_config, 0, sizeof(_config));
+    _config = {};
 
     std::string modelPath;
     std::string dataDirPath;
@@ -42,14 +42,18 @@ UsbSpeaker::UsbSpeaker(const std::string& deviceName,
 
     // std::string tokensPath = models.en + "/tokens.txt";
 
+    _ModelPath = modelPath;
+    _TokensPath = tokensPath;
+    _DataDirPath = dataDirPath;
+
     
-    _config.model.vits.model = strdup(modelPath.c_str());
+    _config.model.vits.model = _ModelPath.c_str();
     // use for VITS
     //_config.model.vits.lexicon = strdup(lexiconPath.c_str());
-    _config.model.vits.tokens = strdup(tokensPath.c_str());
+    _config.model.vits.tokens = _TokensPath.c_str();
 
     // use for piper
-    _config.model.vits.data_dir = strdup(dataDirPath.c_str());
+    _config.model.vits.data_dir = _DataDirPath.c_str();
 
 
     // signal-core control
@@ -89,12 +93,6 @@ UsbSpeaker::~UsbSpeaker() {
         SherpaOnnxDestroyOfflineTts(_tts);
         _tts = nullptr;
     }
-    if (_config.model.vits.model) free((void*)_config.model.vits.model);
-    // use for VITS
-    // if (_config.model.vits.lexicon) free((void*)_config.model.vits.lexicon);
-    if (_config.model.vits.tokens) free((void*)_config.model.vits.tokens);
-
-    if (_config.model.vits.data_dir) free((void*)_config.model.vits.data_dir);
 }
 
 void UsbSpeaker::start_thread(int core){

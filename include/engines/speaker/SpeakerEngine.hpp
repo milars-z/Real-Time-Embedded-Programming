@@ -103,6 +103,10 @@ private:
 
     // 后续inner_text不会全部缓存，只缓存指定的text，因此设置为unordered_set方便直接用find
     std::unordered_set<std::string> _inner_text;
+
+    std::string _ModelPath;
+    std::string _TokensPath;
+    std::string _DataDirPath;
 };
 
 #endif
