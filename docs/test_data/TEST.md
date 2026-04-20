@@ -72,6 +72,15 @@ We also conducted a series of tests during the development of the project. Detai
 
 
 ## Latency Testing
+![Whole system test and Seperate system test](docs/pic/System_Latency_test.png)
+
+The Camera, STT, and Screen-motion modules maintain consistent execution times across both integrated system tests and standalone module tests, indicating that these components operate independently without cross-module interference. 
+
+The TTS and Nlu modules—which lacked caching mechanisms in early testing—are experiencing severe delays caused by significant queue latency.
+
+![Caching mechanism TTS test](docs/pic/Caching_TTS_Latency.png)
+
+Sentence "i fine the tissue" only uses 0.131ms in second generation, while in first generation it takes about 800ms.Using cache instead of generating entire sentence can significantly reduce time consumption,cause an obvious drop on average time cost.
 
 
 
