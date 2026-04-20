@@ -394,7 +394,7 @@ You can exit this mode by using the `finish` command or by clicking **confirm** 
 
 Watch our official demonstration video to see **CogniArm** in action! 
 
-[![CogniArm Demo Video](https://img.youtube.com/vi/HwtmvhdDly4/maxresdefault.jpg)](https://youtu.be/HwtmvhdDly4)
+[![CogniArm Demo Video](https://img.youtube.com/vi/HwtmvhdDly4/maxresdefault.jpg?v=2)](https://youtu.be/HwtmvhdDly4)
 
 > 🎥 **[Click here to watch the full CogniArm System Demonstration on YouTube](https://youtu.be/HwtmvhdDly4)**
 
