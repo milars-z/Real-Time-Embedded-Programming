@@ -60,8 +60,8 @@ For a detailed overview, see [Project Overview](./docs/ROADMAP.md#previous-resea
 - 🧠 Producer–Decision–Executor-Supervisor architecture (enhanced in v2.0)
 - 🖥️ Embedded UI based on LVGL
 
-more detail can see our demo vedio! 
-[vedio](#social-media)
+more detail can see our demo video! 
+[video](https://youtu.be/HwtmvhdDly4)
 
 ---
 
