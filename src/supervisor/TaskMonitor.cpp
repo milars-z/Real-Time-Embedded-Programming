@@ -23,8 +23,8 @@ void TaskMonitor::reset(){
     TaskQueue.reset();
 }
 
-// 后续优化函数
-// 暂未使用
+// Subsequent optimization function
+// Not yet used
 TaskEvent TaskMonitor::generate_Event(const std::string& moduleName,
                                       const int& taskId,
                                       const TaskType& taskType,
@@ -33,13 +33,13 @@ TaskEvent TaskMonitor::generate_Event(const std::string& moduleName,
                                       bool issuccessful)
 {
     TaskEvent _task;
-    _task.taskId = taskId; // 任务Task_id
-    _task.moduleName = moduleName; // 模块名称
-    _task.taskType = taskType; // 任务类型
-    _task.status = status; // 任务状态
-    _task.timestamp = std::chrono::steady_clock::now(); // 当前时间
-    _task.result = result; // 结果
-    _task.issuccessful = issuccessful;  //是否成功
+    _task.taskId = taskId; // task Task_id
+    _task.moduleName = moduleName; // modle name
+    _task.taskType = taskType; // Task type
+    _task.status = status; // Task status
+    _task.timestamp = std::chrono::steady_clock::now(); // current time
+    _task.result = result; // result
+    _task.issuccessful = issuccessful;  //Whether it is successful
 
     return _task;
 

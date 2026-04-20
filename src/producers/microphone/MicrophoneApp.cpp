@@ -11,7 +11,7 @@
 VoiceProducer::VoiceProducer(std::atomic<int>& system_state, const std::string& path, TextCallback callback, std::shared_ptr<TaskMonitor> taskMonitor) 
     : onTextReady(callback),_taskMonitor(taskMonitor) {
     
-    // ASR 模型加载
+    // ASR Model Loading
     model = vosk_model_new(Config::Microphone::VOSK_MODEL_DIR.c_str());
     if (!model) {
         std::cerr << "[Error][MicrophoneApp] Failed to load Vosk model." << std::endl;
@@ -20,7 +20,7 @@ VoiceProducer::VoiceProducer(std::atomic<int>& system_state, const std::string& 
     }
     recognizer = vosk_recognizer_new(model, 16000.0);
 
-    // 初始化麦克风模块
+    // Initialize the microphone module
     mic = std::make_unique<UsbMicrophone>(path, 16000, 1);
     if (!mic->open()) {
         system_state |= ERR_MIC_INIT;

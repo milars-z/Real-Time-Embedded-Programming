@@ -17,7 +17,7 @@ ScreenProducer::~ScreenProducer() {
 }
 
 void ScreenProducer::start(std::atomic<int>& system_state) {
-    std::cout << "[Init][ScreenApp] 正在初始化 LVGL 环境..." << std::endl;
+    std::cout << "[Init][ScreenApp] Initializing LVGL environment..." << std::endl;
     
     lv_init();
     auto* disp = lv_sdl_window_create(800, 480);
@@ -29,11 +29,11 @@ void ScreenProducer::start(std::atomic<int>& system_state) {
     lv_sdl_mouse_create();
     lv_sdl_keyboard_create();
 
-    // 回调函数设计，当检测到按键触发时将信息发送到Brain处理
+    //Callback function design, when a key press is detected, send information to the Brain for processing
     ui = std::make_unique<ScreenUI>([this](std::string type, std::string data) {
         if (onSignalReady) {
 #ifdef TESTMODE
-            // 只记录单个motion动作的响应时间
+            // Only record the response time of a single motion action
             if (type == "DO_MOTION"){
                 TaskEvent _taskevent;
                 TaskDescribe _taskdescribe;
@@ -56,11 +56,11 @@ void ScreenProducer::start(std::atomic<int>& system_state) {
 
 void ScreenProducer::stop() {
     // stop();
-    std::cout << "[End][ScreenApp] 正在停止 UI..." << std::endl;
+    std::cout << "[End][ScreenApp] Stopping UI..." << std::endl;
     
-    // 清空producer的内容
+    // Clear the content of the producer
     lv_deinit();
-    // 清空screen_ui的内容
+    // Clear the contents of screen_ui
     if(ui){
         ui.reset();
     }

@@ -61,12 +61,12 @@ void TaskSupervisor::Initfile(){
      
     fs::path p(Fp);
     try {
-        // 检查并创建文件夹
+        // Check and create documents
         if (p.has_parent_path() && !fs::exists(p.parent_path())) {
             fs::create_directories(p.parent_path());
         }
 
-        // 打开文件（追加模式）
+        // Open the file (append mode)
         _logFile.open(Fp, std::ios::app);
 
         if (!_logFile.is_open()) {
@@ -111,10 +111,10 @@ void TaskSupervisor::processLoop(){
                 auto it = _pendingTasks.find(event.taskId);
                 const auto& describe = std::get<TaskDescribe>(event.taskType);
                 if (it != _pendingTasks.end()) {
-                    // 计算耗时
+                    // computation time
                     auto duration = std::chrono::duration<double, std::milli>(event.timestamp - it->second).count();
                     
-                    // 写入基本信息
+                    // Write basic information
                     _logFile << event.taskId << "," 
                             << event.moduleName << ","
                             << describe.TaskType << ","
@@ -131,13 +131,13 @@ void TaskSupervisor::processLoop(){
 
                     _pendingTasks.erase(it);
                 }else{
-                    // 来到这里说明出现了异常，即有结束但是没有开始
+                    // Coming here indicates that there is an anomaly, meaning there is an end but no beginning
                     std::cerr << "[Error][TaskSupervisor]file system error,ID : " << event.taskId << "Module : " << event.moduleName << std::endl;
                 }
             }
 
 
-            // 前期没规划好，无法给异步的任务注入TASKID，只能依赖异步任务存在先进先出匹配
+            // Due to inadequate planning in the early stages, it is impossible to inject TASKID into asynchronous tasks, and we can only rely on the first-in first-out (FIFO) matching of asynchronous tasks
             }else if(event.moduleName == "Screen-Motion"){
                 if (event.status == TaskStatus::STARTED) {
                     _pendingTasks[event.taskId] = event.timestamp;
@@ -146,7 +146,7 @@ void TaskSupervisor::processLoop(){
                     const auto& describe = std::get<TaskDescribe>(event.taskType);
                     if (it != _pendingTasks.end()) {
                         auto duration = std::chrono::duration<double, std::milli>(event.timestamp - it->second).count();
-                        // 写入基本信息
+                        // Write basic information
                         _logFile << event.taskId << "," 
                                 << event.moduleName << ","
                                 << describe.TaskType << ","
@@ -158,7 +158,7 @@ void TaskSupervisor::processLoop(){
 
                         _pendingTasks.erase(it);
                     }else{
-                        std::cerr << "[Error][TaskSupervisor]存在异步消息 : " << event.taskId << "Module : " << event.moduleName << std::endl;
+                        std::cerr << "[Error][TaskSupervisor]There are asynchronous messages : " << event.taskId << "Module : " << event.moduleName << std::endl;
                     }
                 }
 
@@ -168,29 +168,29 @@ void TaskSupervisor::processLoop(){
     }
 }
 
-// 处理来自Camera和motion侧的任务执行结果
-// 对不同的结果提供不同反馈
+// Process the task execution results from the Camera and motion sides
+// Provide different feedback for different results
 void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
 
-    // 针对Camera的结果
+    // Results for Camera
     if (e.moduleName == "Camera"){
 
         const auto& describe = std::get<TaskDescribe>(e.taskType);
 
-        // 背景更新
+        // Background Update
         if(describe.TaskType == "Update"){
             if(_speaker) _speaker->pushTask(_speaker->getText("update_bg"));
         }
 
-        // 学习模式
+        // learning mode
         else if(describe.TaskType == "Learn"){
             
-            // 学习模式，可能会出现没更新背景，需要反馈
+            // In learning mode, there may be a situation where the background is not updated, and feedback is needed
             if(describe.Name == "NoBackground"){
                 if(_speaker) _speaker->pushTask(_speaker->getText("need_bg"));
                 return;
             }
-            // 学习模式可能学到可能没学到，分别反馈
+            // The learning model may or may not learn, and feedback should be given accordingly
             const auto& learn_ans = std::get<CameraResult>(e.result);
             if(learn_ans.isdetecte == false){
                 if(_speaker) _speaker->pushTask(_speaker->getText("learn_obj_false"));
@@ -200,14 +200,14 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             }
         }
         
-        // 检测模式
+        // Detection Mode
         else if(describe.TaskType == "Detecte"){
-            // 学习模式，可能会出现没更新背景，需要反馈
+            // In learning mode, there may be a situation where the background is not updated, and feedback is needed
             if(describe.Name == "NoBackground"){
                 if(_speaker) _speaker->pushTask(_speaker->getText("need_bg"));
                 return;
             }
-            // 针对检测结果进行反馈
+            // Provide feedback on the test results
             const auto& learn_ans = std::get<CameraResult>(e.result);
             std::string name = learn_ans.objectName;
             if(learn_ans.isdetecte == false){
@@ -221,7 +221,7 @@ void TaskSupervisor::handleTaskResult(const TaskEvent& e) {
             }
         }
 
-    // 针对Motion的结果
+    // Results for Motion
     }else if (e.moduleName == "MotionSet"){
         const auto& learn_ans = std::get<MotionResult>(e.result);
         // DO NOTION (NORMAL)
