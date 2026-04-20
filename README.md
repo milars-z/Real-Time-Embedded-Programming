@@ -392,6 +392,21 @@ You can exit this mode by using the `finish` command or by clicking **confirm** 
 
 ## Social Media
 
+Watch our official demonstration video to see **CogniArm** in action! 
+
+[![CogniArm Demo Video](https://img.youtube.com/vi/HwtmvhdDly4/maxresdefault.jpg)](https://youtu.be/HwtmvhdDly4)
+
+> 🎥 **[Click here to watch the full CogniArm System Demonstration on YouTube](https://youtu.be/HwtmvhdDly4)**
+
+In this comprehensive demonstration, we showcase the core capabilities of our embedded intelligent agent:
+
+- 🤖 **Interactive Motion Learning:** Watch how the robot learns new custom motion sequences (such as waving "hello" or "fly") from scratch through physical guidance and voice commands.
+- 👁️ **Lightweight Visual Recognition:** See our feature detection in action as CogniArm learns to recognize and accurately locate specific objects (like a paper roll or a cola bottle), even when other items are present in the scene.
+- 🗣️ **Voice Control & Customization:** Discover the seamless interaction via the embedded UI and real-time voice commands, including customizable host and robot names.
+- ⚡ **Low-Latency Architecture:** Experience the efficiency of our fully decoupled Producer-Decision-Executor-Supervisor closed-loop system, which optimizes task response times to under 0.5 seconds.
+
+**CogniArm** is more than just a moving arm; it is a general-purpose robotic architecture and a prototype for an embedded intelligent agent.
+
 
 
 ## Team Contribution
