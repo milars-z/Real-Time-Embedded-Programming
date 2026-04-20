@@ -72,12 +72,15 @@ We also conducted a series of tests during the development of the project. Detai
 
 
 ## Latency Testing
-![Whole system test and Seperate system test](../pic/System_Latency_test.png)
+![Whole system test and Seperate system test1](../pic/System_Latency_1.png)
 
 The Camera, STT, Nlu,and Screen-motion modules maintain consistent execution times across both integrated system tests and standalone module tests, indicating that these components operate independently without cross-module interference.
 
-The TTS module—which lacked caching mechanisms in early testing—are experiencing severe delays caused by significant queue latency.
 
+![Whole system test and Seperate system test2](../pic/System_Latency_2.png)
+The TTS module—which lacked caching mechanisms in early testing—are experiencing severe delays caused by significant queue latency.Introduction of caching mechanism improves performance in repeat sentences.
+
+![Whole system latency scenarios](../pic/System_Latency_Scenarios.png)
 In real usage scenarios, TTS module costs most of the time in entire procedure. Caching mechanism can significantly reduce its cost.
 
 ![Caching mechanism TTS test](../pic/Caching_TTS_Latency.png)
