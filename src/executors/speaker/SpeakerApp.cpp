@@ -8,10 +8,17 @@
 #include <nlohmann/json.hpp>
 #include <fstream>
 
+/**
+ * @brief Constructor for SpeakerExecutor, initializes speaker hardware and loads text libraries
+ * @param system_state Reference to system state atomic variable
+ * @param path Audio device path
+ * @param text_path Path to text library file
+ * @param taskMonitor Shared pointer to task monitor
+ */
 SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::string& path, const std::string& text_path, std::shared_ptr<TaskMonitor> taskMonitor) 
 :_taskMonitor(taskMonitor),_speaker_path(text_path)
 {
-    // 初始化底层播放引擎
+    // init speaker engine
     speaker = std::make_unique<UsbSpeaker>(
         path, // device path
         2,  // hardware settings
@@ -20,58 +27,74 @@ SpeakerExecutor::SpeakerExecutor(std::atomic<int>& system_state ,const std::stri
     );
 
     if (speaker->open()) {
-        std::cout << "[Init][SpeakerApp] 音频硬件已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] Audio hardware is ready" << std::endl;
     } else {
-        std::cerr << "[Error][SpeakerApp] 无法打开音频设备: " << path << std::endl;
+        std::cerr << "[Error][SpeakerApp] Failed to open audio device: " << path << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     }
 
     if(loadLibrary()){
-        std::cout << "[Init][SpeakerApp] text已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] text is ready" << std::endl;
     }else {
-        std::cerr << "[Error][SpeakerApp] 无法找到正确的text映射 " << std::endl;
+        std::cerr << "[Error][SpeakerApp] Failed to find correct text mapping" << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     } 
     if(loadVariable()){
-        std::cout << "[Init][SpeakerApp] variable已就绪" << std::endl;
+        std::cout << "[Init][SpeakerApp] variable is ready" << std::endl;
     }else {
-        std::cerr << "[Error][SpeakerApp] 无法找到正确的variable映射 " << std::endl;
+        std::cerr << "[Error][SpeakerApp] Failed to find correct variable mapping" << std::endl;
         system_state |= ERR_SPEAKER_INIT;
     }    
 }
 
-// 暂时用不到结构函数
-// 后续切换语言时或许需要在析构函数中清理资源
+/**
+ * @brief Destructor for SpeakerExecutor
+ * Currently is not used, may clean up resources when switching languages in the future
+ */
 SpeakerExecutor::~SpeakerExecutor() {
     std::cout << "[End][SpeakerApp] destructor end" << std::endl;
 }
 
+/**
+ * @brief Get the module name
+ * @return Module name as string
+ */
 std::string SpeakerExecutor::get_module_name(){
     return "Speaker";
 }
 
-// 阻塞退出
+/**
+ * @brief Stop the internal thread with blocking
+ */
 void SpeakerExecutor::_stop(){
     if(speaker){
         speaker->stop_thread();
-        std::cout << "[End][SpeakerApp] 内部线程已退出..." << std::endl;
+        std::cout << "[End][SpeakerApp] Internal thread exited..." << std::endl;
     }
 }
 
+/**
+ * @brief Start the internal thread
+ * @param core CPU core number to pin the thread to
+ */
 void SpeakerExecutor::_start(int core){
     if(!speaker) return;
     speaker->start_thread(core);
-    std::cout << "[Init][SpeakerApp] 内部线程已开启,绑定在core:" << core << std::endl;
+    std::cout << "[Init][SpeakerApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
 
 void SpeakerExecutor::onExecute(const std::string& text) {
     if (!text.empty() && speaker) {
-        // 调用底层speaker的播放接口
+        // use speaker interface
         speaker->play(text);
     }
 }
 
+/**
+ * @brief Pin the worker thread to a specific CPU core
+ * @param num CPU core number to pin to
+ */
 void SpeakerExecutor::pinThread(int num){
     pinThreadToCore(this->worker, "SpeakerTask", num);
 }
@@ -98,6 +121,11 @@ bool SpeakerExecutor::loadLibrary(){
     return true;
 }
 
+/**
+ * @brief Get text from library based on key and current language
+ * @param key Text key to look up
+ * @return Text string in current language
+ */
 std::string SpeakerExecutor::getText(const std::string& key){
     std::string text;
     auto it = text_lib.find(key);
@@ -135,6 +163,10 @@ std::string SpeakerExecutor::getText(const std::string& key){
     return text;
 }
 
+/**
+ * @brief Set the current language for text output
+ * @param lang Language code ("zh" for Chinese, "en" for English)
+ */
 void SpeakerExecutor::setLanguage(const std::string& lang){
 
     bool is_success = false;
@@ -149,6 +181,11 @@ void SpeakerExecutor::setLanguage(const std::string& lang){
 
 }
 
+/**
+ * @brief Set variable value for text substitution
+ * @param key Variable key ("host_name" or "robot_name")
+ * @param value Value to set
+ */
 void SpeakerExecutor::setVariable(const std::string& key, const std::string& value){
 
     if( key == "host_name" ){
