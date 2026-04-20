@@ -1,5 +1,9 @@
 #include "PwmBoardController.hpp"
 
+/**
+ * @brief Constructor for RobotArmController
+ * @param configFile Path to the configuration file
+ */
 RobotArmController::RobotArmController(const std::string& configFile)
 {
     _fd = open("/dev/i2c-1", O_RDWR);
@@ -29,11 +33,20 @@ RobotArmController::RobotArmController(const std::string& configFile)
     std::cout << "[Init][PwmBoardController]RobotArmController init successfully" << std::endl;
 }
 
+/**
+ * @brief Destructor for RobotArmController, detaches all servos and closes I2C
+ */
 RobotArmController::~RobotArmController() {
     detachAll();
     if (_fd >= 0) close(_fd);
 }
 
+/**
+ * @brief Set the angle of a servo motor
+ * @param name Name of the servo
+ * @param angle Desired angle in degrees
+ * @return true if successful, false otherwise
+ */
 bool RobotArmController::setAngle(const std::string& name, float angle){
     if (servos.find(name) == servos.end()) 
     return false;
@@ -62,11 +75,19 @@ bool RobotArmController::setAngle(const std::string& name, float angle){
     return true;
 }
 
+/**
+ * @brief Get the current angle of a servo motor
+ * @param name Name of the servo
+ * @return Current angle in degrees, or -1 if servo not found
+ */
 float RobotArmController::getAngle(const string& name){
     if (servos.find(name) == servos.end()) return -1;
         return servos[name].currentAngle; 
 }
 
+/**
+ * @brief Detach all servo motors
+ */
 void RobotArmController::detachAll(){
     for (auto& pair : servos) {
         uint8_t  reg = (uint8_t)(0x06 + (4 * pair.second.channel));
@@ -75,6 +96,10 @@ void RobotArmController::detachAll(){
     }
 }
 
+/**
+ * @brief Initialize the PCA9685 PWM hardware
+ * @return true if successful, false otherwise
+ */
 bool RobotArmController::initHardware() {
         
         bool init_state = true;
@@ -103,6 +128,12 @@ bool RobotArmController::initHardware() {
         return init_state;
     }
 
+/**
+ * @brief Write a value to a PCA9685 register
+ * @param reg Register address
+ * @param val Value to write
+ * @return true if successful, false otherwise
+ */
 bool RobotArmController::writeReg(uint8_t reg, uint8_t val) {
         uint8_t buf[2] = {reg, val};
         if (write(_fd, buf, 2) != 2) {
@@ -112,6 +143,11 @@ bool RobotArmController::writeReg(uint8_t reg, uint8_t val) {
         return true;
     }
 
+/**
+ * @brief Load servo configuration from file
+ * @param path Path to the configuration file
+ * @return true if successful, false otherwise
+ */
 bool RobotArmController::loadConfig(const string& path) {
         ifstream file(path);
         if (!file.is_open()) { 
@@ -137,6 +173,9 @@ bool RobotArmController::loadConfig(const string& path) {
         return true;
     }
 
+/**
+ * @brief Initialize all servos to their initial angles
+ */
 void RobotArmController::IninServo(){
 
         for (auto& pair : servos) {

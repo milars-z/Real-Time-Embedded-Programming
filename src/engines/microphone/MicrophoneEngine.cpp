@@ -1,13 +1,20 @@
 #include "MicrophoneEngine.hpp"
 #include "Tools.hpp"
 
-
+/**
+ * @brief Constructor for UsbMicrophone
+ * @param deviceName Name of the audio device
+ * @param sampleRate Sample rate for audio capture
+ * @param channels Number of audio channels
+ */
 UsbMicrophone::UsbMicrophone(const std::string& deviceName,
                              unsigned int sampleRate, 
                              int channels)
     : _deviceName(deviceName), _sampleRate(sampleRate), _channels(channels) {}
 
-// close microphone device
+/**
+ * @brief Destructor for UsbMicrophone, stops and closes the device
+ */
 UsbMicrophone::~UsbMicrophone() {
     stop();
     close();
@@ -53,6 +60,9 @@ bool UsbMicrophone::open() {
     return true;
 }
 
+/**
+ * @brief Close the microphone device
+ */
 void UsbMicrophone::close() {
     if (_handle) {
         snd_pcm_close(_handle);
@@ -62,6 +72,11 @@ void UsbMicrophone::close() {
 
 // thread start
 // callback is a vector which store audio data
+/**
+ * @brief Start audio capture with a callback function
+ * @param callback Function to handle captured audio data
+ * @return true if successful, false if already running
+ */
 bool UsbMicrophone::start(AudioCallback callback) {
     if (_running) return true;
     _callback = callback;
@@ -69,13 +84,19 @@ bool UsbMicrophone::start(AudioCallback callback) {
     return true;
 }
 
+/**
+ * @brief Start the capture thread and pin it to a specific CPU core
+ * @param core CPU core number to pin the thread to
+ */
 void UsbMicrophone::start_thread(int core){
     _running = true;
     captureThread = std::thread(&UsbMicrophone::captureLoop, this);
     pinThreadToCore(captureThread, "Mic" ,core);
 }
 
-
+/**
+ * @brief Stop audio capture and join the capture thread
+ */
 void UsbMicrophone::stop() {
     _running = false;
     if (captureThread.joinable()) {
@@ -84,7 +105,9 @@ void UsbMicrophone::stop() {
     }
 }
 
-
+/**
+ * @brief Main capture loop that reads audio data and calls the callback
+ */
 void UsbMicrophone::captureLoop() {
     int size = _frames * _channels;
     std::vector<short> buffer(size);
