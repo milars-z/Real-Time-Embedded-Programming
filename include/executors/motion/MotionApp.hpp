@@ -25,7 +25,13 @@ enum class ARMMODE {
     EXPLORE,
 };
 
-
+/**
+ * @brief Motion execution module for the robotic arm.
+ *
+ * MotionExecutor receives commands from the brain module,
+ * parses motion instructions, and delegates execution to MotionManager.
+ * It also handles learning mode and object-based motion control.
+ */
 class MotionExecutor : public BaseExecutor<std::string> {
 public:
     MotionExecutor(std::atomic<int>& system_stete, std::shared_ptr<TaskMonitor> taskMonitor);
@@ -37,30 +43,30 @@ public:
 
     void _start(int core) override;
 
-    // Brain 调用，结束学习模式
+    // Called by Brain to exit learning mode
     void end_learnning_mode();
 
-    // 从supervisor处获取检测到的obj的位置坐标
+    // Receive detected object position from supervisor
     void get_obj_APP(int position_x,int position_y);
 
 private:
 
-    // 主要执行函数
+    // Main execution function
     void onExecute(const std::string& motionName) override;
 
-    // 执行者内部函数，获取当前模块名称
+    // Internal executor function to retrieve the current module name
     std::string get_module_name() override;
 
-    // 学习状态
+    // Check learning state
     bool checklearningstate();
 
-    // 意外退出检查
+    // Check for unexpected learning interruption
     bool check_acclearning_stop();
 
-    // 解析来自brain的指令
+    // Parse commands from Brain
     MotionCommand analyzecommand(const std::string& task);
 
-    // 解析模块状态
+    // Process module state
     void HandleState(BugCode_M msg);
 
 
