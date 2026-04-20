@@ -24,7 +24,7 @@ CameraExecutor::~CameraExecutor() {
     std::cout << "[End][CameraApp] destructor end" << std::endl;
 }
 
-// 线程绑定
+// Thread binding
 void CameraExecutor::pinThread(int num){
     pinThreadToCore(this->worker, "CameraTask", num);
 }
@@ -33,7 +33,7 @@ std::string CameraExecutor::get_module_name(){
     return "Camera";
 }
 
-// 内部线程退出
+// Internal thread shutdown
 void CameraExecutor::_stop(){
     if(cam){
         cam->stop_thread();
@@ -41,14 +41,14 @@ void CameraExecutor::_stop(){
     }
 }
 
-// 内部线程启动
+// Internal thread startup
 void CameraExecutor::_start(int core){
     if (!cam) return;
     cam->start_thread(core);
     std::cout << "[Init][CameraApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
-// Camera任务执行，线程函数
+// Camera task execution, thread function
 void CameraExecutor::onExecute(const std::string& task) {
 
     std::cout << "[Info][CameraApp] Executing task: " << task << std::endl;
@@ -68,13 +68,13 @@ void CameraExecutor::onExecute(const std::string& task) {
     
 }
 
-// 外部调用
+// Externally callable
 cv::Mat CameraExecutor::getLatestFrame() {
     std::lock_guard<std::mutex> lock(frameMtx);
     return cam->getProcessedFrame();
 }
 
-// Camera任务解析
+// Camera task parsing
 CameraCommand CameraExecutor::analyzecommand(const std::string& text){
 
     CameraCommand cmd;
