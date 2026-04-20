@@ -4,7 +4,11 @@
 #include "SystemCode.hpp"
 #include <iostream>
 
-
+/**
+ * @brief Constructor for CameraExecutor, initializes camera hardware
+ * @param system_state Reference to system state atomic variable
+ * @param taskMonitor Shared pointer to task monitor
+ */
 CameraExecutor::CameraExecutor(std::atomic<int>& system_state, std::shared_ptr<TaskMonitor> taskMonitor)
 :_taskMonitor(taskMonitor)
 {
@@ -20,20 +24,32 @@ CameraExecutor::CameraExecutor(std::atomic<int>& system_state, std::shared_ptr<T
     }
 }
 
+/**
+ * @brief Destructor for CameraExecutor
+ */
 CameraExecutor::~CameraExecutor() {
     std::cout << "[End][CameraApp] destructor end" << std::endl;
 }
 
-// 线程绑定
+/**
+ * @brief Pin the worker thread to a specific CPU core
+ * @param num CPU core number to pin to
+ */
 void CameraExecutor::pinThread(int num){
     pinThreadToCore(this->worker, "CameraTask", num);
 }
 
+/**
+ * @brief Get the module name
+ * @return Module name as string
+ */
 std::string CameraExecutor::get_module_name(){
     return "Camera";
 }
 
-// 内部线程退出
+/**
+ * @brief Stop the internal worker thread
+ */
 void CameraExecutor::_stop(){
     if(cam){
         cam->stop_thread();
@@ -41,14 +57,20 @@ void CameraExecutor::_stop(){
     }
 }
 
-// 内部线程启动
+/**
+ * @brief Start the internal worker thread
+ * @param core CPU core number to pin the thread to
+ */
 void CameraExecutor::_start(int core){
     if (!cam) return;
     cam->start_thread(core);
     std::cout << "[Init][CameraApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
-// Camera任务执行，线程函数
+/**
+ * @brief Execute camera task based on command string
+ * @param task Task command string to execute
+ */
 void CameraExecutor::onExecute(const std::string& task) {
 
     std::cout << "[Info][CameraApp] Executing task: " << task << std::endl;
@@ -68,13 +90,20 @@ void CameraExecutor::onExecute(const std::string& task) {
     
 }
 
-// 外部调用
+/**
+ * @brief Get the latest processed frame from camera
+ * @return Latest frame as OpenCV Mat
+ */
 cv::Mat CameraExecutor::getLatestFrame() {
     std::lock_guard<std::mutex> lock(frameMtx);
     return cam->getProcessedFrame();
 }
 
-// Camera任务解析
+/**
+ * @brief Analyze and parse camera command from text
+ * @param text Command text to analyze
+ * @return Parsed CameraCommand structure
+ */
 CameraCommand CameraExecutor::analyzecommand(const std::string& text){
 
     CameraCommand cmd;

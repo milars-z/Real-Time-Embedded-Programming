@@ -6,7 +6,11 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 
-
+/**
+ * @brief Constructor for MotionExecutor, initializes motion manager
+ * @param system_stete Reference to system state atomic variable
+ * @param taskMonitor Shared pointer to task monitor
+ */
 MotionExecutor::MotionExecutor(std::atomic<int>& system_stete, std::shared_ptr<TaskMonitor> taskMonitor) 
 :_taskMonitor(taskMonitor)
 {
@@ -16,6 +20,9 @@ MotionExecutor::MotionExecutor(std::atomic<int>& system_stete, std::shared_ptr<T
 
 }
 
+/**
+ * @brief Destructor for MotionExecutor, resets motion manager
+ */
 MotionExecutor::~MotionExecutor() {
 
     manager->excuteReset();
@@ -23,11 +30,17 @@ MotionExecutor::~MotionExecutor() {
     std::cout << "[End][MotionApp] destructor end" << std::endl;
 }
 
+/**
+ * @brief Get the module name
+ * @return Module name as string
+ */
 std::string MotionExecutor::get_module_name(){
     return "Motion";
 }
 
-// 阻塞退出
+/**
+ * @brief Stop the internal worker thread
+ */
 void MotionExecutor::_stop(){
     if(manager){
         manager->stop_thread();
@@ -35,30 +48,41 @@ void MotionExecutor::_stop(){
     }
 }
 
+/**
+ * @brief Start the internal worker thread
+ * @param core CPU core number to pin the thread to
+ */
 void MotionExecutor::_start(int core){
     if(!manager) return;
     manager->start_thread(core);
     std::cout << "[Init][MotionApp] Internal thread started, pinned to core:" << core << std::endl;
 }
 
-
+/**
+ * @brief Pin the worker thread to a specific CPU core
+ * @param num CPU core number to pin to
+ */
 void MotionExecutor::pinThread(int num){
     pinThreadToCore(this->worker,"MotionTask",num);
 }
 
+/**
+ * @brief Execute motion task based on command string
+ * @param task Task command string to execute
+ */
 void MotionExecutor::onExecute(const std::string& task) {
 
     if (!manager) return;
 
-    // 非学习模式
+
     if(armMode == ARMMODE::IDLE){
         
         MotionCommand cmd;
         BugCode_M state;
 
-        std::cout << "[Info][MotionApp] 正在执行动作: " << task << std::endl;
+        std::cout << "[Info][MotionApp] Executing task: " << task << std::endl;
         cmd = analyzecommand(task);
-        // 简易动作
+        // do simple motion
         if (cmd.command == "DO_MOTION"){
             manager->excuteTask(cmd.obj);
 
@@ -107,9 +131,12 @@ void MotionExecutor::onExecute(const std::string& task) {
 }
 
 
-// 分析string指令
-// 输入: text
-// 输出: MotionCommand
+
+/**
+ * @brief Analyze and parse motion command from text
+ * @param text Command text to analyze
+ * @return Parsed MotionCommand structure
+ */
 MotionCommand MotionExecutor::analyzecommand(const std::string& text){
 
     MotionCommand cmd;
@@ -156,7 +183,11 @@ MotionCommand MotionExecutor::analyzecommand(const std::string& text){
     return cmd;
 }
 
-// MotionAPP侧处理检测到的物品
+/**
+ * @brief Process detected object on motion app side
+ * @param position_x X position of detected object
+ * @param position_y Y position of detected object
+ */
 void MotionExecutor::get_obj_APP(int position_x,int position_y){
 
     std::cout << "[Info][MotionApp]detect : " << position_x  << "......" << position_y << std::endl;
@@ -165,8 +196,9 @@ void MotionExecutor::get_obj_APP(int position_x,int position_y){
     
 }
 
-// 外侧调用
-// 根据supervisor侧的反馈结束学习模式
+/**
+ * @brief End learning mode based on supervisor feedback
+ */
 void MotionExecutor::end_learnning_mode(){
     armMode = ARMMODE::IDLE;
 }
