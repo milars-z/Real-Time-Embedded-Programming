@@ -238,7 +238,7 @@ bool RobotBrain::extractIntent(const std::string& text) {
         }
 
         // do motion xxx
-        // please do motio dance
+        // please do motion dance
         if (tokens[i] == "do" && i + 2 < tokens.size() && tokens[i + 1] == "motion") {
             if(motion) motion->pushTask("MOTIONSET:" + tokens[i + 2]);
             return true;
